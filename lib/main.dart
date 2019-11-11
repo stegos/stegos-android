@@ -16,14 +16,7 @@ class StegosApp extends StatelessWidget {
   }
 }
 
-class StegosMainPage extends StatefulWidget {
-  StegosMainPage({Key key}) : super(key: key);
-
-  @override
-  _StegosMainPageState createState() => _StegosMainPageState();
-}
-
-class _StegosMainPageState extends State<StegosMainPage> {
+class StegosMainPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
