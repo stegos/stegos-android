@@ -1,6 +1,7 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
-import 'package:stegos_wallet/widgets/app_icon_widget.dart';
+import 'package:stegos_wallet/widgets/widget_app_icon.dart';
 
 class SplashScreen extends StatefulWidget {
   @override
@@ -17,13 +18,13 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Material(
-      child: Center(child: AppIconWidget(image: 'assets/icons/logo.png')),
+      child: Center(child: const AppIconWidget(image: 'assets/icons/logo.png')),
     );
   }
 
-  startTimer() {
-    var _duration = Duration(milliseconds: 3000);
-    return Timer(_duration, navigate);
+  Timer startTimer() {
+    final duration = Duration(milliseconds: 3000);
+    return Timer(duration, navigate);
   }
 
   navigate() async {
