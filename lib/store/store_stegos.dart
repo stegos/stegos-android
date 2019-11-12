@@ -11,7 +11,13 @@ abstract class _StegosStore extends StoreSupport with Store {
 
   final StegosEnv env;
 
-  Future<void> activate() async {
-    // todo:
-  }
+  /// Current app route.
+  @observable
+  String route = '';
+
+  @override
+  Future<void> activate() async {}
+
+  @override
+  void dispose() {}
 }
