@@ -8,7 +8,11 @@ import 'log/loggable.dart';
 
 enum EnvType { DEVELOPMENT, STAGING, PRODUCTION, TESTING }
 
-abstract class Env<W extends Widget> with Loggable<Env> {
+abstract class Env<W extends Widget> {
+  Env() {
+    log = Log(runtimeType.toString());
+  }
+
   static EnvType type = EnvType.DEVELOPMENT;
 
   static Future<void> resetOrientation() {
@@ -20,6 +24,7 @@ abstract class Env<W extends Widget> with Loggable<Env> {
     ]);
   }
 
+  Log log;
   Directory dataDirectory;
   Directory tempDirectory;
 
@@ -28,9 +33,9 @@ abstract class Env<W extends Widget> with Loggable<Env> {
     dataDirectory = await getApplicationDocumentsDirectory();
     tempDirectory = await getTemporaryDirectory();
     await Env.resetOrientation();
-    final rootWidget = await openImpl();
+    final widget = await openImpl();
     log.info('Application initialized');
-    return rootWidget;
+    return widget;
   }
 
   @protected
