@@ -13,8 +13,6 @@ abstract class Env<W extends Widget> {
     log = Log(runtimeType.toString());
   }
 
-  static EnvType type = EnvType.DEVELOPMENT;
-
   static Future<void> resetOrientation() {
     return SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
@@ -24,6 +22,7 @@ abstract class Env<W extends Widget> {
     ]);
   }
 
+  EnvType type = EnvType.DEVELOPMENT;
   Log log;
   Directory dataDirectory;
   Directory tempDirectory;

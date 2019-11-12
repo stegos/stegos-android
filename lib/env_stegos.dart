@@ -48,3 +48,9 @@ class StegosEnv extends Env<Widget> {
     );
   }
 }
+
+class StegosEnvProduction extends StegosEnv {
+  StegosEnvProduction() {
+    type = EnvType.PRODUCTION;
+  }
+}
