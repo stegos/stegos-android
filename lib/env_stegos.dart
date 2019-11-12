@@ -13,7 +13,7 @@ class StegosEnv extends Env<Widget> {
 
   Future<EJDB2> getDb() async => _db ??= await EJDB2Builder('stegos_wallet.db').open();
 
-  Future<void> _suspend() async {
+  Future<void> _suspend(AppLifecycleState state) async {
     log.info('Suspending environment');
     if (_db != null) {
       await _db.close().catchError((err, StackTrace st) {
@@ -38,7 +38,7 @@ class StegosEnv extends Env<Widget> {
               case AppLifecycleState.paused:
               case AppLifecycleState.inactive:
               case AppLifecycleState.suspending:
-                return _suspend();
+                return _suspend(state);
                 break;
               default:
                 break;
