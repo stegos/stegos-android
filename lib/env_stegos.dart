@@ -13,7 +13,8 @@ class StegosEnv extends Env<Widget> {
     return MultiProvider(
       providers: [
         Provider<Injector>.value(value: injector),
-        Provider<StegosEnv>.value(value: this)
+        Provider<StegosEnv>.value(value: this),
+        Provider<StegosStore>.value(value: rootStore),
       ],
       child: LifecycleWatcher(stateHandler: (state) async {
         switch (state) {
