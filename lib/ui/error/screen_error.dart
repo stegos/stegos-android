@@ -1,7 +1,7 @@
 import 'package:flutter/widgets.dart';
 
 class ErrorScreen extends StatelessWidget {
-  const ErrorScreen({@required this.message, Key key}) : super(key: key);
+  const ErrorScreen({Key key, @required this.message}) : super(key: key);
 
   final String message;
 

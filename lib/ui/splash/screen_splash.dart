@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:stegos_wallet/widgets/widget_app_icon.dart';
 
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({this.nextRoute, this.timeoutMilliseconds = 3000, Key key}) : super(key: key);
+  const SplashScreen({Key key, this.nextRoute, this.timeoutMilliseconds = 3000}) : super(key: key);
 
   /// Optional next route after timeout.
   final String nextRoute;
