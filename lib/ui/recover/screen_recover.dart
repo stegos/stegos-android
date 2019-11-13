@@ -1,0 +1,12 @@
+import 'package:flutter/widgets.dart';
+
+class RecoverScreen extends StatelessWidget {
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      alignment: Alignment.center,
+      child: Text('Recover screen'),
+    );
+  }
+}

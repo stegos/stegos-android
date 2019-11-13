@@ -9,6 +9,9 @@ import 'package:stegos_wallet/widgets/widget_lifecycle.dart';
 /// Stegos wallet app environment.
 ///
 class StegosEnv extends Env<Widget> {
+  /// Root store.
+  StegosStore store;
+
   EJDB2 _db;
 
   Future<EJDB2> getDb() async => _db ??= await EJDB2Builder('stegos_wallet.db').open();
@@ -17,7 +20,7 @@ class StegosEnv extends Env<Widget> {
     log.info('Suspending environment');
     if (_db != null) {
       await _db.close().catchError((err, StackTrace st) {
-        log.severe('Error during closing database', err, st);
+        log.severe('Error closing db', err, st);
       }).whenComplete(() {
         _db = null;
       });
@@ -26,25 +29,36 @@ class StegosEnv extends Env<Widget> {
 
   @override
   Future<Widget> openImpl() async {
-    final store = StegosStore(this);
+    store = StegosStore(this);
+
     return MultiProvider(
       providers: [
         Provider<StegosEnv>.value(value: this),
         Provider<StegosStore>.value(value: store),
       ],
-      child: LifecycleWatcher(
-          stateHandler: (state) async {
-            switch (state) {
-              case AppLifecycleState.paused:
-              case AppLifecycleState.inactive:
-              case AppLifecycleState.suspending:
-                return _suspend(state);
-                break;
-              default:
-                break;
-            }
-          },
-          builder: (context, state) => StegosApp()),
+      child: LifecycleWatcher(stateHandler: (state) async {
+        switch (state) {
+          case AppLifecycleState.paused:
+          case AppLifecycleState.inactive:
+          case AppLifecycleState.suspending:
+            return _suspend(state);
+            break;
+          default:
+            break;
+        }
+      }, builder: (context, state) {
+        switch (state) {
+          case AppLifecycleState.paused:
+          case AppLifecycleState.inactive:
+          case AppLifecycleState.suspending:
+            // Dot not show anything
+            return const SizedBox.shrink();
+          default:
+            return StegosApp(
+              initial: state == null,
+            );
+        }
+      }),
     );
   }
 }

@@ -11,9 +11,9 @@ abstract class _StegosStore extends StoreSupport with Store {
 
   final StegosEnv env;
 
-  /// Current app route.
+  /// Is user is logged in
   @observable
-  String route = '';
+  bool loggedIn = false;
 
   @override
   Future<void> activate() async {}
