@@ -12,7 +12,7 @@ import 'package:stegos_wallet/ui/routes.dart';
 import 'package:stegos_wallet/ui/splash/screen_splash.dart';
 import 'package:stegos_wallet/ui/welcome/screen_welcome.dart';
 
-// don't do sore external state for StatelessWidget except some rare special cases
+// don't store external state for StatelessWidget except some rare special cases
 int _splashStart = 0;
 
 class StegosApp extends StatelessWidget {
