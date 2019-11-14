@@ -14,21 +14,33 @@ class StegosEnv extends Env<Widget> {
 
   EJDB2 _db;
 
+  Future<T> useDb<T>(Future<T> Function(EJDB2 db) fn) {
+    final own = _db == null;
+    return getDb().then(fn).whenComplete(() async {
+      if (own) {
+        await _closeDb();
+      }
+    });
+  }
+
   Future<EJDB2> getDb() async => _db ??= await EJDB2Builder('stegos_wallet.db').open();
+
+  Future<void> _closeDb() => (_db != null)
+      ? _db.close().catchError((err, StackTrace st) {
+          log.severe('Error closing db', err, st);
+        }).whenComplete(() {
+          _db = null;
+        })
+      : Future.value();
 
   Future<void> _suspend(AppLifecycleState state) async {
     log.info('Suspending environment');
-    if (_db != null) {
-      await _db.close().catchError((err, StackTrace st) {
-        log.severe('Error closing db', err, st);
-      }).whenComplete(() {
-        _db = null;
-      });
-    }
+    return _closeDb();
   }
 
   @override
   Future<Widget> openImpl() async {
+    await getDb();
     store = StegosStore(this);
 
     return MultiProvider(
