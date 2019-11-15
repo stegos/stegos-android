@@ -10,6 +10,7 @@ import 'package:stegos_wallet/ui/accounts/screen_accounts.dart';
 import 'package:stegos_wallet/ui/error/screen_error.dart';
 import 'package:stegos_wallet/ui/routes.dart';
 import 'package:stegos_wallet/ui/splash/screen_splash.dart';
+import 'package:stegos_wallet/ui/themes.dart';
 import 'package:stegos_wallet/ui/welcome/screen_welcome.dart';
 
 // don't store external state for StatelessWidget except some rare cases
@@ -60,7 +61,7 @@ class StegosApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: env.type != EnvType.PRODUCTION,
       title: 'Stegos Wallet',
-      theme: ThemeData(primarySwatch: Colors.blue),
+      theme: StegosThemes.baseTheme,
       home: buildHomeScreen(),
       routes: Routes.routes,
     );
