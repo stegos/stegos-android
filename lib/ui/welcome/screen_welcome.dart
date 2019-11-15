@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:stegos_wallet/ui/routes.dart';
 import 'package:stegos_wallet/ui/themes.dart';
 
 class WelcomeScreen extends StatelessWidget {
@@ -27,16 +28,12 @@ class WelcomeScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: <Widget>[
                         RaisedButton(
-                          onPressed: () {
-                            // todo:
-                          },
+                          onPressed: () => onNewUser(context),
                           child: const Text('I`M NEW USER'),
                         ),
                         FlatButton(
                           textTheme: ButtonTextTheme.accent,
-                          onPressed: () {
-                            // todo:
-                          },
+                          onPressed: () => onHaveAccount(context),
                           child: const Text(
                             'I ALREADY HAVE ACCOUNT',
                           ),
@@ -48,4 +45,12 @@ class WelcomeScreen extends StatelessWidget {
           ),
         ),
       );
+
+  void onHaveAccount(BuildContext context) {
+    Navigator.pushReplacementNamed(context, Routes.accounts);
+  }
+
+  void onNewUser(BuildContext context) {
+    //
+  }
 }

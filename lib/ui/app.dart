@@ -47,13 +47,13 @@ class StegosApp extends StatelessWidget {
               // Application opened for the first time
               return SplashScreen(
                   key: UniqueKey(),
-                  nextRoute: env.store.loggedIn ? Routes.accounts : Routes.welcome,
+                  nextRoute: !env.store.needWelcome ? Routes.accounts : Routes.welcome,
                   timeoutMilliseconds: timeoutMilliseconds > 0 ? timeoutMilliseconds : 0);
             }
-            if (env.store.loggedIn) {
-              return AccountsScreen();
-            } else {
+            if (env.store.needWelcome) {
               return WelcomeScreen();
+            } else {
+              return AccountsScreen();
             }
           },
         );

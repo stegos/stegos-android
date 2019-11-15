@@ -4,27 +4,26 @@ mixin StegosColors {
   static const white = Color(0xfffefefe);
   static const black = Color(0xff000000);
   static const splashBackground = Color(0xff171c29);
+  static const backgroundColor = Color(0xff171c29);
 
   static const primaryColor = Colors.deepOrange;
+  static const buttonColor = primaryColor;
   static final primaryColorLight = Colors.orange.shade200;
   static final primaryColorDark = Colors.orange.shade900;
   static const primaryColorBrightness = Brightness.dark;
-  static const buttonColor = primaryColor;
 
   //static const accentColor = Color(0xffEFF1F3);
   static const accentColor = Color(0xffe26e04);
   static const accentColorBrightness = Brightness.light;
 
   static const textSelectionColor = Colors.orangeAccent;
-  static const backgroundColor = Color(0xff171c29);
 
   static final colorScheme = ColorScheme.fromSwatch(
-          brightness: Brightness.dark,
-          primarySwatch: StegosColors.primaryColor,
-          primaryColorDark: StegosColors.primaryColorDark,
-          accentColor: StegosColors.accentColor,
-          backgroundColor: StegosColors.backgroundColor)
-      .copyWith();
+      brightness: Brightness.dark,
+      primarySwatch: StegosColors.primaryColor,
+      primaryColorDark: StegosColors.primaryColorDark,
+      accentColor: StegosColors.accentColor,
+      backgroundColor: StegosColors.backgroundColor);
 }
 
 mixin StegosDecorators {}
@@ -64,14 +63,11 @@ mixin StegosThemes {
     cursorColor: StegosColors.white,
   );
 
-  static final _baseTextTheme = _defaults.textTheme.copyWith();
+  static final _baseTextTheme = _defaults.textTheme;
 
-  static final _basePrimaryTextTheme = _defaults.primaryTextTheme.copyWith();
+  static final _basePrimaryTextTheme = _defaults.primaryTextTheme;
 
-  static final _baseAccentTextTheme = _defaults.accentTextTheme.copyWith();
-
-  // final ButtonThemeData buttonTheme = ButtonTheme.of(context);
-  // textStyle: theme.textTheme.button.copyWith(color: buttonTheme.getTextColor(this)),
+  static final _baseAccentTextTheme = _defaults.accentTextTheme;
 
   static final baseTheme = _defaults.copyWith(
       textTheme: _baseTextTheme,
@@ -84,5 +80,5 @@ mixin StegosThemes {
   static final splashTheme = ThemeData.dark().copyWith(
       backgroundColor: StegosColors.splashBackground, canvasColor: StegosColors.splashBackground);
 
-  static final welcomeTheme = baseTheme.copyWith();
+  static final welcomeTheme = baseTheme;
 }

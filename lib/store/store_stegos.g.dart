@@ -9,20 +9,16 @@ part of 'store_stegos.dart';
 // ignore_for_file: non_constant_identifier_names, unnecessary_lambdas, prefer_expression_function_bodies, lines_longer_than_80_chars, avoid_as, avoid_annotating_with_dynamic
 
 mixin _$StegosStore on _StegosStore, Store {
-  final _$loggedInAtom = Atom(name: '_StegosStore.loggedIn');
+  Computed<bool> _$needWelcomeComputed;
 
   @override
-  bool get loggedIn {
-    _$loggedInAtom.context.enforceReadPolicy(_$loggedInAtom);
-    _$loggedInAtom.reportObserved();
-    return super.loggedIn;
-  }
+  bool get needWelcome =>
+      (_$needWelcomeComputed ??= Computed<bool>(() => super.needWelcome)).value;
+
+  final _$activateAsyncAction = AsyncAction('activate');
 
   @override
-  set loggedIn(bool value) {
-    _$loggedInAtom.context.conditionallyRunInAction(() {
-      super.loggedIn = value;
-      _$loggedInAtom.reportChanged();
-    }, _$loggedInAtom, name: '${_$loggedInAtom.name}_set');
+  Future<void> activate() {
+    return _$activateAsyncAction.run(() => super.activate());
   }
 }
