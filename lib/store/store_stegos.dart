@@ -16,9 +16,11 @@ abstract class _StegosStore extends StoreSupport with Store {
   bool loggedIn = false;
 
   @override
+  @action
   Future<void> activate() async {
     //await Future.delayed(Duration(microseconds: 1000));
     //print('Activated!!!!');
+
   }
 
   @override

@@ -33,6 +33,7 @@ class WelcomeScreen extends StatelessWidget {
                           child: const Text('I`M NEW USER'),
                         ),
                         FlatButton(
+                          textTheme: ButtonTextTheme.accent,
                           onPressed: () {
                             // todo:
                           },

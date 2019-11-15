@@ -1,3 +1,3 @@
 class Config {
-  static const splashScreenTimeout = 3000;
+  static const splashScreenTimeout = 2000;
 }
