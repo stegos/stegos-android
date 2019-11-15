@@ -1,5 +1,6 @@
 import 'package:ejdb2_flutter/ejdb2_flutter.dart';
 import 'package:flutter/widgets.dart';
+import 'package:pedantic/pedantic.dart';
 import 'package:provider/provider.dart';
 import 'package:stegos_wallet/env.dart';
 import 'package:stegos_wallet/store/store_stegos.dart';
@@ -14,6 +15,8 @@ class StegosEnv extends Env<Widget> {
 
   EJDB2 _db;
 
+  bool _suspended = true;
+
   Future<T> useDb<T>(Future<T> Function(EJDB2 db) fn) {
     final own = _db == null;
     return getDb().then(fn).whenComplete(() async {
@@ -25,17 +28,20 @@ class StegosEnv extends Env<Widget> {
 
   Future<EJDB2> getDb() async => _db ??= await EJDB2Builder('stegos_wallet.db').open();
 
-  Future<void> _closeDb() => (_db != null)
-      ? _db.close().catchError((err, StackTrace st) {
-          log.severe('Error closing db', err, st);
-        }).whenComplete(() {
-          _db = null;
-        })
-      : Future.value();
+  Future<void> _closeDb() {
+    if (_db != null) {
+      final db = _db;
+      _db = null;
+      return db.close().catchError((err, StackTrace st) {
+        log.severe('Error closing db', err, st);
+      });
+    }
+    return Future.value();
+  }
 
-  Future<void> _suspend(AppLifecycleState state) async {
+  Future<void> _suspend(AppLifecycleState state) {
     log.info('Suspending environment');
-    return _closeDb();
+    return store.disposeAsync().whenComplete(_closeDb);
   }
 
   @override
@@ -53,7 +59,10 @@ class StegosEnv extends Env<Widget> {
           case AppLifecycleState.paused:
           case AppLifecycleState.inactive:
           case AppLifecycleState.suspending:
-            return _suspend(state);
+            if (!_suspended) {
+              _suspended = true;
+              unawaited(_suspend(state));
+            }
             break;
           default:
             break;
@@ -66,8 +75,9 @@ class StegosEnv extends Env<Widget> {
             // Dot not show anything
             return const SizedBox.shrink();
           default:
+            _suspended = false;
             return StegosApp(
-              initial: state == null,
+              showSplash: state == null,
             );
         }
       }),

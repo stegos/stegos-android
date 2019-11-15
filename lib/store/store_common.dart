@@ -10,4 +10,6 @@ abstract class StoreSupport implements Store {
 
   @protected
   Future<void> activate();
+
+  Future<void> disposeAsync();
 }

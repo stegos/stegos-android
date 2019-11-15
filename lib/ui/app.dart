@@ -17,9 +17,9 @@ import 'package:stegos_wallet/ui/welcome/screen_welcome.dart';
 int _splashStart = 0;
 
 class StegosApp extends StatelessWidget {
-  const StegosApp({Key key, this.initial}) : super(key: key);
+  const StegosApp({Key key, this.showSplash}) : super(key: key);
 
-  final bool initial;
+  final bool showSplash;
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +38,7 @@ class StegosApp extends StatelessWidget {
               default:
                 break;
             }
-            if (initial) {
+            if (showSplash) {
               int timeoutMilliseconds = Config.splashScreenTimeout;
               if (_splashStart > 0) {
                 timeoutMilliseconds -= DateTime.now().millisecondsSinceEpoch - _splashStart;

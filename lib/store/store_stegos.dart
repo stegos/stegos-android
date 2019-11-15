@@ -27,23 +27,36 @@ abstract class _StegosStore extends StoreSupport with Store {
 
     settings.clear();
 
-    await db.getOptional('settings', DOC_SETTINGS_ID).then((oval) async {
-      if (oval.isPresent) {
-        final doc = oval.value.object as Map<dynamic, dynamic>;
+    await db.getOptional('settings', DOC_SETTINGS_ID).then((ov) async {
+      if (ov.isPresent) {
+        final doc = ov.value.object as Map<dynamic, dynamic>;
         doc.entries.forEach((e) {
           settings[e.key.toString()] = e.value;
         });
-        return oval.value.id;
+        return ov.value.id;
       } else {
         settings.addAll(<String, dynamic>{'needWelcome': true});
-        return flushSettings();
+        return _flushSettings();
       }
     });
   }
 
   @override
-  void dispose() {}
+  Future<void> disposeAsync() {
+    return _flushSettings();
+  }
 
-  Future<int> flushSettings() => env.useDb((db) => db.put(
+  Future<int> _flushSettings() => env.useDb((db) => db.put(
       'settings', settings.map((k, v) => MapEntry<dynamic, dynamic>(k, v)), DOC_SETTINGS_ID));
+
+  Future<void> _mergeSettings(Map<String, dynamic> update) => env.useDb((db) async {
+        update.entries.forEach((e) {
+          if (e.value == null) {
+            settings.remove(e.key);
+          } else {
+            settings[e.key] = e.value;
+          }
+          return db.patch('settings', update, DOC_SETTINGS_ID);
+        });
+      });
 }
