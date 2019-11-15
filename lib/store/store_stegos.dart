@@ -23,7 +23,7 @@ abstract class _StegosStore extends StoreSupport with Store {
 
   final lastRoute = Observable<RouteSettings>(null);
 
-  Future<void> updateLastRoute(RouteSettings settings) => _mergeSettings({
+  Future<void> persistLastRoute(RouteSettings settings) => _mergeSettings({
         'lastRoute': {'name': settings.name, 'arguments': settings.arguments}
       }).then((_) {
         mobx.Action(() {

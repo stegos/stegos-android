@@ -68,7 +68,7 @@ mixin Routes {
     return (RouteSettings settings) {
       final name = settings.name;
       if (name != null && name != root) {
-        unawaited(env.store.updateLastRoute(settings));
+        unawaited(env.store.persistLastRoute(settings));
       }
       switch (name) {
         case root:
