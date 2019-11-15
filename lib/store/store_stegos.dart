@@ -1,4 +1,6 @@
+import 'package:flutter/widgets.dart';
 import 'package:mobx/mobx.dart';
+import 'package:mobx/mobx.dart' as mobx;
 import 'package:stegos_wallet/env_stegos.dart';
 import 'package:stegos_wallet/store/store_common.dart';
 
@@ -18,6 +20,17 @@ abstract class _StegosStore extends StoreSupport with Store {
 
   @computed
   bool get needWelcome => settings['needWelcome'] as bool ?? true;
+
+  final lastRoute = Observable<RouteSettings>(null);
+
+  Future<void> updateLastRoute(RouteSettings settings) => _mergeSettings({
+        'lastRoute': {'name': settings.name, 'arguments': settings.arguments}
+      }).then((_) {
+        mobx.Action(() {
+          print('Last route: ${settings.name}');
+          lastRoute.value = settings;
+        });
+      });
 
   @override
   @action
@@ -39,6 +52,11 @@ abstract class _StegosStore extends StoreSupport with Store {
         return _flushSettings();
       }
     });
+
+    if (settings.containsKey('lastRoute')) {
+      final v = settings['lastRoute'];
+      lastRoute.value = RouteSettings(name: v['name'] as String, arguments: v['arguments']);
+    }
   }
 
   @override

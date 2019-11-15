@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:mobx/mobx.dart';
+import 'package:pedantic/pedantic.dart';
 import 'package:stegos_wallet/config.dart';
 import 'package:stegos_wallet/env_stegos.dart';
 import 'package:stegos_wallet/ui/accounts/screen_accounts.dart';
@@ -33,6 +34,10 @@ mixin Routes {
               default:
                 break;
             }
+
+            String nextRoute = env.store.lastRoute.value?.name;
+            nextRoute ??= !env.store.needWelcome ? Routes.accounts : Routes.welcome;
+
             if (showSplash) {
               int timeoutMilliseconds = Config.splashScreenTimeout;
               if (_splashStart > 0) {
@@ -42,9 +47,10 @@ mixin Routes {
               // Application opened for the first time
               return SplashScreen(
                   key: UniqueKey(),
-                  nextRoute: !env.store.needWelcome ? Routes.accounts : Routes.welcome,
+                  nextRoute: nextRoute,
                   timeoutMilliseconds: timeoutMilliseconds > 0 ? timeoutMilliseconds : 0);
             }
+
             if (env.store.needWelcome) {
               return WelcomeScreen();
             } else {
@@ -61,6 +67,9 @@ mixin Routes {
 
     return (RouteSettings settings) {
       final name = settings.name;
+      if (name != null && name != root) {
+        unawaited(env.store.updateLastRoute(settings));
+      }
       switch (name) {
         case root:
           return MaterialPageRoute(builder: buildHomeScreen);
