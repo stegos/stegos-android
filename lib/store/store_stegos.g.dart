@@ -21,4 +21,16 @@ mixin _$StegosStore on _StegosStore, Store {
   Future<void> activate() {
     return _$activateAsyncAction.run(() => super.activate());
   }
+
+  final _$_StegosStoreActionController = ActionController(name: '_StegosStore');
+
+  @override
+  void _updateLastRoute(RouteSettings settings) {
+    final _$actionInfo = _$_StegosStoreActionController.startAction();
+    try {
+      return super._updateLastRoute(settings);
+    } finally {
+      _$_StegosStoreActionController.endAction(_$actionInfo);
+    }
+  }
 }

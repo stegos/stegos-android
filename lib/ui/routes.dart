@@ -21,6 +21,8 @@ mixin Routes {
   static const accounts = 'accounts';
 
   static RouteFactory createRouteFactory(StegosEnv env, bool showSplash) {
+    MaterialPageRoute Function(RouteSettings settings) routeFactoryFn;
+
     Widget buildHomeScreen(BuildContext context) => Observer(
           builder: (context) {
             switch (env.store.activated.status) {
@@ -51,11 +53,7 @@ mixin Routes {
                   timeoutMilliseconds: timeoutMilliseconds > 0 ? timeoutMilliseconds : 0);
             }
 
-            if (env.store.needWelcome) {
-              return WelcomeScreen();
-            } else {
-              return AccountsScreen();
-            }
+            return routeFactoryFn(RouteSettings(name: nextRoute)).builder(context);
           },
         );
 
@@ -65,7 +63,7 @@ mixin Routes {
       );
     }
 
-    return (RouteSettings settings) {
+    return routeFactoryFn = (RouteSettings settings) {
       final name = settings.name;
       if (name != null && name != root) {
         unawaited(env.store.persistLastRoute(settings));

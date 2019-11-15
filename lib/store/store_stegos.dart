@@ -26,11 +26,14 @@ abstract class _StegosStore extends StoreSupport with Store {
   Future<void> persistLastRoute(RouteSettings settings) => _mergeSettings({
         'lastRoute': {'name': settings.name, 'arguments': settings.arguments}
       }).then((_) {
-        mobx.Action(() {
-          print('Last route: ${settings.name}');
-          lastRoute.value = settings;
-        });
+        _updateLastRoute(settings);
       });
+
+  @action
+  void _updateLastRoute(RouteSettings settings) {
+    print('Last route: ${settings.name}');
+    lastRoute.value = settings;
+  }
 
   @override
   @action
@@ -40,7 +43,7 @@ abstract class _StegosStore extends StoreSupport with Store {
 
     settings.clear();
 
-    await db.getOptional('settings', DOC_SETTINGS_ID).then((ov) async {
+    await db.getOptional('settings', DOC_SETTINGS_ID).then((ov) {
       if (ov.isPresent) {
         final doc = ov.value.object as Map<dynamic, dynamic>;
         doc.entries.forEach((e) {
@@ -55,7 +58,7 @@ abstract class _StegosStore extends StoreSupport with Store {
 
     if (settings.containsKey('lastRoute')) {
       final v = settings['lastRoute'];
-      lastRoute.value = RouteSettings(name: v['name'] as String, arguments: v['arguments']);
+      _updateLastRoute(RouteSettings(name: v['name'] as String, arguments: v['arguments']));
     }
   }
 
