@@ -35,4 +35,6 @@ mixin StegosThemes {
 
   static final splashTheme = ThemeData.dark().copyWith(
       backgroundColor: StegosColors.splashBackground, canvasColor: StegosColors.splashBackground);
+
+  static final welcomeTheme = baseTheme.copyWith(/* */);
 }
