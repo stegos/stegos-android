@@ -25,6 +25,7 @@ mixin Routes {
 
     Widget buildHomeScreen(BuildContext context) => Observer(
           builder: (context) {
+
             switch (env.store.activated.status) {
               case FutureStatus.pending:
                 _splashStart = DateTime.now().millisecondsSinceEpoch;
@@ -37,8 +38,8 @@ mixin Routes {
                 break;
             }
 
-            String nextRoute = env.store.lastRoute.value?.name;
-            nextRoute ??= !env.store.needWelcome ? Routes.accounts : Routes.welcome;
+            //String nextRoute = env.store.lastRoute.value?.name;
+            String nextRoute = !env.store.needWelcome ? Routes.accounts : Routes.welcome;
 
             if (showSplash) {
               int timeoutMilliseconds = Config.splashScreenTimeout;
