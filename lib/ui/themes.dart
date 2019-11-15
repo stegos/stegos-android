@@ -10,6 +10,7 @@ mixin StegosDecorators {}
 
 mixin StegosThemes {
   static final _defaults = ThemeData(
+      fontFamily: 'Roboto',
       typography: Typography(
         platform: TargetPlatform.android,
         englishLike: Typography.englishLike2018,
@@ -36,5 +37,12 @@ mixin StegosThemes {
   static final splashTheme = ThemeData.dark().copyWith(
       backgroundColor: StegosColors.splashBackground, canvasColor: StegosColors.splashBackground);
 
-  static final welcomeTheme = baseTheme.copyWith(/* */);
+  static final welcomeTheme = baseTheme.copyWith(
+      buttonTheme: ButtonThemeData(
+    buttonColor: const Color(0xffff6c00),
+    textTheme: ButtonTextTheme.primary,
+    colorScheme: ColorScheme.light(
+        primary: const Color(0xffff6c00), primaryVariant: const Color(0xffff7b00)),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(2.0)),
+  ));
 }

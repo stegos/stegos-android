@@ -8,33 +8,40 @@ class WelcomeScreen extends StatelessWidget {
         data: StegosThemes.welcomeTheme,
         child: Scaffold(
           body: Container(
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                image: const AssetImage('assets/images/welcome_background.png'),
+                fit: BoxFit.cover,
+              ),
+            ),
             padding: const EdgeInsets.symmetric(horizontal: 10),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 Image(
-                  image: const AssetImage('assets/images/image_placeholder.png'),
+                  image: const AssetImage('assets/images/logo.png'),
                 ),
-                SizedBox(
-                  width: double.infinity,
-                  child: RaisedButton(
-                    onPressed: () {
-                      // todo:
-                    },
-                    child: const Text('I`M NEW USER', style: TextStyle(fontSize: 14)),
-                  ),
-                ),
-                SizedBox(
-                    width: double.infinity,
-                    child: FlatButton(
-                      onPressed: () {
-                        // todo:
-                      },
-                      child: const Text(
-                        'I ALREADY HAVE ACCOUNT',
-                        style: TextStyle(color: Color(0xffff7b00)),
-                      ),
-                    ))
+                Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 48),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: <Widget>[
+                        RaisedButton(
+                          onPressed: () {
+                            // todo:
+                          },
+                          child: const Text('I`M NEW USER'),
+                        ),
+                        FlatButton(
+                          onPressed: () {
+                            // todo:
+                          },
+                          child: const Text(
+                            'I ALREADY HAVE ACCOUNT',
+                          ),
+                        )
+                      ],
+                    )),
               ],
             ),
           ),
