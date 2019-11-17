@@ -31,7 +31,6 @@ abstract class _StegosStore extends StoreSupport with Store {
 
   @action
   void _updateLastRoute(RouteSettings settings) {
-    print('Last route: ${settings.name}');
     lastRoute.value = settings;
   }
 

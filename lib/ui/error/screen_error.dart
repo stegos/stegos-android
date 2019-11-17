@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
 class ErrorScreen extends StatelessWidget {
@@ -8,9 +9,10 @@ class ErrorScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // todo:
-    return Container(
-      alignment: Alignment.center,
-      child: Text('Recover screen'),
+    return Scaffold(
+      body: Center(
+        child: Text(message),
+      ),
     );
   }
 }

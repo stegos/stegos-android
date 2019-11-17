@@ -39,14 +39,13 @@ class StegosEnv extends Env<Widget> {
     return Future.value();
   }
 
-  Future<void> _suspend(AppLifecycleState state) {
+  void _suspend(AppLifecycleState state) {
     log.info('Suspending environment');
-    return store.disposeAsync().whenComplete(_closeDb);
+    unawaited(store.disposeAsync().whenComplete(_closeDb));
   }
 
   @override
   Future<Widget> openImpl() async {
-    await getDb();
     store = StegosStore(this);
 
     return MultiProvider(
@@ -54,24 +53,15 @@ class StegosEnv extends Env<Widget> {
         Provider<StegosEnv>.value(value: this),
         Provider<StegosStore>.value(value: store),
       ],
-      child: LifecycleWatcher(stateHandler: (state) async {
+      child: LifecycleWatcher(builder: (context, state) {
         switch (state) {
           case AppLifecycleState.paused:
           case AppLifecycleState.inactive:
           case AppLifecycleState.suspending:
             if (!_suspended) {
               _suspended = true;
-              unawaited(_suspend(state));
+              _suspend(state);
             }
-            break;
-          default:
-            break;
-        }
-      }, builder: (context, state) {
-        switch (state) {
-          case AppLifecycleState.paused:
-          case AppLifecycleState.inactive:
-          case AppLifecycleState.suspending:
             // Dot not show anything
             return const SizedBox.shrink();
           default:

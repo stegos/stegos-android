@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:mobx/mobx.dart';
 import 'package:pedantic/pedantic.dart';
 import 'package:stegos_wallet/config.dart';
@@ -14,6 +13,81 @@ import 'error/screen_error.dart';
 // don't store external state for StatelessWidget except some rare cases
 int _splashStart = 0;
 
+class _InitialRouteScreen extends StatefulWidget {
+  const _InitialRouteScreen({Key key, this.env, this.routeFactoryFn, this.showSplash})
+      : super(key: key);
+
+  final bool showSplash;
+
+  final StegosEnv env;
+
+  final MaterialPageRoute Function(RouteSettings settings) routeFactoryFn;
+
+  @override
+  State<StatefulWidget> createState() => _InitialRouteScreenState();
+}
+
+class _InitialRouteScreenState extends State<_InitialRouteScreen> {
+  ReactionDisposer _disposer;
+
+  FutureStatus _status;
+
+  @override
+  void dispose() {
+    if (_disposer != null) {
+      _disposer();
+    }
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final env = widget.env;
+    if (_disposer == null) {
+      _status = env.store.activated.status;
+      _disposer = reaction<FutureStatus>((_) => env.store.activated.status, (s) {
+        setState(() {
+          _status = s;
+        });
+      });
+    }
+    switch (_status) {
+      case FutureStatus.pending:
+        _splashStart = DateTime.now().millisecondsSinceEpoch;
+        return const SplashScreen();
+        break;
+      case FutureStatus.rejected:
+        return ErrorScreen(
+          message: '${env.store.activated.error}', // todo:
+        );
+        break;
+      default:
+        break;
+    }
+
+    String nextRoute = env.store.lastRoute.value?.name;
+    if (nextRoute == Routes.root) {
+      nextRoute = null;
+    }
+    nextRoute ??= env.store.needWelcome ? Routes.welcome : Routes.accounts;
+
+    if (widget.showSplash) {
+      int timeoutMilliseconds = Config.splashScreenTimeout;
+      if (_splashStart > 0) {
+        timeoutMilliseconds -= DateTime.now().millisecondsSinceEpoch - _splashStart;
+        _splashStart = 0;
+      }
+      // Application opened for the first time
+      return SplashScreen(
+          key: UniqueKey(),
+          nextRoute: nextRoute,
+          timeoutMilliseconds: timeoutMilliseconds > 0 ? timeoutMilliseconds : 0);
+    }
+
+    return widget.routeFactoryFn(RouteSettings(name: nextRoute)).builder(context);
+  }
+}
+
 mixin Routes {
   static const root = '/';
   static const splash = 'splash';
@@ -23,46 +97,12 @@ mixin Routes {
   static RouteFactory createRouteFactory(StegosEnv env, bool showSplash) {
     MaterialPageRoute Function(RouteSettings settings) routeFactoryFn;
 
-    Widget buildHomeScreen(BuildContext context) => Observer(
-          builder: (context) {
+    Widget buildInitialRouteScreen(BuildContext context) =>
+        _InitialRouteScreen(env: env, showSplash: showSplash, routeFactoryFn: routeFactoryFn);
 
-            switch (env.store.activated.status) {
-              case FutureStatus.pending:
-                _splashStart = DateTime.now().millisecondsSinceEpoch;
-                return const SplashScreen();
-              case FutureStatus.rejected:
-                return ErrorScreen(
-                  message: '${env.store.activated.error}', // todo:
-                );
-              default:
-                break;
-            }
-
-            //String nextRoute = env.store.lastRoute.value?.name;
-            String nextRoute = !env.store.needWelcome ? Routes.accounts : Routes.welcome;
-
-            if (showSplash) {
-              int timeoutMilliseconds = Config.splashScreenTimeout;
-              if (_splashStart > 0) {
-                timeoutMilliseconds -= DateTime.now().millisecondsSinceEpoch - _splashStart;
-                _splashStart = 0;
-              }
-              // Application opened for the first time
-              return SplashScreen(
-                  key: UniqueKey(),
-                  nextRoute: nextRoute,
-                  timeoutMilliseconds: timeoutMilliseconds > 0 ? timeoutMilliseconds : 0);
-            }
-
-            return routeFactoryFn(RouteSettings(name: nextRoute)).builder(context);
-          },
+    Widget buildInvalidRouteScreen(BuildContext context, RouteSettings settings) => ErrorScreen(
+          message: 'No route defined for ${settings.name}',
         );
-
-    Widget buildErrorScreen(BuildContext context, RouteSettings settings) {
-      return Scaffold(
-        body: Center(child: Text('No route defined for ${settings.name}')),
-      );
-    }
 
     return routeFactoryFn = (RouteSettings settings) {
       final name = settings.name;
@@ -71,7 +111,7 @@ mixin Routes {
       }
       switch (name) {
         case root:
-          return MaterialPageRoute(builder: buildHomeScreen);
+          return MaterialPageRoute(builder: buildInitialRouteScreen);
         case welcome:
           return MaterialPageRoute(builder: (BuildContext context) => WelcomeScreen());
         case accounts:
@@ -81,7 +121,7 @@ mixin Routes {
         default:
           return MaterialPageRoute(
               maintainState: false,
-              builder: (BuildContext context) => buildErrorScreen(context, settings));
+              builder: (BuildContext context) => buildInvalidRouteScreen(context, settings));
       }
     };
   }

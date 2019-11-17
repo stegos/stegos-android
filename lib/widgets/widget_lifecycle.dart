@@ -2,11 +2,9 @@ import 'package:flutter/widgets.dart';
 import 'package:stegos_wallet/log/loggable.dart';
 
 class LifecycleWatcher extends StatefulWidget {
-  LifecycleWatcher({Key key, @required this.stateHandler, @required this.builder})
-      : super(key: key);
+  LifecycleWatcher({Key key, @required this.builder}) : super(key: key);
 
   final Widget Function(BuildContext context, AppLifecycleState state) builder;
-  final Future<void> Function(AppLifecycleState state) stateHandler;
 
   @override
   _LifecycleWatcherState createState() => _LifecycleWatcherState();
@@ -30,12 +28,8 @@ class _LifecycleWatcherState extends State<LifecycleWatcher>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    widget.stateHandler(state).then((_) {
-      setState(() {
-        _lastState = state;
-      });
-    }).catchError((err, StackTrace st) {
-      log.severe('App state handler throws error', err, st);
+    setState(() {
+      _lastState = state;
     });
   }
 
