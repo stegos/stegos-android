@@ -77,8 +77,11 @@ mixin StegosThemes {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(2.0)),
       ));
 
+
   static final splashTheme = ThemeData.dark().copyWith(
       backgroundColor: StegosColors.splashBackground, canvasColor: StegosColors.splashBackground);
+
+  static final appBarTheme = baseTheme;
 
   static final welcomeTheme = baseTheme;
 }

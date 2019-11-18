@@ -28,12 +28,12 @@ class WelcomeScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: <Widget>[
                         RaisedButton(
-                          onPressed: () => onNewUser(context),
+                          onPressed: () => _onNewUser(context),
                           child: const Text('I`M NEW USER'),
                         ),
                         FlatButton(
                           textTheme: ButtonTextTheme.accent,
-                          onPressed: () => onHaveAccount(context),
+                          onPressed: () => _onHaveAccount(context),
                           child: const Text(
                             'I ALREADY HAVE ACCOUNT',
                           ),
@@ -46,11 +46,11 @@ class WelcomeScreen extends StatelessWidget {
         ),
       );
 
-  void onHaveAccount(BuildContext context) {
-    Navigator.pushReplacementNamed(context, Routes.accounts);
+  void _onHaveAccount(BuildContext context) {
+    Navigator.pushNamed(context, Routes.recover);
   }
 
-  void onNewUser(BuildContext context) {
-    //
+  void _onNewUser(BuildContext context) {
+    Navigator.pushNamed(context, Routes.accounts);
   }
 }

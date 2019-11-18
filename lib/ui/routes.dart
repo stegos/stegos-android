@@ -5,6 +5,7 @@ import 'package:pedantic/pedantic.dart';
 import 'package:stegos_wallet/config.dart';
 import 'package:stegos_wallet/env_stegos.dart';
 import 'package:stegos_wallet/ui/accounts/screen_accounts.dart';
+import 'package:stegos_wallet/ui/recover/screen_recover.dart';
 import 'package:stegos_wallet/ui/splash/screen_splash.dart';
 import 'package:stegos_wallet/ui/welcome/screen_welcome.dart';
 
@@ -65,11 +66,13 @@ class _InitialRouteScreenState extends State<_InitialRouteScreen> {
         break;
     }
 
-    String nextRoute = env.store.lastRoute.value?.name;
-    if (nextRoute == Routes.root) {
-      nextRoute = null;
-    }
-    nextRoute ??= env.store.needWelcome ? Routes.welcome : Routes.accounts;
+    String nextRoute = Routes.welcome;
+    // todo: enabled it
+    // nextRoute = env.store.lastRoute.value?.name;
+    // if (nextRoute == Routes.root) {
+    //   nextRoute = null;
+    // }
+    // nextRoute ??= env.store.needWelcome ? Routes.welcome : Routes.accounts;
 
     if (widget.showSplash) {
       int timeoutMilliseconds = Config.splashScreenTimeout;
@@ -93,6 +96,7 @@ mixin Routes {
   static const splash = 'splash';
   static const welcome = 'welcome';
   static const accounts = 'accounts';
+  static const recover = 'recover';
 
   static RouteFactory createRouteFactory(StegosEnv env, bool showSplash) {
     MaterialPageRoute Function(RouteSettings settings) routeFactoryFn;
@@ -106,8 +110,11 @@ mixin Routes {
 
     return routeFactoryFn = (RouteSettings settings) {
       final name = settings.name;
-      if (name != null && name != root) {
-        unawaited(env.store.persistLastRoute(settings));
+      switch (name) {
+        // Remember selected screen, todo: review
+        case accounts:
+          unawaited(env.store.persistLastRoute(settings));
+          break;
       }
       switch (name) {
         case root:
@@ -116,8 +123,11 @@ mixin Routes {
           return MaterialPageRoute(builder: (BuildContext context) => WelcomeScreen());
         case accounts:
           return MaterialPageRoute(builder: (BuildContext context) => AccountsScreen());
+        case recover:
+          return MaterialPageRoute(builder: (BuildContext context) => RecoverScreen());
         case splash:
-          return MaterialPageRoute(builder: (BuildContext context) => const SplashScreen());
+          return MaterialPageRoute(
+              maintainState: false, builder: (BuildContext context) => const SplashScreen());
         default:
           return MaterialPageRoute(
               maintainState: false,
