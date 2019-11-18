@@ -29,6 +29,11 @@ mixin StegosColors {
 mixin StegosDecorators {}
 
 mixin StegosThemes {
+  static const defaultPadding = EdgeInsets.all(16.0);
+
+  static const defaultCaptionTextStyle = TextStyle(
+                    fontWeight: FontWeight.bold, fontSize: 18, color: Color(0xff656565));
+
   static final _defaults = ThemeData(
     fontFamily: 'Roboto',
     typography: Typography(
@@ -76,7 +81,6 @@ mixin StegosThemes {
       buttonTheme: _defaults.buttonTheme.copyWith(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(2.0)),
       ));
-
 
   static final splashTheme = ThemeData.dark().copyWith(
       backgroundColor: StegosColors.splashBackground, canvasColor: StegosColors.splashBackground);
