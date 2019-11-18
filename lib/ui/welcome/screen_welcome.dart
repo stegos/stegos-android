@@ -16,8 +16,7 @@ class WelcomeScreen extends StatelessWidget {
               ),
             ),
             padding: const EdgeInsets.symmetric(horizontal: 10),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+            child: ListView(
               children: <Widget>[
                 Image(
                   image: const AssetImage('assets/images/logo.png'),
