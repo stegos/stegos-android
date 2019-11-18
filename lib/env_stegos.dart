@@ -17,6 +17,13 @@ class StegosEnv extends Env<Widget> {
 
   bool _suspended = true;
 
+  /// Environment name
+  @override
+  String get name => 'stegos';
+
+  /// Get splash screen timeout.
+  int get configSplashScreenTimeout => 2000;
+
   Future<T> useDb<T>(Future<T> Function(EJDB2 db) fn) {
     final own = _db == null;
     return getDb().then(fn).whenComplete(() async {
@@ -72,11 +79,5 @@ class StegosEnv extends Env<Widget> {
         }
       }),
     );
-  }
-}
-
-class StegosEnvProduction extends StegosEnv {
-  StegosEnvProduction() {
-    type = EnvType.PRODUCTION;
   }
 }

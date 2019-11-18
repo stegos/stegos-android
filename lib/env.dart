@@ -10,7 +10,7 @@ enum EnvType { DEVELOPMENT, STAGING, PRODUCTION, TESTING }
 
 abstract class Env<W extends Widget> {
   Env() {
-    log = Log(runtimeType.toString());
+    log = Log(name ?? runtimeType.toString());
   }
 
   static Future<void> resetOrientation() {
@@ -26,6 +26,7 @@ abstract class Env<W extends Widget> {
   Log log;
   Directory dataDirectory;
   Directory tempDirectory;
+  String get name;
 
   Future<W> open() async {
     await initLogging();

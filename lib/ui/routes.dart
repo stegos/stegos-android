@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:mobx/mobx.dart';
 import 'package:pedantic/pedantic.dart';
-import 'package:stegos_wallet/config.dart';
 import 'package:stegos_wallet/env_stegos.dart';
 import 'package:stegos_wallet/ui/accounts/screen_accounts.dart';
 import 'package:stegos_wallet/ui/recover/screen_recover.dart';
@@ -75,7 +74,7 @@ class _InitialRouteScreenState extends State<_InitialRouteScreen> {
     // nextRoute ??= env.store.needWelcome ? Routes.welcome : Routes.accounts;
 
     if (widget.showSplash) {
-      int timeoutMilliseconds = Config.splashScreenTimeout;
+      int timeoutMilliseconds = env.configSplashScreenTimeout;
       if (_splashStart > 0) {
         timeoutMilliseconds -= DateTime.now().millisecondsSinceEpoch - _splashStart;
         _splashStart = 0;
