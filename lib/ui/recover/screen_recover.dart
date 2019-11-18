@@ -10,94 +10,104 @@ class RecoverScreen extends StatefulWidget {
 
 class _RecoverScreenState extends State<RecoverScreen> {
   _RecoverScreenState({int wordsCount = 12, List<String> words}) {
-    for (var i = 0; i < wordsCount; i++) {
-      phrazeWords.add(words != null && words.length > i ? words[i] : '');
-    }
+    _buildWords(wordsCount, words);
   }
+
+  final _formKey = GlobalKey<FormState>();
 
   final phrazeWords = <String>[];
-  bool isAllWordsFilled = false;
+  final List<TextFormField> wordsInputs = <TextFormField>[];
 
-  bool checkAllWordsFilled() {
-    for (var i = 0; i < phrazeWords.length; i++) {
-      if (phrazeWords[i].trim().isEmpty) {
-        isAllWordsFilled = false;
-        return false;
-      }
-    }
-    isAllWordsFilled = true;
-    return true;
-  }
+  bool _isFormValid = false;
 
-  Color get restoreButtonColor {
-    // todo:
-    return Color(0xff505050).withAlpha(isAllWordsFilled ? 0xff : 0x88);
-  }
+  Color get restoreButtonColor => const Color(0xff505050).withAlpha(_isFormValid ? 0xff : 0x88);
 
   EdgeInsets get defaultPadding => const EdgeInsets.all(16.0);
 
   void _onRestorePressed() {
-    // todo:
+    setState(() {
+      _isFormValid = _formKey.currentState?.validate();
+    });
     print('RESTORING ACCOUNT USING SEED WORDS: ');
     for (var i = 0; i < phrazeWords.length; i++) {
-      print(phrazeWords[i]);
+      print('${i + 1}. ${phrazeWords[i]}');
+    }
+    print('Form data is ${_isFormValid ? 'valid' : 'invalid'}');
+  }
+
+  TextFormField _buildRow(int i, String value) {
+    final controller = TextEditingController(text: value);
+    return TextFormField(
+      validator: (value) {
+        if (value.trim().isEmpty) {
+          return 'Please enter some text';
+        }
+        return null;
+      },
+      controller: controller,
+      onChanged: (text) {
+        phrazeWords[i] = controller.text;
+        _formKey.currentState?.validate();
+      },
+      decoration:
+          InputDecoration(icon: Container(width: 24, child: Text('${i + 1}.')), hintText: ''),
+    );
+  }
+
+  void _buildWords(int amount, List<String> words) {
+    for (var i = 0; i < amount; i++) {
+      phrazeWords.add(words != null && words.length > i ? words[i] : '');
+      wordsInputs.add(_buildRow(i, phrazeWords[i]));
     }
   }
 
-  Widget _buildRow(int i) {
-    return ListTile(
-        title: TextField(
-      onChanged: (text) {
-        phrazeWords[i] = text;
-        checkAllWordsFilled();
-      },
-      decoration: InputDecoration(icon: Text('${i + 1}.'), hintText: ''),
-    ));
-  }
-
-  Widget _buildWords(int amount) {
-    return ListView.builder(
-        padding: defaultPadding,
-        itemBuilder: (context, i) {
-          return i < phrazeWords.length ? _buildRow(i) : null;
-        });
-  }
-
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-        appBar: AppBar(
-          leading: IconButton(
-            icon: Icon(Icons.arrow_back),
-            onPressed: () => Navigator.pop(context, false),
-          ),
-          title: Text('Restore account'),
+  Widget build(BuildContext context) => Scaffold(
+      appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context, false),
         ),
-        body: Column(
-          children: <Widget>[
-            Padding(
-              padding: defaultPadding,
-              child: Text(
-                'In order to restore your existing account, please fill all words from the recovery phrase in correct order.',
-                textAlign: TextAlign.center,
-                style:
-                    TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Color(0xff656565)),
+        title: const Text('Restore account'),
+      ),
+      body: Column(
+        children: <Widget>[
+          Padding(
+            padding: defaultPadding,
+            child: Text(
+              'In order to restore your existing account, please fill all words from the recovery phrase in correct order.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                  fontWeight: FontWeight.bold, fontSize: 18, color: const Color(0xff656565)),
+            ),
+          ),
+          Expanded(
+              child: Form(
+            key: _formKey,
+            child: SingleChildScrollView(
+              child: Column(
+                children: wordsInputs
+                    .map<Widget>((field) => Container(
+                          height: 65,
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: field,
+                        ))
+                    .toList(),
               ),
             ),
-            Expanded(child: _buildWords(12)),
-            SizedBox(
-                width: double.infinity,
-                child: Padding(
-                    padding: defaultPadding,
-                    child: RaisedButton(
-                      onPressed: _onRestorePressed,
-                      color: restoreButtonColor,
-                      child: Text(
-                        'RESTORE',
-                        style: TextStyle(color: Color(0xffffffff)),
-                      ),
-                    )))
-          ],
-        ));
-  }
+          )),
+          SizedBox(
+              width: double.infinity,
+              child: Padding(
+                  padding: defaultPadding,
+                  child: RaisedButton(
+                    onPressed: _onRestorePressed,
+                    color: restoreButtonColor,
+                    child: Text(
+                      'RESTORE',
+                      style: TextStyle(color: const Color(0xffffffff)),
+                    ),
+                  )))
+        ],
+      ));
 }
