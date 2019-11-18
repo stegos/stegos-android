@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 mixin StegosColors {
   static const white = Color(0xfffefefe);
@@ -29,10 +30,14 @@ mixin StegosColors {
 mixin StegosDecorators {}
 
 mixin StegosThemes {
+  static SystemUiOverlayStyle defaultSystsemOverlay = SystemUiOverlayStyle.dark.copyWith(
+      // statusBarColor: StegosColors.black,
+      );
+
   static const defaultPadding = EdgeInsets.all(16.0);
 
-  static const defaultCaptionTextStyle = TextStyle(
-                    fontWeight: FontWeight.bold, fontSize: 18, color: Color(0xff656565));
+  static const defaultCaptionTextStyle =
+      TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Color(0xff656565));
 
   static final _defaults = ThemeData(
     fontFamily: 'Roboto',

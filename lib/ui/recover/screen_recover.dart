@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:stegos_wallet/ui/recover/store_recover_screen.dart';
 import 'package:stegos_wallet/ui/themes.dart';
+import 'package:stegos_wallet/widgets/widget_app_bar.dart';
 
 class RecoverScreen extends StatefulWidget {
   @override
@@ -14,7 +15,7 @@ class _RecoverScreenState extends State<RecoverScreen> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(
+        appBar: AppBarWidget(
           leading: IconButton(
             icon: Icon(Icons.arrow_back),
             onPressed: () => Navigator.pop(context, false),
@@ -69,6 +70,7 @@ class _RecoverScreenState extends State<RecoverScreen> {
       );
 
   void _onRestore() {
+    // todo:
     print('On restore');
   }
 }

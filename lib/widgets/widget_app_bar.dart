@@ -2,10 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:stegos_wallet/ui/themes.dart';
 
-final kWidgetAppBarOverlayStyle = SystemUiOverlayStyle.dark.copyWith(
-  statusBarColor: StegosColors.white,
-);
-
 /// AppBarWidget with custom design.
 ///
 /// See also:
@@ -22,10 +18,10 @@ class AppBarWidget extends AppBar {
       ThemeData theme,
       Brightness brightness,
       Color backgroundColor,
+      SystemUiOverlayStyle systemUiOverlayStyle,
       bool centerTitle = true,
       bool automaticallyImplyLeading = true,
-      double bottomChildPrefferedHeight = 0.0,
-      bool updateSystemUIOverlay = true})
+      double bottomChildPrefferedHeight = 0.0})
       : super(
           key: key,
           leading: leading,
@@ -44,8 +40,8 @@ class AppBarWidget extends AppBar {
                 )
               : null,
         ) {
-    if (updateSystemUIOverlay) {
-      SystemChrome.setSystemUIOverlayStyle(kWidgetAppBarOverlayStyle);
+    if (systemUiOverlayStyle != null) {
+      SystemChrome.setSystemUIOverlayStyle(systemUiOverlayStyle);
     }
   }
 }
