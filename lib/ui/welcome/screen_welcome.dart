@@ -50,6 +50,6 @@ class WelcomeScreen extends StatelessWidget {
   }
 
   void _onNewUser(BuildContext context) {
-    Navigator.pushNamed(context, Routes.accounts);
+    Navigator.pushNamed(context, Routes.wallet);
   }
 }

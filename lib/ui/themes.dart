@@ -2,15 +2,26 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 mixin StegosColors {
-  static const white = Color(0xfffefefe);
+  static const white = Color(0xffffffff);
   static const black = Color(0xff000000);
   static const splashBackground = Color(0xff171c29);
-  static const backgroundColor = Color(0xff171c29);
+  static const backgroundColor = Color(0xff343946);
 
-  static const primaryColor = Colors.deepOrange;
+  static const primaryColor = MaterialColor(0xffff6c00, {
+    50: Color.fromRGBO(255, 108, 0, .1),
+    100: Color.fromRGBO(255, 108, 0, .2),
+    200: Color.fromRGBO(255, 108, 0, .3),
+    300: Color.fromRGBO(255, 108, 0, .4),
+    400: Color.fromRGBO(255, 108, 0, .5),
+    500: Color.fromRGBO(255, 108, 0, .6),
+    600: Color.fromRGBO(255, 108, 0, .7),
+    700: Color.fromRGBO(255, 108, 0, .8),
+    800: Color.fromRGBO(255, 108, 0, .9),
+    900: Color.fromRGBO(255, 108, 0, 1),
+  });
   static const buttonColor = primaryColor;
   static final primaryColorLight = Colors.orange.shade200;
-  static final primaryColorDark = Colors.orange.shade900;
+  static const primaryColorDark = Color(0xff7d8b97);
   static const primaryColorBrightness = Brightness.dark;
 
   //static const accentColor = Color(0xffEFF1F3);
@@ -34,10 +45,16 @@ mixin StegosThemes {
       // statusBarColor: StegosColors.black,
       );
 
-  static const defaultPadding = EdgeInsets.all(16.0);
+  static const defaultPadding = EdgeInsets.all(30.0);
 
   static const defaultCaptionTextStyle =
-      TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Color(0xff656565));
+      TextStyle(fontWeight: FontWeight.w500, fontSize: 18, color: Color(0xffffffff));
+
+  static const defaultSubCaptionTextStyle =
+      TextStyle(fontWeight: FontWeight.w300, fontSize: 14, color: Color(0xffffffff));
+
+  static const defaultInputTextStyle =
+      TextStyle(fontWeight: FontWeight.normal, fontSize: 16, color: Color(0xffffffff));
 
   static final _defaults = ThemeData(
     fontFamily: 'Roboto',
@@ -66,8 +83,10 @@ mixin StegosThemes {
 
     backgroundColor: StegosColors.colorScheme.background,
     scaffoldBackgroundColor: StegosColors.colorScheme.background,
-    canvasColor: StegosColors.colorScheme.primaryVariant, // BottomNavigationBar
-    cardColor: StegosColors.colorScheme.primaryVariant, // Cards
+    canvasColor: StegosColors.colorScheme.primaryVariant,
+    // BottomNavigationBar
+    cardColor: StegosColors.colorScheme.primaryVariant,
+    // Cards
 
     textSelectionColor: StegosColors.textSelectionColor,
     cursorColor: StegosColors.white,
@@ -93,4 +112,21 @@ mixin StegosThemes {
   static final appBarTheme = baseTheme;
 
   static final welcomeTheme = baseTheme;
+
+  static final walletTheme = baseTheme.copyWith(
+    tabBarTheme: const TabBarTheme(
+      labelPadding: EdgeInsets.all(0),
+      indicatorSize: TabBarIndicatorSize.label,
+      labelColor: Color(0xffff6c00),
+      unselectedLabelColor: Color(0xff7d8b97),
+      labelStyle: TextStyle(color: Color(0xffff6c00), fontSize: 10, fontWeight: FontWeight.w300),
+      unselectedLabelStyle:
+          TextStyle(color: Color(0xff7d8b97), fontSize: 10, fontWeight: FontWeight.w300),
+    ),
+    appBarTheme: const AppBarTheme(
+      color: Color(0xff2b2e3b),
+      textTheme: TextTheme(body1: TextStyle(fontSize: 20)),
+      elevation: 0,
+    ),
+  );
 }

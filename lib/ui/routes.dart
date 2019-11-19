@@ -6,6 +6,7 @@ import 'package:stegos_wallet/env_stegos.dart';
 import 'package:stegos_wallet/ui/accounts/screen_accounts.dart';
 import 'package:stegos_wallet/ui/recover/screen_recover.dart';
 import 'package:stegos_wallet/ui/splash/screen_splash.dart';
+import 'package:stegos_wallet/ui/wallet/screen_wallet.dart';
 import 'package:stegos_wallet/ui/welcome/screen_welcome.dart';
 
 import 'error/screen_error.dart';
@@ -95,6 +96,7 @@ mixin Routes {
   static const splash = 'splash';
   static const welcome = 'welcome';
   static const accounts = 'accounts';
+  static const wallet = 'wallet';
   static const recover = 'recover';
 
   static RouteFactory createRouteFactory(StegosEnv env, bool showSplash) {
@@ -122,6 +124,8 @@ mixin Routes {
           return MaterialPageRoute(builder: (BuildContext context) => WelcomeScreen());
         case accounts:
           return MaterialPageRoute(builder: (BuildContext context) => AccountsScreen());
+        case wallet:
+          return MaterialPageRoute(builder: (BuildContext context) => WalletScreen());
         case recover:
           return MaterialPageRoute(builder: (BuildContext context) => RecoverScreen());
         case splash:
