@@ -74,7 +74,7 @@ class _InitialRouteScreenState extends State<_InitialRouteScreen> {
     // nextRoute ??= env.store.needWelcome ? Routes.welcome : Routes.accounts;
 
     if (widget.showSplash) {
-      int timeoutMilliseconds = env.configSplashScreenTimeout;
+      int timeoutMilliseconds = env.configSplashScreenTimeoutMs;
       if (_splashStart > 0) {
         timeoutMilliseconds -= DateTime.now().millisecondsSinceEpoch - _splashStart;
         _splashStart = 0;

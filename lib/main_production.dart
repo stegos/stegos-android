@@ -11,7 +11,7 @@ class StegosEnvProduction extends StegosEnv {
   String name = 'stegos_prod';
 
   @override
-  int configSplashScreenTimeout = 3000;
+  int configSplashScreenTimeoutMs = 3000;
 }
 
 void main() {

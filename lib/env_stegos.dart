@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 import 'package:pedantic/pedantic.dart';
 import 'package:provider/provider.dart';
 import 'package:stegos_wallet/env.dart';
+import 'package:stegos_wallet/services/service_node_client.dart';
 import 'package:stegos_wallet/store/store_stegos.dart';
 import 'package:stegos_wallet/ui/app.dart';
 import 'package:stegos_wallet/widgets/widget_lifecycle.dart';
@@ -10,19 +11,35 @@ import 'package:stegos_wallet/widgets/widget_lifecycle.dart';
 /// Stegos wallet app environment.
 ///
 class StegosEnv extends Env<Widget> {
+  StegosEnv() : super();
+
   /// Root store.
   StegosStore store;
-
-  EJDB2 _db;
-
-  bool _suspended = true;
 
   /// Environment name
   @override
   String get name => 'stegos';
 
   /// Get splash screen timeout.
-  int get configSplashScreenTimeout => 2000;
+  int get configSplashScreenTimeoutMs => 2000;
+
+  /// Stegos node websocket endpoint
+  String get configNodeWsEndpoint => 'ws://10.0.2.2:3145';
+
+  /// Minimal stegos node next connect attempt in milliseconds
+  int get configNodeWsEndpointMinReconnectTimeoutMs => 1000;
+
+  /// Maximal stegos node next connect attempt in milliseconds
+  int get configNodeWsEndpointMaxReconnectTimeoutMs => 10000;
+
+  /// Stegos node API access token
+  String get configNodeWsEndpointApiToken => 'nnUdgME/PZlmhQ1norzG9g==';
+
+  EJDB2 _db;
+
+  bool _suspended = false;
+
+  StegosNodeClient _client;
 
   Future<T> useDb<T>(Future<T> Function(EJDB2 db) fn) {
     final own = _db == null;
@@ -46,15 +63,29 @@ class StegosEnv extends Env<Widget> {
     return Future.value();
   }
 
-  void _suspend(AppLifecycleState state) {
+  Future<void> _suspend(AppLifecycleState state) async {
     log.info('Suspending environment');
-    unawaited(store.disposeAsync().whenComplete(_closeDb));
+    if (_client != null) {
+      await _client.close(dispose: false).catchError((err) {
+        log.warning('', err);
+      });
+    }
+    return store.disposeAsync().whenComplete(_closeDb);
+  }
+
+  /// Bring environment to operational state
+  Future<void> activate() async {
+    await getDb();
+    if (_client == null) {
+      _client = await StegosNodeClient.open(this);
+    } else {
+      await _client.ensureOpen();
+    }
   }
 
   @override
-  Future<Widget> openImpl() async {
+  Future<Widget> openWidget() async {
     store = StegosStore(this);
-
     return MultiProvider(
       providers: [
         Provider<StegosEnv>.value(value: this),
@@ -67,12 +98,16 @@ class StegosEnv extends Env<Widget> {
           case AppLifecycleState.suspending:
             if (!_suspended) {
               _suspended = true;
-              _suspend(state);
+              unawaited(_suspend(state));
             }
             // Dot not show anything
             return const SizedBox.shrink();
           default:
-            _suspended = false;
+            if (_suspended) {
+              _suspended = false;
+              // App resume
+              unawaited(activate());
+            }
             return StegosApp(
               showSplash: state == null,
             );

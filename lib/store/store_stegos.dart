@@ -1,6 +1,5 @@
 import 'package:flutter/widgets.dart';
 import 'package:mobx/mobx.dart';
-import 'package:mobx/mobx.dart' as mobx;
 import 'package:stegos_wallet/env_stegos.dart';
 import 'package:stegos_wallet/store/store_common.dart';
 
@@ -38,10 +37,11 @@ abstract class _StegosStore extends StoreSupport with Store {
   @action
   Future<void> activate() async {
     final env = this.env;
-    final db = await env.getDb();
+    await env.activate();
 
     settings.clear();
 
+    final db = await env.getDb();
     await db.getOptional('settings', DOC_SETTINGS_ID).then((ov) {
       if (ov.isPresent) {
         final doc = ov.value.object as Map<dynamic, dynamic>;
