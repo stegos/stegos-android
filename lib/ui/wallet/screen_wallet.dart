@@ -56,7 +56,7 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
               title: const Text('Stegos Wallet'),
             ),
             bottomNavigationBar: Container(
-              color: Color(0xff0f0f1a), // TODO: get colors from theme!
+              color: StegosColors.splashBackground,
               child: TabBar(
                 controller: _tabController,
                 tabs: [
