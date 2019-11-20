@@ -13,7 +13,7 @@ import 'package:stegos_wallet/widgets/widget_lifecycle.dart';
 class StegosEnv extends Env<Widget> {
   StegosEnv() : super();
 
-  /// Root store.
+  /// Main app state store.
   StegosStore store;
 
   /// Environment name
@@ -35,12 +35,9 @@ class StegosEnv extends Env<Widget> {
   /// Stegos node API access token
   String get configNodeWsEndpointApiToken => 'nnUdgME/PZlmhQ1norzG9g==';
 
-  EJDB2 _db;
-
-  bool _suspended = false;
-
-  StegosNodeClient _client;
-
+  /// Use database in given [fn] function.
+  /// This method don't leave database in open state
+  /// if it was not opened before.
   Future<T> useDb<T>(Future<T> Function(EJDB2 db) fn) {
     final own = _db == null;
     return getDb().then(fn).whenComplete(() async {
@@ -50,39 +47,23 @@ class StegosEnv extends Env<Widget> {
     });
   }
 
+  /// Get database handle
   Future<EJDB2> getDb() async => _db ??= await EJDB2Builder('stegos_wallet.db').open();
 
-  Future<void> _closeDb() {
-    if (_db != null) {
-      final db = _db;
-      _db = null;
-      return db.close().catchError((err, StackTrace st) {
-        log.severe('Error closing db', err, st);
-      });
-    }
-    return Future.value();
-  }
-
-  Future<void> _suspend(AppLifecycleState state) async {
-    log.info('Suspending environment');
-    if (_client != null) {
-      await _client.close(dispose: false).catchError((err) {
-        log.warning('', err);
-      });
-    }
-    return store.disposeAsync().whenComplete(_closeDb);
-  }
+  /// Get broadcast stream of stegos node messages
+  Stream<StegosNodeMessage> get nodeStream => (_client ??= StegosNodeClient.open(this)).stream;
 
   /// Bring environment to operational state
   Future<void> activate() async {
     await getDb();
     if (_client == null) {
-      _client = await StegosNodeClient.open(this);
+      _client = StegosNodeClient.open(this);
     } else {
       await _client.ensureOpened();
     }
   }
 
+  /// Create initial application widget.
   @override
   Future<Widget> openWidget() async {
     store = StegosStore(this);
@@ -114,5 +95,39 @@ class StegosEnv extends Env<Widget> {
         }
       }),
     );
+  }
+
+  //
+  // Private staff
+  //
+
+  /// Database handle.
+  EJDB2 _db;
+
+  /// Is mobile app suspended
+  bool _suspended = false;
+
+  /// Websocket stegos node client
+  StegosNodeClient _client;
+
+  Future<void> _closeDb() {
+    if (_db != null) {
+      final db = _db;
+      _db = null;
+      return db.close().catchError((err, StackTrace st) {
+        log.severe('Error closing db', err, st);
+      });
+    }
+    return Future.value();
+  }
+
+  Future<void> _suspend(AppLifecycleState state) async {
+    log.info('Suspending environment');
+    if (_client != null) {
+      await _client.close(dispose: false).catchError((err) {
+        log.warning('', err);
+      });
+    }
+    return store.disposeAsync().whenComplete(_closeDb);
   }
 }
