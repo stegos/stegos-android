@@ -63,12 +63,14 @@ class StegosEnv extends Env<Widget> {
     return Future.value();
   }
 
-  void _suspend(AppLifecycleState state) {
+  Future<void> _suspend(AppLifecycleState state) async {
     log.info('Suspending environment');
     if (_client != null) {
-      unawaited(_client.close(dispose: false));
+      await _client.close(dispose: false).catchError((err) {
+        log.warning('', err);
+      });
     }
-    unawaited(store.disposeAsync().whenComplete(_closeDb));
+    return store.disposeAsync().whenComplete(_closeDb);
   }
 
   /// Bring environment to operational state
@@ -96,7 +98,7 @@ class StegosEnv extends Env<Widget> {
           case AppLifecycleState.suspending:
             if (!_suspended) {
               _suspended = true;
-              _suspend(state);
+              unawaited(_suspend(state));
             }
             // Dot not show anything
             return const SizedBox.shrink();
