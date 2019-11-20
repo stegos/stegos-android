@@ -34,7 +34,7 @@ class _RecoverScreenState extends State<RecoverScreen> {
           body: Column(
             children: <Widget>[
               Padding(
-                padding: StegosThemes.defaultPadding,
+                padding: StegosThemes.defaultPaddingHorizontal,
                 child: Column(
                   children: <Widget>[
                     Text(

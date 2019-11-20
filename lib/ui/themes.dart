@@ -47,6 +47,10 @@ mixin StegosThemes {
 
   static const defaultPadding = EdgeInsets.all(30.0);
 
+  static const defaultPaddingHorizontal = EdgeInsets.symmetric(horizontal: 30.0, vertical: 5.0);
+
+  static const defaultPaddingVertical = EdgeInsets.symmetric(vertical: 30.0);
+
   static const defaultCaptionTextStyle =
       TextStyle(fontWeight: FontWeight.w500, fontSize: 18, color: Color(0xffffffff));
 
