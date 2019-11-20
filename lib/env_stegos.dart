@@ -79,7 +79,7 @@ class StegosEnv extends Env<Widget> {
     if (_client == null) {
       _client = await StegosNodeClient.open(this);
     } else {
-      await _client.ensureOpen();
+      await _client.ensureOpened();
     }
   }
 
