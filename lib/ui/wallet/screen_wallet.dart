@@ -27,9 +27,7 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
   TabController _tabController;
 
   Widget _buildTabIcon(String assetName, bool selected) => SvgPicture.asset(assetName,
-      color: selected
-          ? Color(0xffff6c00) // TODO: get colors from theme
-          : Color(0xff7d8b97));
+      color: selected ? StegosColors.primaryColor : StegosColors.primaryColorDark);
 
   @override
   void initState() {

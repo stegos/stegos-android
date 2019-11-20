@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 mixin StegosColors {
   static const white = Color(0xffffffff);
   static const black = Color(0xff000000);
-  static const splashBackground = Color(0xff171c29);
+  static const splashBackground = Color(0xff0f0f1a);
   static const backgroundColor = Color(0xff343946);
 
   static const primaryColor = MaterialColor(0xffff6c00, {
@@ -117,11 +117,11 @@ mixin StegosThemes {
     tabBarTheme: const TabBarTheme(
       labelPadding: EdgeInsets.all(0),
       indicatorSize: TabBarIndicatorSize.label,
-      labelColor: Color(0xffff6c00),
-      unselectedLabelColor: Color(0xff7d8b97),
-      labelStyle: TextStyle(color: Color(0xffff6c00), fontSize: 10, fontWeight: FontWeight.w300),
+      labelColor: StegosColors.primaryColor,
+      unselectedLabelColor: StegosColors.primaryColorDark,
+      labelStyle: TextStyle(color: StegosColors.primaryColor, fontSize: 10, fontWeight: FontWeight.w300),
       unselectedLabelStyle:
-          TextStyle(color: Color(0xff7d8b97), fontSize: 10, fontWeight: FontWeight.w300),
+          TextStyle(color: StegosColors.primaryColorDark, fontSize: 10, fontWeight: FontWeight.w300),
     ),
     appBarTheme: const AppBarTheme(
       color: Color(0xff2b2e3b),
