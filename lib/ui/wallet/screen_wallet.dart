@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stegos_wallet/ui/wallet/wallet/screen_accounts.dart';
 import 'package:stegos_wallet/widgets/widget_app_bar.dart';
 
 import '../themes.dart';
@@ -55,7 +56,7 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
               title: const Text('Stegos Wallet'),
             ),
             bottomNavigationBar: Container(
-              color: Color(0xff0f0f1a), // TODO: get colors from theme!
+              color: StegosColors.splashBackground,
               child: TabBar(
                 controller: _tabController,
                 tabs: [
@@ -86,7 +87,7 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
               physics: const NeverScrollableScrollPhysics(),
               controller: _tabController,
               children: [
-                Text('wallet'),
+                AccountsScreen(),
                 Text('QR reader'),
                 Text('Chat'),
                 Text('Contacts'),
