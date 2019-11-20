@@ -150,14 +150,22 @@ mixin StegosThemes {
       indicatorSize: TabBarIndicatorSize.label,
       labelColor: StegosColors.primaryColor,
       unselectedLabelColor: StegosColors.primaryColorDark,
-      labelStyle: TextStyle(color: StegosColors.primaryColor, fontSize: 10, fontWeight: FontWeight.w300),
-      unselectedLabelStyle:
-          TextStyle(color: StegosColors.primaryColorDark, fontSize: 10, fontWeight: FontWeight.w300),
+      labelStyle:
+          TextStyle(color: StegosColors.primaryColor, fontSize: 10, fontWeight: FontWeight.w300),
+      unselectedLabelStyle: TextStyle(
+          color: StegosColors.primaryColorDark, fontSize: 10, fontWeight: FontWeight.w300),
     ),
     appBarTheme: const AppBarTheme(
       color: Color(0xff2b2e3b),
       textTheme: TextTheme(body1: TextStyle(fontSize: 20)),
       elevation: 0,
+    ),
+  );
+
+  static final accountsTheme = baseTheme.copyWith(
+    floatingActionButtonTheme: const FloatingActionButtonThemeData(
+      backgroundColor: Color(0xff15151f),
+      foregroundColor: StegosColors.primaryColor
     ),
   );
 }
