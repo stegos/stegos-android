@@ -33,7 +33,7 @@ abstract class Env<W extends Widget> {
     dataDirectory = await getApplicationDocumentsDirectory();
     tempDirectory = await getTemporaryDirectory();
     await Env.resetOrientation();
-    final widget = await openImpl();
+    final widget = await openWidget();
     log.info('Application initialized');
     return widget;
   }
@@ -45,5 +45,5 @@ abstract class Env<W extends Widget> {
   }
 
   @protected
-  Future<W> openImpl();
+  Future<W> openWidget();
 }
