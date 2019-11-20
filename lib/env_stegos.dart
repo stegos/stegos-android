@@ -37,7 +37,7 @@ class StegosEnv extends Env<Widget> {
 
   EJDB2 _db;
 
-  bool _suspended = true;
+  bool _suspended = false;
 
   StegosNodeClient _client;
 
@@ -101,8 +101,8 @@ class StegosEnv extends Env<Widget> {
             // Dot not show anything
             return const SizedBox.shrink();
           default:
-            _suspended = false;
-            if (state != null) {
+            if (_suspended) {
+              _suspended = false;
               // App resume
               unawaited(activate());
             }
