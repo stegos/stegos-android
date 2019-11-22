@@ -27,4 +27,26 @@ mixin _$StegosStore on _StegosStore, Store {
   Future<void> activate() {
     return _$activateAsyncAction.run(() => super.activate());
   }
+
+  final _$_StegosStoreActionController = ActionController(name: '_StegosStore');
+
+  @override
+  void resetError() {
+    final _$actionInfo = _$_StegosStoreActionController.startAction();
+    try {
+      return super.resetError();
+    } finally {
+      _$_StegosStoreActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  void setError(String errorText) {
+    final _$actionInfo = _$_StegosStoreActionController.startAction();
+    try {
+      return super.setError(errorText);
+    } finally {
+      _$_StegosStoreActionController.endAction(_$actionInfo);
+    }
+  }
 }

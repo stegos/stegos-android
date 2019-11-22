@@ -26,14 +26,17 @@ class StegosEnv extends Env<Widget> {
   /// Minimal splash screen show period.
   int get configSlashScreenMinTimeoutMs => 300;
 
-  /// Stegos node websocket endpoint
-  String get configNodeWsEndpoint => 'ws://10.0.2.2:3145';
-
   /// Minimal stegos node next connect attempt in milliseconds
   int get configNodeWsEndpointMinReconnectTimeoutMs => 1000;
 
   /// Maximal stegos node next connect attempt in milliseconds
   int get configNodeWsEndpointMaxReconnectTimeoutMs => 10000;
+
+  /// User fingerprint wallet protection
+  bool get configAllowFingerprintWalletProtection => false;
+
+  /// Stegos node websocket endpoint
+  String get configNodeWsEndpoint => 'ws://10.0.2.2:3145';
 
   /// Stegos node API access token
   String get configNodeWsEndpointApiToken => 'nnUdgME/PZlmhQ1norzG9g==';

@@ -1,6 +1,6 @@
 import 'package:mobx/mobx.dart';
 
-part 'store_recover_screen.g.dart';
+part 'store_screen_recover.g.dart';
 
 class RecoverScreenStore = _RecoverScreenStore with _$RecoverScreenStore;
 

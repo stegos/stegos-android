@@ -115,10 +115,6 @@ mixin StegosThemes {
   static final splashTheme = ThemeData.dark().copyWith(
       backgroundColor: StegosColors.splashBackground, canvasColor: StegosColors.splashBackground);
 
-  static final appBarTheme = baseTheme;
-
-  static final welcomeTheme = baseTheme;
-
   static final backupTheme = baseTheme.copyWith(
     buttonTheme: _defaults.buttonTheme.copyWith(
       shape: RoundedRectangleBorder(),
@@ -169,5 +165,9 @@ mixin StegosThemes {
         backgroundColor: Color(0xff15151f), foregroundColor: StegosColors.primaryColor),
   );
 
-  static final pinpadTheme = baseTheme.copyWith();
+  static final appBarTheme = baseTheme;
+
+  static final welcomeTheme = baseTheme;
+
+  static final pinpadTheme = baseTheme;
 }

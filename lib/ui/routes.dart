@@ -4,7 +4,7 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:mobx/mobx.dart';
 import 'package:pedantic/pedantic.dart';
 import 'package:stegos_wallet/env_stegos.dart';
-import 'package:stegos_wallet/ui/pinpad/screen_pinpad.dart';
+import 'package:stegos_wallet/ui/pinprotect/screen_pin_protect.dart';
 import 'package:stegos_wallet/ui/recover/screen_recover.dart';
 import 'package:stegos_wallet/ui/splash/screen_splash.dart';
 import 'package:stegos_wallet/ui/wallet/screen_wallet.dart';
@@ -47,7 +47,7 @@ class _InitialRouteScreenState extends State<_InitialRouteScreen> {
         }
         String initialRoute;
         if (!store.hasPinProtectedPassword) {
-          initialRoute = Routes.pin;
+          initialRoute = Routes.pinprotect;
         } else if (store.needWelcome) {
           initialRoute = Routes.welcome;
         } else {
@@ -74,7 +74,7 @@ class _InitialRouteScreenState extends State<_InitialRouteScreen> {
 mixin Routes {
   static const root = '/';
   static const splash = 'splash';
-  static const pin = 'pin';
+  static const pinprotect = 'pinprotect';
   static const welcome = 'welcome';
   static const accounts = 'accounts';
   static const wallet = 'wallet';
@@ -102,11 +102,11 @@ mixin Routes {
       switch (name) {
         case root:
           return MaterialPageRoute(builder: buildInitialRouteScreen);
-        case pin:
+        case pinprotect:
           return MaterialPageRoute(
               maintainState: false,
-              builder: (BuildContext context) => PinpadScreen(
-                    size: 4,
+              builder: (BuildContext context) => const PinProtectScreen(
+                    nextRoute: welcome,
                   ));
         case welcome:
           return MaterialPageRoute(builder: (BuildContext context) => WelcomeScreen());
