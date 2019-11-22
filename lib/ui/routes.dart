@@ -56,16 +56,16 @@ class _InitialRouteScreenState extends State<_InitialRouteScreen> {
           initialRoute = Routes.accounts;
         }
         if (widget.showSplash) {
-          int timeoutMilliseconds = env.configSplashScreenTimeoutMs;
+          int timeoutMs = env.configSplashScreenTimeoutMs;
           if (_splashStart > 0) {
-            timeoutMilliseconds -= DateTime.now().millisecondsSinceEpoch - _splashStart;
+            timeoutMs -= DateTime.now().millisecondsSinceEpoch - _splashStart;
             _splashStart = 0;
           }
-          // Application opened for the first time
-          return SplashScreen(
-              key: UniqueKey(),
-              nextRoute: initialRoute,
-              timeoutMilliseconds: timeoutMilliseconds > 0 ? timeoutMilliseconds : 0);
+          if (timeoutMs >= env.configSlashScreenMinTimeoutMs) {
+            // Application opened for the first time
+            return SplashScreen(
+                key: UniqueKey(), nextRoute: initialRoute, timeoutMilliseconds: timeoutMs);
+          }
         }
         return widget.routeFactoryFn(RouteSettings(name: initialRoute)).builder(context);
       });

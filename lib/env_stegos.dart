@@ -23,6 +23,9 @@ class StegosEnv extends Env<Widget> {
   /// Get splash screen timeout.
   int get configSplashScreenTimeoutMs => 2000;
 
+  /// Minimal splash screen show period.
+  int get configSlashScreenMinTimeoutMs => 300;
+
   /// Stegos node websocket endpoint
   String get configNodeWsEndpoint => 'ws://10.0.2.2:3145';
 
