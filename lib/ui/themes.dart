@@ -30,6 +30,8 @@ mixin StegosColors {
 
   static const textSelectionColor = Colors.orangeAccent;
 
+  static const errorColor = Color(0xffff3c3c);
+
   static final colorScheme = ColorScheme.fromSwatch(
       brightness: Brightness.dark,
       primarySwatch: StegosColors.primaryColor,
