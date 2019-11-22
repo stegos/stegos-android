@@ -21,7 +21,7 @@ class ErrorScreen extends StatelessWidget {
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
               const SizedBox(height: 10),
               Text(
@@ -37,7 +37,7 @@ class ErrorScreen extends StatelessWidget {
                   elevation: 4,
                   child: SingleChildScrollView(
                     padding: StegosThemes.defaultPadding,
-                    child: Text(
+                    child: SelectableText(
                       message,
                       style: TextStyle(fontWeight: FontWeight.w300, fontSize: 12),
                     ),
