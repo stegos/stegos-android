@@ -21,6 +21,8 @@ class AccountCard extends StatefulWidget {
 }
 
 class AccountCardState extends State<AccountCard> {
+
+  const  normalAspectRatio = 302 / 174.06;
   AccountCardState(this.account, this.collapsed);
 
   final Account account;

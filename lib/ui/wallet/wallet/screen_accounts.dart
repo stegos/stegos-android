@@ -42,26 +42,27 @@ class AccountsScreenState extends State<AccountsScreen> {
               ),
             ),
           ),
-          Container(
+          GestureDetector(
+            onTap: () {
+              setState(() {
+                collapsed = !collapsed;
+                print(collapsed);
+              });
+            },
+            child: Container(
               alignment: Alignment.bottomLeft,
-              padding: EdgeInsets.zero,
+              padding: const EdgeInsets.only(left: 15, bottom: 8),
               decoration: BoxDecoration(
                   border: Border(bottom: BorderSide(color: StegosColors.primaryColorDark))),
-              child: RawMaterialButton(
-                padding: const EdgeInsets.symmetric(horizontal: 15),
-                onPressed: () {
-                  setState(() {
-                    collapsed = !collapsed;
-                  });
-                },
-                child: Row(
-                  children: <Widget>[
-                    accountsIcon,
-                    const SizedBox(width: 15),
-                    const Text('Accounts'),
-                  ],
-                ),
-              )),
+              child: Row(
+                children: <Widget>[
+                  accountsIcon,
+                  const SizedBox(width: 15),
+                  const Text('Accounts'),
+                ],
+              ),
+            ),
+          ),
         ]),
       );
 
