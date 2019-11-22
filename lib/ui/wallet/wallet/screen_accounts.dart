@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stegos_wallet/ui/themes.dart';
 
+import 'account_card.dart';
+
 class AccountsScreen extends StatefulWidget {
   AccountsScreen({Key key}) : super(key: key);
 
@@ -16,37 +18,42 @@ class AccountsScreenState extends State<AccountsScreen> {
   final Image qrIcon =
       Image(image: const AssetImage('assets/images/qr.png'), width: 20, height: 20);
 
-  Widget _buildAccountCard() => Padding(
-        padding: const EdgeInsets.only(bottom: 30.0),
-        child: Ink.image(
-          image: const AssetImage('assets/images/account_card_bg.png'),
-          fit: BoxFit.fill,
-          child: InkWell(
-            borderRadius: BorderRadius.circular(3.0),
-            onTap: () {},
-            child: AspectRatio(
-              aspectRatio: 302 / 174,
-              child: Container(
-                  padding: const EdgeInsets.only(left: 15, bottom: 10, right: 20),
-                  child: Stack(
-                    children: <Widget>[
-                      Align(
-                          alignment: Alignment.centerRight,
-                          child: Text('0 STG', style: TextStyle(fontSize: 32))),
-                      Align(
-                          alignment: Alignment.bottomRight,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: <Widget>[
-                              Text('Account 1', style: TextStyle(fontSize: 12)),
-                              qrIcon,
-                            ],
-                          ))
-                    ],
-                  )),
+  Container _buildTotalBalanceContainer() => Container(
+        height: 150,
+        color: StegosColors.backgroundColor,
+        child: Stack(children: [
+          Container(
+            alignment: Alignment.bottomCenter,
+            padding: const EdgeInsets.only(bottom: 42),
+            child: Container(
+              width: double.infinity,
+              color: StegosColors.splashBackground,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  const Text('Total balance'),
+                  const SizedBox(
+                    height: 15,
+                  ),
+                  Text('0 STG', style: TextStyle(fontSize: 24, color: StegosColors.primaryColor))
+                ],
+              ),
             ),
           ),
-        ),
+          Container(
+            alignment: Alignment.bottomLeft,
+            padding: const EdgeInsets.only(left: 15, bottom: 8),
+            decoration: BoxDecoration(
+                border: Border(bottom: BorderSide(color: StegosColors.primaryColorDark))),
+            child: Row(
+              children: <Widget>[
+                accountsIcon,
+                const SizedBox(width: 15),
+                const Text('Accounts'),
+              ],
+            ),
+          ),
+        ]),
       );
 
   void _settingModalBottomSheet(BuildContext context) {
@@ -117,54 +124,25 @@ class AccountsScreenState extends State<AccountsScreen> {
           body: Stack(
             alignment: Alignment.topCenter,
             children: <Widget>[
+              _buildTotalBalanceContainer(),
               Container(
-                height: 200,
-                color: StegosColors.backgroundColor,
-                child: Stack(children: [
-                  Container(
-                    alignment: Alignment.bottomCenter,
-                    padding: const EdgeInsets.only(bottom: 62),
-                    child: Container(
-                      width: double.infinity,
-                      color: StegosColors.splashBackground,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: <Widget>[
-                          const Text('Total balance'),
-                          const SizedBox(
-                            height: 15,
-                          ),
-                          Text('0 STG',
-                              style: TextStyle(fontSize: 24, color: StegosColors.primaryColor))
-                        ],
-                      ),
-                    ),
-                  ),
-                  Container(
-                    alignment: Alignment.bottomLeft,
-                    padding: const EdgeInsets.only(left: 15, bottom: 8),
-                    decoration: BoxDecoration(
-                        border: Border(bottom: BorderSide(color: StegosColors.primaryColorDark))),
-                    child: Row(
-                      children: <Widget>[
-                        accountsIcon,
-                        const SizedBox(width: 15),
-                        const Text('Accounts'),
-                      ],
-                    ),
-                  ),
-                ]),
-              ),
-              Container(
-                padding: const EdgeInsets.only(top: 200),
+                padding: const EdgeInsets.only(top: 150),
                 child: ListView(
                   padding: const EdgeInsets.only(bottom: 80, left: 30, right: 30, top: 30),
                   shrinkWrap: true,
                   children: <Widget>[
-                    _buildAccountCard(),
-                    _buildAccountCard(),
-                    _buildAccountCard(),
-                    _buildAccountCard(),
+                    AccountCard(
+                      account: Account(name: 'Account 1', balance: 345, qrUrl: null),
+                    ),
+                    AccountCard(
+                      account: Account(name: 'Account 2', balance: 126, qrUrl: null),
+                    ),
+                    AccountCard(
+                      account: Account(name: 'Account 3', balance: 0.302, qrUrl: null),
+                    ),
+                    AccountCard(
+                      account: Account(name: 'Account 4', balance: -11, qrUrl: null),
+                    ),
                   ],
                 ),
               ),

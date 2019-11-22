@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:mobx/mobx.dart';
 import 'package:pedantic/pedantic.dart';
 import 'package:stegos_wallet/env_stegos.dart';
@@ -11,7 +12,7 @@ import 'package:stegos_wallet/ui/welcome/screen_welcome.dart';
 
 import 'error/screen_error.dart';
 
-// don't store external state for StatelessWidget except some rare cases
+// fixme: don't store external state for StatelessWidget except some rare cases
 int _splashStart = 0;
 
 class _InitialRouteScreen extends StatefulWidget {
@@ -29,66 +30,45 @@ class _InitialRouteScreen extends StatefulWidget {
 }
 
 class _InitialRouteScreenState extends State<_InitialRouteScreen> {
-  ReactionDisposer _disposer;
-
-  FutureStatus _status;
-
   @override
-  void dispose() {
-    if (_disposer != null) {
-      _disposer();
-    }
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final env = widget.env;
-    if (_disposer == null) {
-      _status = env.store.activated.status;
-      _disposer = reaction<FutureStatus>((_) => env.store.activated.status, (s) {
-        setState(() {
-          _status = s;
-        });
+  Widget build(BuildContext context) => Observer(builder: (BuildContext context) {
+        final env = widget.env;
+        final store = env.store;
+        switch (store.activated.status) {
+          case FutureStatus.pending:
+            _splashStart = DateTime.now().millisecondsSinceEpoch;
+            return const SplashScreen();
+          case FutureStatus.rejected:
+            return ErrorScreen(
+              message: '${store.activated.error}', // todo:
+            );
+          default:
+            break;
+        }
+        String initialRoute;
+        if (!store.hasPinProtectedPassword) {
+          initialRoute = Routes.pin;
+        } else if (store.needWelcome) {
+          initialRoute = Routes.welcome;
+        } else {
+          // should be untracked!
+          // nextRoute = store.lastRoute.value?.name; todo:
+          initialRoute = Routes.accounts;
+        }
+        if (widget.showSplash) {
+          int timeoutMilliseconds = env.configSplashScreenTimeoutMs;
+          if (_splashStart > 0) {
+            timeoutMilliseconds -= DateTime.now().millisecondsSinceEpoch - _splashStart;
+            _splashStart = 0;
+          }
+          // Application opened for the first time
+          return SplashScreen(
+              key: UniqueKey(),
+              nextRoute: initialRoute,
+              timeoutMilliseconds: timeoutMilliseconds > 0 ? timeoutMilliseconds : 0);
+        }
+        return widget.routeFactoryFn(RouteSettings(name: initialRoute)).builder(context);
       });
-    }
-    switch (_status) {
-      case FutureStatus.pending:
-        _splashStart = DateTime.now().millisecondsSinceEpoch;
-        return const SplashScreen();
-        break;
-      case FutureStatus.rejected:
-        return ErrorScreen(
-          message: '${env.store.activated.error}', // todo:
-        );
-        break;
-      default:
-        break;
-    }
-
-    String nextRoute = Routes.pin;
-    // todo: enabled it
-    // nextRoute = env.store.lastRoute.value?.name;
-    // if (nextRoute == Routes.root) {
-    //   nextRoute = null;
-    // }
-    // nextRoute ??= env.store.needWelcome ? Routes.welcome : Routes.accounts;
-
-    if (widget.showSplash) {
-      int timeoutMilliseconds = env.configSplashScreenTimeoutMs;
-      if (_splashStart > 0) {
-        timeoutMilliseconds -= DateTime.now().millisecondsSinceEpoch - _splashStart;
-        _splashStart = 0;
-      }
-      // Application opened for the first time
-      return SplashScreen(
-          key: UniqueKey(),
-          nextRoute: nextRoute,
-          timeoutMilliseconds: timeoutMilliseconds > 0 ? timeoutMilliseconds : 0);
-    }
-
-    return widget.routeFactoryFn(RouteSettings(name: nextRoute)).builder(context);
-  }
 }
 
 mixin Routes {
@@ -121,8 +101,12 @@ mixin Routes {
       switch (name) {
         case root:
           return MaterialPageRoute(builder: buildInitialRouteScreen);
-       case pin:
-          return MaterialPageRoute(builder: (BuildContext context) => PinpadScreen(size: 4,));
+        case pin:
+          return MaterialPageRoute(
+              maintainState: false,
+              builder: (BuildContext context) => PinpadScreen(
+                    size: 4,
+                  ));
         case welcome:
           return MaterialPageRoute(builder: (BuildContext context) => WelcomeScreen());
         case wallet:
