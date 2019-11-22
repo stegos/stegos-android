@@ -164,8 +164,8 @@ mixin StegosThemes {
 
   static final accountsTheme = baseTheme.copyWith(
     floatingActionButtonTheme: const FloatingActionButtonThemeData(
-      backgroundColor: Color(0xff15151f),
-      foregroundColor: StegosColors.primaryColor
-    ),
+        backgroundColor: Color(0xff15151f), foregroundColor: StegosColors.primaryColor),
   );
+
+  static final pinpadTheme = baseTheme.copyWith();
 }

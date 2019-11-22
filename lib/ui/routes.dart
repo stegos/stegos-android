@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 import 'package:mobx/mobx.dart';
 import 'package:pedantic/pedantic.dart';
 import 'package:stegos_wallet/env_stegos.dart';
+import 'package:stegos_wallet/ui/pinpad/screen_pinpad.dart';
 import 'package:stegos_wallet/ui/recover/screen_recover.dart';
 import 'package:stegos_wallet/ui/splash/screen_splash.dart';
 import 'package:stegos_wallet/ui/wallet/screen_wallet.dart';
@@ -65,7 +66,7 @@ class _InitialRouteScreenState extends State<_InitialRouteScreen> {
         break;
     }
 
-    String nextRoute = Routes.welcome;
+    String nextRoute = Routes.pin;
     // todo: enabled it
     // nextRoute = env.store.lastRoute.value?.name;
     // if (nextRoute == Routes.root) {
@@ -93,6 +94,7 @@ class _InitialRouteScreenState extends State<_InitialRouteScreen> {
 mixin Routes {
   static const root = '/';
   static const splash = 'splash';
+  static const pin = 'pin';
   static const welcome = 'welcome';
   static const accounts = 'accounts';
   static const wallet = 'wallet';
@@ -119,6 +121,8 @@ mixin Routes {
       switch (name) {
         case root:
           return MaterialPageRoute(builder: buildInitialRouteScreen);
+       case pin:
+          return MaterialPageRoute(builder: (BuildContext context) => PinpadScreen(size: 4,));
         case welcome:
           return MaterialPageRoute(builder: (BuildContext context) => WelcomeScreen());
         case wallet:
