@@ -7,6 +7,11 @@ part 'store_stegos.g.dart';
 
 class StegosStore = _StegosStore with _$StegosStore;
 
+class ErrorState implements Exception {
+  ErrorState(this.message);
+  final String message;
+}
+
 abstract class _StegosStore extends StoreSupport with Store {
   _StegosStore(this.env);
 
@@ -17,6 +22,7 @@ abstract class _StegosStore extends StoreSupport with Store {
   /// Basic settings
   final settings = ObservableMap<String, dynamic>();
 
+  /// True if need to show welcome screen as first app screen
   @computed
   bool get needWelcome => settings['needWelcome'] as bool ?? true;
 
@@ -24,13 +30,34 @@ abstract class _StegosStore extends StoreSupport with Store {
   @computed
   bool get hasPinProtectedPassword => settings['hashedPassword'] != null;
 
+  /// Last known active route
   final lastRoute = Observable<RouteSettings>(null);
 
-  Future<void> persistLastRoute(RouteSettings settings) => _mergeSettings({
-        'lastRoute': {'name': settings.name, 'arguments': settings.arguments}
-      }).then((_) {
-        runInAction(() => lastRoute.value = settings);
-      });
+  /// Current error state text of `null`
+  final error = Observable<ErrorState>(ErrorState('Your phrase is incorrect. Please check it or return to previous step.'));
+
+  /// Reset current error state
+  @action
+  void resetError() {
+    if (error.value != null) {
+      error.value = null;
+    }
+  }
+
+  /// Setup error state
+  @action
+  void setError(String errorText) {
+    error.value = ErrorState(errorText);
+  }
+
+  Future<void> persistNextRoute(RouteSettings settings) {
+    resetError();
+    return _mergeSettings({
+      'lastRoute': {'name': settings.name, 'arguments': settings.arguments}
+    }).then((_) {
+      runInAction(() => lastRoute.value = settings);
+    });
+  }
 
   @override
   @action

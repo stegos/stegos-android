@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stegos_wallet/ui/routes.dart';
 import 'package:stegos_wallet/ui/themes.dart';
+import 'package:stegos_wallet/widgets/widget_scaffold_body_wrapper.dart';
 
 class PinpadScreen extends StatefulWidget {
   PinpadScreen({Key key, final this.size}) : super(key: key);
@@ -16,7 +17,6 @@ class PinpadScreen extends StatefulWidget {
 }
 
 class PinpadScreenState extends State<PinpadScreen> {
-
   PinpadScreenState(this.size);
 
   final keyTextStyle = TextStyle(fontSize: 32, color: Colors.white, fontWeight: FontWeight.w500);
@@ -64,18 +64,18 @@ class PinpadScreenState extends State<PinpadScreen> {
   Widget _buildTextKey(String text) => Text(text, style: keyTextStyle);
 
   Widget _buildOutlineBtn(Widget key, void Function() action) => Center(
-      child: Container(
-        width: keySize,
-        height: keySize,
-        child: OutlineButton(
-          onPressed: action,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(100),
+        child: Container(
+          width: keySize,
+          height: keySize,
+          child: OutlineButton(
+            onPressed: action,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(100),
             ),
-          color: Colors.white,
-          highlightedBorderColor: StegosColors.primaryColor,
-          borderSide: BorderSide(width: 0.8, color: Colors.white, style: BorderStyle.solid),
-          child: key,
+            color: Colors.white,
+            highlightedBorderColor: StegosColors.primaryColor,
+            borderSide: BorderSide(width: 0.8, color: Colors.white, style: BorderStyle.solid),
+            child: key,
           ),
         ),
       );
@@ -136,37 +136,38 @@ class PinpadScreenState extends State<PinpadScreen> {
     return Theme(
       data: StegosThemes.pinpadTheme,
       child: Scaffold(
-        body: Container(
-          decoration: BoxDecoration(
-              image: DecorationImage(
-                image: const AssetImage('assets/images/welcome_background.png'),
-                fit: BoxFit.cover,
+        body: ScaffoldBodyWrapperWidget(
+            builder: (context) => Container(
+                  decoration: BoxDecoration(
+                      image: DecorationImage(
+                    image: const AssetImage('assets/images/welcome_background.png'),
+                    fit: BoxFit.cover,
+                  )),
+                  child: ListView(
+                    padding: EdgeInsets.symmetric(horizontal: keySize - 17),
+                    children: <Widget>[
+                      const SizedBox(height: 20),
+                      stegosLogoIcon,
+                      Text(
+                        'PIN CODE',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                            fontWeight: FontWeight.normal, fontSize: 16, color: Colors.white),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 18, left: 10, right: 10, bottom: 14),
+                        child: Row(mainAxisAlignment: MainAxisAlignment.center, children: _dots()),
+                      ),
+                      GridView.count(
+                        physics: const NeverScrollableScrollPhysics(),
+                        crossAxisCount: 3,
+                        shrinkWrap: true,
+                        children: mapKeyToActions,
+                      ),
+                    ],
+                  ),
                 )),
-          child: ListView(
-            padding: EdgeInsets.symmetric(horizontal: keySize - 17),
-            children: <Widget>[
-              const SizedBox(height: 20),
-              stegosLogoIcon,
-              Text(
-                'PIN CODE',
-                textAlign: TextAlign.center,
-                style:
-                TextStyle(fontWeight: FontWeight.normal, fontSize: 16, color: Colors.white),
-                ),
-              Padding(
-                padding: const EdgeInsets.only(top: 18, left: 10, right: 10, bottom: 14),
-                child: Row(mainAxisAlignment: MainAxisAlignment.center, children: _dots()),
-                ),
-              GridView.count(
-                physics: const NeverScrollableScrollPhysics(),
-                crossAxisCount: 3,
-                shrinkWrap: true,
-                children: mapKeyToActions,
-                ),
-            ],
-            ),
-          ),
-        ),
-      );
+      ),
+    );
   }
 }

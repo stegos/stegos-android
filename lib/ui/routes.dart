@@ -95,7 +95,7 @@ mixin Routes {
       switch (name) {
         // Remember selected screen, todo: review
         case accounts:
-          unawaited(env.store.persistLastRoute(settings));
+          unawaited(env.store.persistNextRoute(settings));
           break;
       }
       switch (name) {

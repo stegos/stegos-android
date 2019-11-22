@@ -4,6 +4,7 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:stegos_wallet/ui/recover/store_recover_screen.dart';
 import 'package:stegos_wallet/ui/themes.dart';
 import 'package:stegos_wallet/widgets/widget_app_bar.dart';
+import 'package:stegos_wallet/widgets/widget_scaffold_body_wrapper.dart';
 
 class RecoverScreen extends StatefulWidget {
   @override
@@ -31,32 +32,33 @@ class _RecoverScreenState extends State<RecoverScreen> {
             ),
             title: const Text('Account back up'),
           ),
-          body: Column(
-            children: <Widget>[
-              Padding(
-                padding: StegosThemes.defaultPaddingHorizontal,
-                child: Column(
-                  children: <Widget>[
-                    Text(
-                      'Please white down the phase in case to restore your account',
-                      textAlign: TextAlign.center,
-                      style: StegosThemes.defaultCaptionTextStyle,
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      'The field is case sensitive',
-                      textAlign: TextAlign.center,
-                      style: StegosThemes.defaultSubCaptionTextStyle,
-                    ),
-                  ],
-                ),
-              ),
-              Expanded(
-                child: SingleChildScrollView(child: _buildForm()),
-              ),
-              SizedBox(width: double.infinity, height: 50, child: _buildRestoreButton())
-            ],
-          ),
+          body: ScaffoldBodyWrapperWidget(
+              builder: (context) => Column(
+                    children: <Widget>[
+                      Padding(
+                        padding: StegosThemes.defaultPaddingHorizontal,
+                        child: Column(
+                          children: <Widget>[
+                            Text(
+                              'Please white down the phase in case to restore your account',
+                              textAlign: TextAlign.center,
+                              style: StegosThemes.defaultCaptionTextStyle,
+                            ),
+                            const SizedBox(height: 10),
+                            Text(
+                              'The field is case sensitive',
+                              textAlign: TextAlign.center,
+                              style: StegosThemes.defaultSubCaptionTextStyle,
+                            ),
+                          ],
+                        ),
+                      ),
+                      Expanded(
+                        child: SingleChildScrollView(child: _buildForm()),
+                      ),
+                      SizedBox(width: double.infinity, height: 50, child: _buildRestoreButton())
+                    ],
+                  )),
         ),
       );
 
