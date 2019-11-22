@@ -11,16 +11,17 @@ class Account {
 }
 
 class AccountCard extends StatefulWidget {
-  AccountCard({Key key, this.account}) : super(key: key);
+  AccountCard({Key key, this.account, this.collapsed = false}) : super(key: key);
 
-  Account account;
+  final Account account;
+  final bool collapsed;
 
   @override
-  AccountCardState createState() => AccountCardState(account);
+  AccountCardState createState() => AccountCardState(account, collapsed);
 }
 
 class AccountCardState extends State<AccountCard> {
-  AccountCardState(this.account);
+  AccountCardState(this.account, this.collapsed);
 
   final Account account;
 
@@ -29,6 +30,8 @@ class AccountCardState extends State<AccountCard> {
   final Image qrIcon =
       Image(image: const AssetImage('assets/images/qr.png'), width: 20, height: 20);
   final AssetImage backgroundImage = const AssetImage('assets/images/account_card_bg.png');
+
+  bool collapsed;
 
   @override
   Widget build(BuildContext context) => Padding(

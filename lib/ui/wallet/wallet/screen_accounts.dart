@@ -18,6 +18,8 @@ class AccountsScreenState extends State<AccountsScreen> {
   final Image qrIcon =
       Image(image: const AssetImage('assets/images/qr.png'), width: 20, height: 20);
 
+  bool collapsed = false;
+
   Container _buildTotalBalanceContainer() => Container(
         height: 150,
         color: StegosColors.backgroundColor,
@@ -41,18 +43,25 @@ class AccountsScreenState extends State<AccountsScreen> {
             ),
           ),
           Container(
-            alignment: Alignment.bottomLeft,
-            padding: const EdgeInsets.only(left: 15, bottom: 8),
-            decoration: BoxDecoration(
-                border: Border(bottom: BorderSide(color: StegosColors.primaryColorDark))),
-            child: Row(
-              children: <Widget>[
-                accountsIcon,
-                const SizedBox(width: 15),
-                const Text('Accounts'),
-              ],
-            ),
-          ),
+              alignment: Alignment.bottomLeft,
+              padding: EdgeInsets.zero,
+              decoration: BoxDecoration(
+                  border: Border(bottom: BorderSide(color: StegosColors.primaryColorDark))),
+              child: RawMaterialButton(
+                padding: const EdgeInsets.symmetric(horizontal: 15),
+                onPressed: () {
+                  setState(() {
+                    collapsed = !collapsed;
+                  });
+                },
+                child: Row(
+                  children: <Widget>[
+                    accountsIcon,
+                    const SizedBox(width: 15),
+                    const Text('Accounts'),
+                  ],
+                ),
+              )),
         ]),
       );
 
@@ -133,15 +142,19 @@ class AccountsScreenState extends State<AccountsScreen> {
                   children: <Widget>[
                     AccountCard(
                       account: Account(name: 'Account 1', balance: 345, qrUrl: null),
+                      collapsed: collapsed,
                     ),
                     AccountCard(
                       account: Account(name: 'Account 2', balance: 126, qrUrl: null),
+                      collapsed: collapsed,
                     ),
                     AccountCard(
                       account: Account(name: 'Account 3', balance: 0.302, qrUrl: null),
+                      collapsed: collapsed,
                     ),
                     AccountCard(
                       account: Account(name: 'Account 4', balance: -11, qrUrl: null),
+                      collapsed: collapsed,
                     ),
                   ],
                 ),

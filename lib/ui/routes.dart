@@ -127,7 +127,7 @@ mixin Routes {
           return MaterialPageRoute(builder: (BuildContext context) => RecoverScreen());
         case splash:
           return MaterialPageRoute(
-              maintainState: false, builder: (BuildContext context) => const SplashScreen());
+              maintainState: false, builder: (BuildContext context) => const SplashScreen(nextRoute: welcome));
         default:
           return MaterialPageRoute(
               maintainState: false,
