@@ -16,22 +16,8 @@ class PinpadScreen extends StatefulWidget {
 }
 
 class PinpadScreenState extends State<PinpadScreen> {
-  PinpadScreenState(this.size) {
-    mapKeyToActions = [
-      _buildOutlineBtn(_buildTextKey('1'), _setChar('1')),
-      _buildOutlineBtn(_buildTextKey('2'), _setChar('2')),
-      _buildOutlineBtn(_buildTextKey('3'), _setChar('3')),
-      _buildOutlineBtn(_buildTextKey('4'), _setChar('4')),
-      _buildOutlineBtn(_buildTextKey('5'), _setChar('5')),
-      _buildOutlineBtn(_buildTextKey('6'), _setChar('6')),
-      _buildOutlineBtn(_buildTextKey('7'), _setChar('7')),
-      _buildOutlineBtn(_buildTextKey('8'), _setChar('8')),
-      _buildOutlineBtn(_buildTextKey('9'), _setChar('9')),
-      _buildIcoBtn(fingerprintIcon, _onFingerprint()),
-      _buildOutlineBtn(_buildTextKey('0'), _setChar('0')),
-      _buildIcoBtn(Icon(Icons.backspace, color: Colors.white, size: 32), _removeChar()),
-    ];
-  }
+
+  PinpadScreenState(this.size);
 
   final keyTextStyle = TextStyle(fontSize: 32, color: Colors.white, fontWeight: FontWeight.w500);
   final fingerprintIcon = SvgPicture.asset('assets/images/fingerprint.svg');
@@ -42,8 +28,6 @@ class PinpadScreenState extends State<PinpadScreen> {
   );
 
   int size;
-
-  List<Widget> mapKeyToActions;
 
   void Function() _setChar(String c) => () {
         setState(() {
@@ -72,29 +56,34 @@ class PinpadScreenState extends State<PinpadScreen> {
 
   String code = '';
 
+  double get keySize {
+    final double width = MediaQuery.of(context).size.width;
+    return width / 5.29;
+  }
+
   Widget _buildTextKey(String text) => Text(text, style: keyTextStyle);
 
   Widget _buildOutlineBtn(Widget key, void Function() action) => Center(
-        child: Container(
-          width: 68,
-          height: 68,
-          child: OutlineButton(
-            onPressed: action,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(100),
+      child: Container(
+        width: keySize,
+        height: keySize,
+        child: OutlineButton(
+          onPressed: action,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(100),
             ),
-            color: Colors.white,
-            highlightedBorderColor: StegosColors.primaryColor,
-            borderSide: BorderSide(width: 0.8, color: Colors.white, style: BorderStyle.solid),
-            child: key,
+          color: Colors.white,
+          highlightedBorderColor: StegosColors.primaryColor,
+          borderSide: BorderSide(width: 0.8, color: Colors.white, style: BorderStyle.solid),
+          child: key,
           ),
         ),
       );
 
   Widget _buildIcoBtn(Widget key, void Function() action) => Center(
         child: Container(
-          width: 68,
-          height: 68,
+          width: keySize,
+          height: keySize,
           child: IconButton(
             icon: key,
             onPressed: action,
@@ -129,39 +118,55 @@ class PinpadScreenState extends State<PinpadScreen> {
   }
 
   @override
-  Widget build(BuildContext context) => Theme(
-        data: StegosThemes.pinpadTheme,
-        child: Scaffold(
-          body: Container(
-            decoration: BoxDecoration(
-                image: DecorationImage(
-              image: const AssetImage('assets/images/welcome_background.png'),
-              fit: BoxFit.cover,
-            )),
-            child: ListView(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              children: <Widget>[
-                const SizedBox(height: 20),
-                stegosLogoIcon,
-                Text(
-                  'PIN CODE',
-                  textAlign: TextAlign.center,
-                  style:
-                      TextStyle(fontWeight: FontWeight.normal, fontSize: 16, color: Colors.white),
+  Widget build(BuildContext context) {
+    final List<Widget> mapKeyToActions = [
+      _buildOutlineBtn(_buildTextKey('1'), _setChar('1')),
+      _buildOutlineBtn(_buildTextKey('2'), _setChar('2')),
+      _buildOutlineBtn(_buildTextKey('3'), _setChar('3')),
+      _buildOutlineBtn(_buildTextKey('4'), _setChar('4')),
+      _buildOutlineBtn(_buildTextKey('5'), _setChar('5')),
+      _buildOutlineBtn(_buildTextKey('6'), _setChar('6')),
+      _buildOutlineBtn(_buildTextKey('7'), _setChar('7')),
+      _buildOutlineBtn(_buildTextKey('8'), _setChar('8')),
+      _buildOutlineBtn(_buildTextKey('9'), _setChar('9')),
+      _buildIcoBtn(fingerprintIcon, _onFingerprint()),
+      _buildOutlineBtn(_buildTextKey('0'), _setChar('0')),
+      _buildIcoBtn(Icon(Icons.backspace, color: Colors.white, size: keySize / 2), _removeChar()),
+    ];
+    return Theme(
+      data: StegosThemes.pinpadTheme,
+      child: Scaffold(
+        body: Container(
+          decoration: BoxDecoration(
+              image: DecorationImage(
+                image: const AssetImage('assets/images/welcome_background.png'),
+                fit: BoxFit.cover,
+                )),
+          child: ListView(
+            padding: EdgeInsets.symmetric(horizontal: keySize - 17),
+            children: <Widget>[
+              const SizedBox(height: 20),
+              stegosLogoIcon,
+              Text(
+                'PIN CODE',
+                textAlign: TextAlign.center,
+                style:
+                TextStyle(fontWeight: FontWeight.normal, fontSize: 16, color: Colors.white),
                 ),
-                Padding(
-                  padding: const EdgeInsets.only(top: 18, left: 10, right: 10, bottom: 14),
-                  child: Row(mainAxisAlignment: MainAxisAlignment.center, children: _dots()),
+              Padding(
+                padding: const EdgeInsets.only(top: 18, left: 10, right: 10, bottom: 14),
+                child: Row(mainAxisAlignment: MainAxisAlignment.center, children: _dots()),
                 ),
-                GridView.count(
-                  physics: const NeverScrollableScrollPhysics(),
-                  crossAxisCount: 3,
-                  shrinkWrap: true,
-                  children: mapKeyToActions,
+              GridView.count(
+                physics: const NeverScrollableScrollPhysics(),
+                crossAxisCount: 3,
+                shrinkWrap: true,
+                children: mapKeyToActions,
                 ),
-              ],
+            ],
             ),
           ),
         ),
       );
+  }
 }

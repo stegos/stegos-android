@@ -25,7 +25,7 @@ class AccountsScreenState extends State<AccountsScreen> {
             borderRadius: BorderRadius.circular(3.0),
             onTap: () {},
             child: AspectRatio(
-              aspectRatio: 1.73,
+              aspectRatio: 302 / 174,
               child: Container(
                   padding: const EdgeInsets.only(left: 15, bottom: 10, right: 20),
                   child: Stack(
