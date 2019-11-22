@@ -194,7 +194,7 @@ packages:
       name: flutter_svg
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.14.4"
+    version: "0.15.0"
   flutter_test:
     dependency: "direct dev"
     description: flutter
@@ -409,7 +409,7 @@ packages:
       name: path_provider
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.4.2"
+    version: "1.4.4"
   pedantic:
     dependency: "direct main"
     description:
@@ -617,7 +617,7 @@ packages:
       name: watcher
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.9.7+12"
+    version: "0.9.7+13"
   web_socket_channel:
     dependency: transitive
     description:

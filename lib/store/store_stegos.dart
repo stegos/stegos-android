@@ -20,18 +20,17 @@ abstract class _StegosStore extends StoreSupport with Store {
   @computed
   bool get needWelcome => settings['needWelcome'] as bool ?? true;
 
+  /// User has pin protected password
+  @computed
+  bool get hasPinProtectedPassword => settings['hashedPassword'] != null;
+
   final lastRoute = Observable<RouteSettings>(null);
 
   Future<void> persistLastRoute(RouteSettings settings) => _mergeSettings({
         'lastRoute': {'name': settings.name, 'arguments': settings.arguments}
       }).then((_) {
-        _updateLastRoute(settings);
+        runInAction(() => lastRoute.value = settings);
       });
-
-  @action
-  void _updateLastRoute(RouteSettings settings) {
-    lastRoute.value = settings;
-  }
 
   @override
   @action
@@ -57,7 +56,8 @@ abstract class _StegosStore extends StoreSupport with Store {
 
     if (settings.containsKey('lastRoute')) {
       final v = settings['lastRoute'];
-      _updateLastRoute(RouteSettings(name: v['name'] as String, arguments: v['arguments']));
+      final routeSettings = RouteSettings(name: v['name'] as String, arguments: v['arguments']);
+      runInAction(() => lastRoute.value = routeSettings);
     }
   }
 
