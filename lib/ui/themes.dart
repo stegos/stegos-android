@@ -30,6 +30,8 @@ mixin StegosColors {
 
   static const textSelectionColor = Colors.orangeAccent;
 
+  static const errorColor = Color(0xffff3c3c);
+
   static final colorScheme = ColorScheme.fromSwatch(
       brightness: Brightness.dark,
       primarySwatch: StegosColors.primaryColor,
@@ -166,4 +168,6 @@ mixin StegosThemes {
     floatingActionButtonTheme: const FloatingActionButtonThemeData(
         backgroundColor: Color(0xff15151f), foregroundColor: StegosColors.primaryColor),
   );
+
+  static final pinpadTheme = baseTheme.copyWith();
 }

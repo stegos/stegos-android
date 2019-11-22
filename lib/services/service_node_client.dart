@@ -19,9 +19,9 @@ class StegosNodeClient with Loggable<StegosNodeClient> {
         _maxWait = _env.configNodeWsEndpointMaxReconnectTimeoutMs,
         _nextWait = _env.configNodeWsEndpointMinReconnectTimeoutMs;
 
-  static Future<StegosNodeClient> open(StegosEnv env) async {
+  factory StegosNodeClient.open(StegosEnv env)  {
     final wss = StegosNodeClient._(env);
-    await wss._connect();
+    unawaited(wss._connect());
     return wss;
   }
 
@@ -70,7 +70,7 @@ class StegosNodeClient with Loggable<StegosNodeClient> {
   }
 
   // Ensure node client is able to connect
-  Future<void> ensureOpen() => _connect(ensureOpen: true);
+  Future<void> ensureOpened() => _connect(ensureOpened: true);
 
   Future<void> _reconnect() {
     if (_reconnecting || _disposed) {
@@ -85,11 +85,11 @@ class StegosNodeClient with Loggable<StegosNodeClient> {
     });
   }
 
-  Future<void> _connect({bool ensureOpen = false}) async {
+  Future<void> _connect({bool ensureOpened = false}) async {
     if (_disposed) {
       _controller = StreamController<StegosNodeMessage>.broadcast();
     }
-    if (ensureOpen && _ws != null) {
+    if (ensureOpened && _ws != null) {
       return Future.value();
     }
     await close(dispose: false);

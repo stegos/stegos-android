@@ -13,7 +13,6 @@ class AppBarWidget extends AppBar {
       {Key key,
       Widget title,
       Widget leading,
-      Widget bottomChild,
       List<Widget> actions,
       ThemeData theme,
       Brightness brightness,
@@ -21,6 +20,7 @@ class AppBarWidget extends AppBar {
       SystemUiOverlayStyle systemUiOverlayStyle,
       bool centerTitle = true,
       bool automaticallyImplyLeading = true,
+      Widget bottomChild,
       double bottomChildPrefferedHeight = 0.0})
       : super(
           key: key,

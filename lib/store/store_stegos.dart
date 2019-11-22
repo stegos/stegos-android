@@ -7,6 +7,11 @@ part 'store_stegos.g.dart';
 
 class StegosStore = _StegosStore with _$StegosStore;
 
+class ErrorState implements Exception {
+  ErrorState(this.message);
+  final String message;
+}
+
 abstract class _StegosStore extends StoreSupport with Store {
   _StegosStore(this.env);
 
@@ -17,20 +22,40 @@ abstract class _StegosStore extends StoreSupport with Store {
   /// Basic settings
   final settings = ObservableMap<String, dynamic>();
 
+  /// True if need to show welcome screen as first app screen
   @computed
   bool get needWelcome => settings['needWelcome'] as bool ?? true;
 
+  /// User has pin protected password
+  @computed
+  bool get hasPinProtectedPassword => settings['hashedPassword'] != null;
+
+  /// Last known active route
   final lastRoute = Observable<RouteSettings>(null);
 
-  Future<void> persistLastRoute(RouteSettings settings) => _mergeSettings({
-        'lastRoute': {'name': settings.name, 'arguments': settings.arguments}
-      }).then((_) {
-        _updateLastRoute(settings);
-      });
+  /// Current error state text of `null`
+  final error = Observable<ErrorState>(null);
 
+  /// Reset current error state
   @action
-  void _updateLastRoute(RouteSettings settings) {
-    lastRoute.value = settings;
+  void resetError() {
+    if (error.value != null) {
+      error.value = null;
+    }
+  }
+
+  /// Setup error state
+  @action
+  void setError(String errorText) {
+    error.value = ErrorState(errorText);
+  }
+
+  Future<void> persistNextRoute(RouteSettings settings) {
+    return _mergeSettings({
+      'lastRoute': {'name': settings.name, 'arguments': settings.arguments}
+    }).then((_) {
+      runInAction(() => lastRoute.value = settings);
+    });
   }
 
   @override
@@ -57,7 +82,8 @@ abstract class _StegosStore extends StoreSupport with Store {
 
     if (settings.containsKey('lastRoute')) {
       final v = settings['lastRoute'];
-      _updateLastRoute(RouteSettings(name: v['name'] as String, arguments: v['arguments']));
+      final routeSettings = RouteSettings(name: v['name'] as String, arguments: v['arguments']);
+      runInAction(() => lastRoute.value = routeSettings);
     }
   }
 

@@ -37,6 +37,8 @@ class _SplashScreenState extends State<SplashScreen> {
       );
 
   Timer startTimer() => Timer(Duration(milliseconds: widget.timeoutMilliseconds), () {
-        Navigator.of(context).pushReplacementNamed(widget.nextRoute);
+        if (context != null) {
+          Navigator.of(context).pushReplacementNamed(widget.nextRoute);
+        }
       });
 }
