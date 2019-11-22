@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:provider/provider.dart';
 import 'package:stegos_wallet/store/store_stegos.dart';
+import 'package:stegos_wallet/ui/themes.dart';
 
 class ScaffoldBodyWrapperWidget extends StatelessWidget {
   const ScaffoldBodyWrapperWidget({Key key, this.builder}) : super(key: key);
@@ -24,8 +25,11 @@ class ScaffoldBodyWrapperWidget extends StatelessWidget {
             children: <Widget>[
               Container(
                 width: double.infinity,
-                color: Colors.red,
-                child: Text(error.message),
+                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 50),
+                color: StegosColors.errorColor,
+                child: Text(error.message,
+                             textAlign: TextAlign.center,
+                            style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14),),
               ),
               Expanded(child: builder(context))
             ],
