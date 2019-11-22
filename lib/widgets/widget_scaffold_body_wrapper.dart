@@ -27,9 +27,11 @@ class ScaffoldBodyWrapperWidget extends StatelessWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 50),
                 color: StegosColors.errorColor,
-                child: Text(error.message,
-                             textAlign: TextAlign.center,
-                            style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14),),
+                child: Text(
+                  error.message,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+                ),
               ),
               Expanded(child: builder(context))
             ],

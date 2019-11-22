@@ -34,7 +34,7 @@ abstract class _StegosStore extends StoreSupport with Store {
   final lastRoute = Observable<RouteSettings>(null);
 
   /// Current error state text of `null`
-  final error = Observable<ErrorState>(ErrorState('Your phrase is incorrect. Please check it or return to previous step.'));
+  final error = Observable<ErrorState>(null);
 
   /// Reset current error state
   @action
