@@ -92,6 +92,7 @@ mixin Routes {
 
     return routeFactoryFn = (RouteSettings settings) {
       final name = settings.name;
+      env.store.resetError();
       switch (name) {
         // Remember selected screen, todo: review
         case accounts:

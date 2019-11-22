@@ -51,7 +51,6 @@ abstract class _StegosStore extends StoreSupport with Store {
   }
 
   Future<void> persistNextRoute(RouteSettings settings) {
-    resetError();
     return _mergeSettings({
       'lastRoute': {'name': settings.name, 'arguments': settings.arguments}
     }).then((_) {
