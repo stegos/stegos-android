@@ -28,7 +28,7 @@ abstract class _StegosStore extends StoreSupport with Store {
 
   /// User has pin protected password
   @computed
-  bool get hasPinProtectedPassword => settings['hashedPassword'] != null;
+  bool get hasPinProtectedPassword => settings['password'] != null;
 
   /// Last known active route
   final lastRoute = Observable<RouteSettings>(null);
@@ -50,8 +50,23 @@ abstract class _StegosStore extends StoreSupport with Store {
     error.value = ErrorState(errorText);
   }
 
+  Future<void> mergeSingle(String key, dynamic value) =>
+      mergeSettings(<String, dynamic>{key: value});
+
+  @action
+  Future<void> mergeSettings(Map<String, dynamic> update) => env.useDb((db) async {
+        update.entries.forEach((e) {
+          if (e.value == null) {
+            settings.remove(e.key);
+          } else {
+            settings[e.key] = e.value;
+          }
+        });
+        return db.patch('settings', update, DOC_SETTINGS_ID);
+      });
+
   Future<void> persistNextRoute(RouteSettings settings) {
-    return _mergeSettings({
+    return mergeSettings({
       'lastRoute': {'name': settings.name, 'arguments': settings.arguments}
     }).then((_) {
       runInAction(() => lastRoute.value = settings);
@@ -94,15 +109,4 @@ abstract class _StegosStore extends StoreSupport with Store {
 
   Future<int> _flushSettings() => env.useDb((db) => db.put(
       'settings', settings.map((k, v) => MapEntry<dynamic, dynamic>(k, v)), DOC_SETTINGS_ID));
-
-  Future<void> _mergeSettings(Map<String, dynamic> update) => env.useDb((db) async {
-        update.entries.forEach((e) {
-          if (e.value == null) {
-            settings.remove(e.key);
-          } else {
-            settings[e.key] = e.value;
-          }
-          return db.patch('settings', update, DOC_SETTINGS_ID);
-        });
-      });
 }

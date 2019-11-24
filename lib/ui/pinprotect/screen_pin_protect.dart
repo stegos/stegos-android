@@ -2,11 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:mobx/mobx.dart';
+import 'package:pedantic/pedantic.dart';
 import 'package:provider/provider.dart';
 import 'package:stegos_wallet/env_stegos.dart';
 import 'package:stegos_wallet/ui/pinprotect/store_screen_pinprotect.dart';
 import 'package:stegos_wallet/widgets/widget_pinpad.dart';
 import 'package:stegos_wallet/widgets/widget_scaffold_body_wrapper.dart';
+
+Future<void> _setupPassword(StegosEnv env, String pin) async {
+  // todo:
+}
 
 class PinProtectScreen extends StatefulWidget {
   const PinProtectScreen({Key key, @required this.nextRoute}) : super(key: key);
@@ -26,7 +31,10 @@ class _PinProtectScreenState extends State<PinProtectScreen> {
         store.firstPin = pin;
         store.secondPin = null;
       } else if (pin == store.firstPin) {
-        Navigator.of(context).pushReplacementNamed(widget.nextRoute);
+        final env = Provider.of<StegosEnv>(context);
+        unawaited(_setupPassword(env, pin).then((_) {
+          Navigator.of(context).pushReplacementNamed(widget.nextRoute);
+        }));
       } else {
         store.secondPin = pin;
       }
