@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:math' as Math;
 
 import 'package:pedantic/pedantic.dart';
+import 'package:steel_crypt/steel_crypt.dart';
 import 'package:stegos_wallet/env_stegos.dart';
 import 'package:stegos_wallet/log/loggable.dart';
 
@@ -14,18 +15,18 @@ class StegosNodeMessage {
 /// Stegos node client.
 ///
 class StegosNodeClient with Loggable<StegosNodeClient> {
-  StegosNodeClient._(this._env)
-      : _minWait = _env.configNodeWsEndpointMinReconnectTimeoutMs,
-        _maxWait = _env.configNodeWsEndpointMaxReconnectTimeoutMs,
-        _nextWait = _env.configNodeWsEndpointMinReconnectTimeoutMs;
+  StegosNodeClient._(this.env)
+      : _minWait = env.configNodeWsEndpointMinReconnectTimeoutMs,
+        _maxWait = env.configNodeWsEndpointMaxReconnectTimeoutMs,
+        _nextWait = env.configNodeWsEndpointMinReconnectTimeoutMs;
 
-  factory StegosNodeClient.open(StegosEnv env)  {
+  factory StegosNodeClient.open(StegosEnv env) {
     final wss = StegosNodeClient._(env);
     unawaited(wss._connect());
     return wss;
   }
 
-  final StegosEnv _env;
+  final StegosEnv env;
 
   var _controller = StreamController<StegosNodeMessage>.broadcast();
 
@@ -93,7 +94,7 @@ class StegosNodeClient with Loggable<StegosNodeClient> {
       return Future.value();
     }
     await close(dispose: false);
-    return WebSocket.connect(_env.configNodeWsEndpoint).then((ws) {
+    return WebSocket.connect(env.configNodeWsEndpoint).then((ws) {
       _ws = ws;
       _subscription = _ws.listen((line_) {
         _nextWait = _minWait;
@@ -115,5 +116,15 @@ class StegosNodeClient with Loggable<StegosNodeClient> {
       log.warning('Connection error', err);
       unawaited(_reconnect());
     });
+  }
+
+  /// Encodes a given `input` command string as payload
+  /// for websocket channel connected to stegos node
+  String _messageEncrypt(String input) {
+    final key = this.env.configNodeWsEndpointApiToken;
+    final iv = CryptKey().genDart(16);
+    //final encrypter = StegosAesCrypt()
+
+    // aes-128-ctr
   }
 }

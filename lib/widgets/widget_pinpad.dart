@@ -45,7 +45,7 @@ class _PinpadWidgetState extends State<PinpadWidget> {
 
   void _ready() {
     if (widget.onPinReady != null) {
-      unawaited(Future.delayed(const Duration(milliseconds: 500), () {
+      unawaited(Future.delayed(const Duration(milliseconds: 400), () {
         widget.onPinReady(_code);
       }));
     }

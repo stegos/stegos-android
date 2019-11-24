@@ -3,6 +3,7 @@ import 'dart:math' as Math;
 import 'package:random_string/random_string.dart';
 import 'package:steel_crypt/steel_crypt.dart';
 import 'package:stegos_wallet/env_stegos.dart';
+import 'package:stegos_wallet/utils/crypto_aes.dart';
 
 /// Varios security related utility methods.
 ///
@@ -23,8 +24,8 @@ class SecurityService {
   Future<void> setupAccountPassword(String password, String pin) => env.useDb((db) async {
         unlockedPassword = null;
         final ekey = '${pin.padRight(32, '@')}';
-        final iv = CryptKey().genDart(16);
-        final encyptedPassword = AesCrypt(ekey, 'cfb-64', 'pkcs7').encrypt('pin:${password}', iv);
+        final iv = CryptKey().genDart(16).substring(0, 16);
+        final encyptedPassword = StegosAesCrypt(ekey).encrypt('pin:${password}', iv);
         await env.store.mergeSettings({
           'password': encyptedPassword,
           'iv': iv,
@@ -41,7 +42,7 @@ class SecurityService {
     if (password == null || iv == null) {
       return Future.error(Exception('Invalid settings'));
     }
-    final pw = AesCrypt(ekey, 'cfb-64', 'pkcs7').decrypt(password, iv);
+    final pw = StegosAesCrypt(ekey).decrypt(password, iv);
     if (!pw.startsWith('pin:')) {
       return Future.error(Exception('Invalid password recovered'));
     }

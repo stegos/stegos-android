@@ -51,7 +51,7 @@ class StegosEnv extends Env<Widget> {
   String get configNodeWsEndpoint => 'ws://10.0.2.2:3145';
 
   /// Stegos node API access token
-  String get configNodeWsEndpointApiToken => 'nnUdgME/PZlmhQ1norzG9g==';
+  String get configNodeWsEndpointApiToken => 'xPM4oRn0/GintAaKOZA6Qw==';
 
   /// Shared security service
   SecurityService securityService;
