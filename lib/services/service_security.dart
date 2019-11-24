@@ -18,23 +18,23 @@ class SecurityService {
       randomAlphaNumeric(env.configGeneratedPasswordsLength, provider: _provider);
 
   Future<void> setupAccountPassword(String password, String pin) => env.useDb((db) async {
-        final ekey = CryptKey().genDart(32);
-        final encrypter = AesCrypt(ekey, 'cfb-64', 'pkcs7');
-        final encyptedPassword = encrypter.encrypt(password);
-        await env.store.mergeSettings({'password': encyptedPassword, 'ekey': ekey});
+        final ekey = pin.padRight(32, '@');
+        final iv = CryptKey().genDart(16);
+        final encyptedPassword = AesCrypt(ekey, 'cfb-64', 'pkcs7').encrypt(password, iv);
+        await env.store.mergeSettings({'password': encyptedPassword, 'iv': iv});
       });
 
   /// Recover pin protected password.
   /// Future will be resolved to an empty string if password cannot be recovered.
   Future<String> recoverAccountPassword(String pin) async {
     final store = env.store;
-    final ekey = store.settings['ekey'] as String;
+    final ekey = pin.padRight(32, '@');
+    final iv = store.settings['iv'] as String;
     final password = store.settings['password'] as String;
-    if (ekey == null || password == null) {
+    if (password == null || iv == null) {
       return '';
     }
-    final decrypter = AesCrypt(ekey, 'cfb-64', 'pkcs7');
-    return decrypter.decrypt(password, pin);
+    return AesCrypt(ekey, 'cfb-64', 'pkcs7').decrypt(password, iv);
   }
 }
 

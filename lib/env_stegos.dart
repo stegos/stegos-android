@@ -1,8 +1,10 @@
 import 'package:ejdb2_flutter/ejdb2_flutter.dart';
 import 'package:flutter/widgets.dart';
+import 'package:logging/logging.dart';
 import 'package:pedantic/pedantic.dart';
 import 'package:provider/provider.dart';
 import 'package:stegos_wallet/env.dart';
+import 'package:stegos_wallet/log/loggable.dart';
 import 'package:stegos_wallet/services/service_node_client.dart';
 import 'package:stegos_wallet/services/service_security.dart';
 import 'package:stegos_wallet/store/store_stegos.dart';
@@ -12,7 +14,10 @@ import 'package:stegos_wallet/widgets/widget_lifecycle.dart';
 /// Stegos wallet app environment.
 ///
 class StegosEnv extends Env<Widget> {
-  StegosEnv() : super();
+  StegosEnv() : super() {
+    // fixme:
+    Log('StegosStore').level = Level.FINE;
+  }
 
   /// Main app state store.
   StegosStore store;

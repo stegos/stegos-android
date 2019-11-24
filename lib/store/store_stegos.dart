@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:mobx/mobx.dart';
 import 'package:stegos_wallet/env_stegos.dart';
+import 'package:stegos_wallet/log/loggable.dart';
 import 'package:stegos_wallet/store/store_common.dart';
 
 part 'store_stegos.g.dart';
@@ -12,7 +13,7 @@ class ErrorState implements Exception {
   final String message;
 }
 
-abstract class _StegosStore extends StoreSupport with Store {
+abstract class _StegosStore extends StoreSupport with Store, Loggable<StegosStore> {
   _StegosStore(this.env);
 
   static const int DOC_SETTINGS_ID = 1;
@@ -99,6 +100,10 @@ abstract class _StegosStore extends StoreSupport with Store {
       final v = settings['lastRoute'];
       final routeSettings = RouteSettings(name: v['name'] as String, arguments: v['arguments']);
       runInAction(() => lastRoute.value = routeSettings);
+    }
+
+    if (log.isFine) {
+      log.fine('\n\t${settings.entries.map((e) => 'settings: ${e.key} => ${e.value}').join('\n\t')}');
     }
   }
 

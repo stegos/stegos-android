@@ -9,8 +9,11 @@ import 'package:stegos_wallet/ui/pinprotect/store_screen_pinprotect.dart';
 import 'package:stegos_wallet/widgets/widget_pinpad.dart';
 import 'package:stegos_wallet/widgets/widget_scaffold_body_wrapper.dart';
 
-Future<void> _setupPassword(StegosEnv env, String pin) async {
-  // todo:
+Future<void> _setupPassword(StegosEnv env, String pin) {
+  final ss = env.securityService;
+  final pw = ss.createRandomPassword();
+  print('Activate pin: ${pin} ${pw}');
+  return ss.setupAccountPassword(pw, pin);
 }
 
 class PinProtectScreen extends StatefulWidget {
