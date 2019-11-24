@@ -44,6 +44,9 @@ class StegosEnv extends Env<Widget> {
   /// Length of random generated passwords
   int get configGeneratedPasswordsLength => 15;
 
+  /// Max unlocked app period in milleseconds
+  int get configMaxAppUnlockedPeriod => 60 * 60 * 1000; // 1h
+
   /// Stegos node websocket endpoint
   String get configNodeWsEndpoint => 'ws://10.0.2.2:3145';
 

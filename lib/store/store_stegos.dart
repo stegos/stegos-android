@@ -31,6 +31,13 @@ abstract class _StegosStore extends StoreSupport with Store, Loggable<StegosStor
   @computed
   bool get hasPinProtectedPassword => settings['password'] != null;
 
+  @computed
+  int get lastAppUnlockTs => settings['lastAppUnlockTs'] as int ?? 0;
+
+  @computed
+  bool get needAppUnlock =>
+      DateTime.now().millisecondsSinceEpoch - lastAppUnlockTs >= env.configMaxAppUnlockedPeriod;
+
   /// Last known active route
   final lastRoute = Observable<RouteSettings>(null);
 
@@ -49,6 +56,11 @@ abstract class _StegosStore extends StoreSupport with Store, Loggable<StegosStor
   @action
   void setError(String errorText) {
     error.value = ErrorState(errorText);
+  }
+
+  Future<void> touchAppUnlockedPeriod([int touchTs]) {
+    touchTs ??= DateTime.now().millisecondsSinceEpoch;
+    return mergeSingle('lastAppUnlockTs', touchTs);
   }
 
   Future<void> mergeSingle(String key, dynamic value) =>
@@ -103,7 +115,8 @@ abstract class _StegosStore extends StoreSupport with Store, Loggable<StegosStor
     }
 
     if (log.isFine) {
-      log.fine('\n\t${settings.entries.map((e) => 'settings: ${e.key} => ${e.value}').join('\n\t')}');
+      log.fine(
+          '\n\t${settings.entries.map((e) => 'settings: ${e.key} => ${e.value}').join('\n\t')}');
     }
   }
 

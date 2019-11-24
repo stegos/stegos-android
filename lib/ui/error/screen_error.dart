@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-
-import '../themes.dart';
+import 'package:stegos_wallet/ui/routes.dart';
+import 'package:stegos_wallet/ui/themes.dart';
 
 class ErrorScreen extends StatelessWidget {
-  const ErrorScreen({Key key, @required this.message, this.fallbackRoute = '/'}) : super(key: key);
+  const ErrorScreen(
+      {Key key,
+      @required this.message,
+      this.fallbackRoute = const RouteSettings(name: Routes.root)})
+      : super(key: key);
 
   final String message;
-  final String fallbackRoute;
+  final RouteSettings fallbackRoute;
 
   @override
   Widget build(BuildContext context) => Scaffold(
@@ -50,8 +54,9 @@ class ErrorScreen extends StatelessWidget {
                   height: 50,
                   child: RaisedButton(
                     onPressed: () {
-                      Navigator.of(context)
-                          .pushNamedAndRemoveUntil(fallbackRoute, (Route<dynamic> route) => false);
+                      Navigator.of(context).pushNamedAndRemoveUntil(
+                          fallbackRoute.name, (Route<dynamic> route) => false,
+                          arguments: fallbackRoute.arguments);
                     },
                     child: const Text('Close'),
                   ))

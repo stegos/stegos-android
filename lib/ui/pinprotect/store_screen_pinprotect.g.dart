@@ -15,6 +15,24 @@ mixin _$PinprotectScreenStore on _PinprotectScreenStore, Store {
   String get title =>
       (_$titleComputed ??= Computed<String>(() => super.title)).value;
 
+  final _$unlockAttemptAtom =
+      Atom(name: '_PinprotectScreenStore.unlockAttempt');
+
+  @override
+  int get unlockAttempt {
+    _$unlockAttemptAtom.context.enforceReadPolicy(_$unlockAttemptAtom);
+    _$unlockAttemptAtom.reportObserved();
+    return super.unlockAttempt;
+  }
+
+  @override
+  set unlockAttempt(int value) {
+    _$unlockAttemptAtom.context.conditionallyRunInAction(() {
+      super.unlockAttempt = value;
+      _$unlockAttemptAtom.reportChanged();
+    }, _$unlockAttemptAtom, name: '${_$unlockAttemptAtom.name}_set');
+  }
+
   final _$firstPinAtom = Atom(name: '_PinprotectScreenStore.firstPin');
 
   @override

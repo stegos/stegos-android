@@ -13,28 +13,41 @@ class SecurityService {
 
   final _RandomStringProvider _provider;
 
+  /// Last known unlocked password
+  String unlockedPassword;
+
   /// Create new random generated password
   String createRandomPassword() =>
       randomAlphaNumeric(env.configGeneratedPasswordsLength, provider: _provider);
 
   Future<void> setupAccountPassword(String password, String pin) => env.useDb((db) async {
-        final ekey = pin.padRight(32, '@');
+        unlockedPassword = null;
+        final ekey = '${pin.padRight(32, '@')}';
         final iv = CryptKey().genDart(16);
-        final encyptedPassword = AesCrypt(ekey, 'cfb-64', 'pkcs7').encrypt(password, iv);
-        await env.store.mergeSettings({'password': encyptedPassword, 'iv': iv});
+        final encyptedPassword = AesCrypt(ekey, 'cfb-64', 'pkcs7').encrypt('pin:${password}', iv);
+        await env.store.mergeSettings({
+          'password': encyptedPassword,
+          'iv': iv,
+          'lastAppUnlockTs': DateTime.now().millisecondsSinceEpoch
+        });
       });
 
   /// Recover pin protected password.
-  /// Future will be resolved to an empty string if password cannot be recovered.
-  Future<String> recoverAccountPassword(String pin) async {
+  Future<String> recoverAccountPassword(String pin) {
     final store = env.store;
     final ekey = pin.padRight(32, '@');
     final iv = store.settings['iv'] as String;
     final password = store.settings['password'] as String;
     if (password == null || iv == null) {
-      return '';
+      return Future.error(Exception('Invalid settings'));
     }
-    return AesCrypt(ekey, 'cfb-64', 'pkcs7').decrypt(password, iv);
+    final pw = AesCrypt(ekey, 'cfb-64', 'pkcs7').decrypt(password, iv);
+    if (!pw.startsWith('pin:')) {
+      return Future.error(Exception('Invalid password recovered'));
+    }
+    unlockedPassword = unlockedPassword;
+    store.touchAppUnlockedPeriod();
+    return Future.value(unlockedPassword);
   }
 }
 

@@ -5,6 +5,7 @@ import 'package:mobx/mobx.dart';
 import 'package:pedantic/pedantic.dart';
 import 'package:provider/provider.dart';
 import 'package:stegos_wallet/env_stegos.dart';
+import 'package:stegos_wallet/log/loggable.dart';
 import 'package:stegos_wallet/ui/pinprotect/store_screen_pinprotect.dart';
 import 'package:stegos_wallet/widgets/widget_pinpad.dart';
 import 'package:stegos_wallet/widgets/widget_scaffold_body_wrapper.dart';
@@ -12,21 +13,35 @@ import 'package:stegos_wallet/widgets/widget_scaffold_body_wrapper.dart';
 Future<void> _setupPassword(StegosEnv env, String pin) {
   final ss = env.securityService;
   final pw = ss.createRandomPassword();
-  print('Activate pin: ${pin} ${pw}');
   return ss.setupAccountPassword(pw, pin);
 }
 
-class PinProtectScreen extends StatefulWidget {
-  const PinProtectScreen({Key key, @required this.nextRoute}) : super(key: key);
+Future<void> _unlockPassword(StegosEnv env, String pin) async {
+  final ss = env.securityService;
+  await ss.recoverAccountPassword(pin);
+  unawaited(env.store.touchAppUnlockedPeriod());
+}
 
-  final String nextRoute;
+class PinProtectScreen extends StatefulWidget {
+  const PinProtectScreen({Key key, @required this.nextRoute, @required this.unlock})
+      : super(key: key);
+
+  final RouteSettings nextRoute;
+
+  final bool unlock;
 
   @override
   State<StatefulWidget> createState() => _PinProtectScreenState();
 }
 
-class _PinProtectScreenState extends State<PinProtectScreen> {
-  final store = PinprotectScreenStore();
+class _PinProtectScreenState extends State<PinProtectScreen> with Loggable<PinProtectScreen> {
+  PinprotectScreenStore store;
+
+  @override
+  void initState() {
+    super.initState();
+    store = PinprotectScreenStore(widget.unlock ? 1 : 0);
+  }
 
   void _onPinReady(String pin) {
     runInAction(() {
@@ -36,12 +51,30 @@ class _PinProtectScreenState extends State<PinProtectScreen> {
       } else if (pin == store.firstPin) {
         final env = Provider.of<StegosEnv>(context);
         unawaited(_setupPassword(env, pin).then((_) {
-          Navigator.of(context).pushReplacementNamed(widget.nextRoute);
+          Navigator.of(context)
+              .pushReplacementNamed(widget.nextRoute.name, arguments: widget.nextRoute.arguments);
         }));
       } else {
         store.secondPin = pin;
       }
     });
+  }
+
+  void _onUnlockPinready(String pin) {
+    final env = Provider.of<StegosEnv>(context);
+    unawaited(_unlockPassword(env, pin).then((_) {
+      Navigator.of(context)
+          .pushReplacementNamed(widget.nextRoute.name, arguments: widget.nextRoute.arguments);
+    }).catchError((err) {
+      if (err != null) {
+        log.warning('Error unlocking app', err);
+      }
+      Future.delayed(Duration(seconds: 1), () {
+        runInAction(() {
+          store.unlockAttempt += 1;
+        });
+      });
+    }));
   }
 
   @override
@@ -55,7 +88,7 @@ class _PinProtectScreenState extends State<PinProtectScreen> {
               digits: 6,
               title: store.title,
               fingerprint: env.configAllowFingerprintWalletProtection,
-              onPinReady: _onPinReady,
+              onPinReady: store.unlockAttempt > 0 ? _onUnlockPinready : _onPinReady,
             );
           },
         ),

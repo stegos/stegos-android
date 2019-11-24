@@ -20,6 +20,18 @@ mixin _$StegosStore on _StegosStore, Store {
   bool get hasPinProtectedPassword => (_$hasPinProtectedPasswordComputed ??=
           Computed<bool>(() => super.hasPinProtectedPassword))
       .value;
+  Computed<int> _$lastAppUnlockTsComputed;
+
+  @override
+  int get lastAppUnlockTs =>
+      (_$lastAppUnlockTsComputed ??= Computed<int>(() => super.lastAppUnlockTs))
+          .value;
+  Computed<bool> _$needAppUnlockComputed;
+
+  @override
+  bool get needAppUnlock =>
+      (_$needAppUnlockComputed ??= Computed<bool>(() => super.needAppUnlock))
+          .value;
 
   final _$activateAsyncAction = AsyncAction('activate');
 
