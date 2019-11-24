@@ -3,6 +3,7 @@ import 'dart:math' as Math;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:pedantic/pedantic.dart';
 import 'package:stegos_wallet/ui/themes.dart';
 
 /// Pinpad panel widget.
@@ -44,7 +45,9 @@ class _PinpadWidgetState extends State<PinpadWidget> {
 
   void _ready() {
     if (widget.onPinReady != null) {
-      widget.onPinReady(_code);
+      unawaited(Future.delayed(const Duration(milliseconds: 500), () {
+        widget.onPinReady(_code);
+      }));
     }
   }
 

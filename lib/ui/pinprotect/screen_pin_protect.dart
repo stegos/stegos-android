@@ -69,10 +69,8 @@ class _PinProtectScreenState extends State<PinProtectScreen> with Loggable<PinPr
       if (err != null) {
         log.warning('Error unlocking app', err);
       }
-      Future.delayed(Duration(seconds: 1), () {
-        runInAction(() {
-          store.unlockAttempt += 1;
-        });
+      runInAction(() {
+        store.unlockAttempt += 1;
       });
     }));
   }

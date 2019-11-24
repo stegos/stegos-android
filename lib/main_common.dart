@@ -7,6 +7,7 @@ import 'package:stegos_wallet/env_stegos.dart';
 import 'package:stegos_wallet/log/loggable.dart';
 
 void mainEntry(Future<StegosEnv> Function() createEnv) {
+  WidgetsFlutterBinding.ensureInitialized();
   Log.initialize();
   final log = Log('mainEntry');
   Logger.root.level = Level.ALL;
