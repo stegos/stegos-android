@@ -41,4 +41,10 @@ class StegosCryptKey {
     final bytes = List<int>.generate(length, (i) => rand.nextInt(256));
     return base64.encode(bytes);
   }
+
+  Uint8List genDartRaw([int length = 16]) {
+    final rand = Random.secure();
+    final bytes = List<int>.generate(length, (i) => rand.nextInt(256));
+    return Uint8List.fromList(bytes);
+  }
 }

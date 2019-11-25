@@ -26,12 +26,12 @@ class SecurityService {
         unlockedPassword = null;
         const utf8Encoder = Utf8Encoder();
         final key = base64Encode(utf8Encoder.convert(pin.padRight(32, '@')));
-        final iv = const StegosCryptKey().genDart(16);
+        final iv = const StegosCryptKey().genDartRaw(16);
         final encyptedPassword =
             StegosAesCrypt(key).encrypt(utf8Encoder.convert('stegos:${password}'), iv);
         await env.store.mergeSettings({
           'password': base64Encode(encyptedPassword),
-          'iv': iv,
+          'iv': base64Encode(iv),
           'lastAppUnlockTs': DateTime.now().millisecondsSinceEpoch
         });
       });

@@ -26,21 +26,29 @@ class StegosAesCrypt {
     _mode = intype;
     _key = base64.decode(key);
     _paddingName = padding;
-
-    if (_mode == 'cbc') {
-      _encrypter = CBCBlockCipher(AESFastEngine());
-    } else if (_mode == 'sic') {
-      _paddingName = 'none';
-      _encrypter = SICStreamCipher(AESFastEngine());
-    } else if (_mode == 'cfb') {
-      _encrypter = CFBBlockCipher(AESFastEngine(), 64);
-    } else if (_mode == 'ctr') {
-      _paddingName = 'none';
-      _encrypter = CTRStreamCipher(AESFastEngine());
-    } else if (_mode == 'ecb') {
-      _encrypter = ECBBlockCipher(AESFastEngine());
-    } else if (_mode == 'ofb') {
-      _encrypter = OFBBlockCipher(AESFastEngine(), 64);
+    switch (_mode) {
+      case 'cbc':
+        _encrypter = CBCBlockCipher(AESFastEngine());
+        break;
+      case 'sic':
+        _paddingName = 'none';
+        _encrypter = SICStreamCipher(AESFastEngine());
+        break;
+      case 'cfb':
+        _encrypter = CFBBlockCipher(AESFastEngine(), 64);
+        break;
+      case 'ctr':
+        _paddingName = 'none';
+        _encrypter = CTRStreamCipher(AESFastEngine());
+        break;
+      case 'ecb':
+        _encrypter = ECBBlockCipher(AESFastEngine());
+        break;
+      case 'ofb':
+        _encrypter = OFBBlockCipher(AESFastEngine(), 64);
+        break;
+      default:
+        throw Exception('Unknown cipher type: $intype');
     }
     _cipherName = 'AES/${_mode.toUpperCase()}/${_paddingName.toUpperCase()}';
   }
@@ -58,16 +66,16 @@ class StegosAesCrypt {
   String get mode => _mode;
 
   ///Encrypt (with iv) and return in base 64.
-  /// [iv] base64 encoded initial vector
-  Uint8List encrypt(Uint8List input, String iv) {
+  /// [iv] base64 encoded initial vector or raw [Uint8List] data
+  Uint8List encrypt(Uint8List input, dynamic iv) {
     if (_mode != 'ecb') {
       if (_paddingName == 'none') {
-        final liv = base64.decode(iv);
+        final liv = (iv is String) ? base64.decode(iv) : iv as Uint8List;
         final params = ParametersWithIV<KeyParameter>(KeyParameter(_key), liv);
         _encrypter.init(true, params);
         return _encrypter.process(input) as Uint8List;
       } else {
-        final liv = base64.decode(iv);
+        final liv = (iv is String) ? base64.decode(iv) : iv as Uint8List;
         final params = PaddedBlockCipherParameters(
             ParametersWithIV<KeyParameter>(KeyParameter(_key), liv), null);
         final cipher = PaddedBlockCipher(_cipherName);
@@ -83,16 +91,16 @@ class StegosAesCrypt {
   }
 
   ///Decrypt base 64 (with iv) and return original.
-  /// [iv] base64 encoded initial vector
-  Uint8List decrypt(Uint8List encrypted, String iv) {
+  /// [iv] base64 encoded initial vector or raw [Uint8List] data
+  Uint8List decrypt(Uint8List encrypted, dynamic iv) {
     if (_mode != 'ecb') {
       if (_paddingName == 'none') {
-        final liv = base64.decode(iv);
+        final liv = (iv is String) ? base64.decode(iv) : iv as Uint8List;
         final params = ParametersWithIV<KeyParameter>(KeyParameter(_key), liv);
         _encrypter.init(false, params);
         return _encrypter.process(encrypted) as Uint8List;
       } else {
-        final liv = base64.decode(iv);
+        final liv = (iv is String) ? base64.decode(iv) : iv as Uint8List;
         final params = PaddedBlockCipherParameters(ParametersWithIV(KeyParameter(_key), liv), null);
         final cipher = PaddedBlockCipher(_cipherName);
         cipher.init(false, params);

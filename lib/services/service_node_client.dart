@@ -1,11 +1,14 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as Math;
+import 'dart:typed_data';
 
 import 'package:pedantic/pedantic.dart';
 import 'package:steel_crypt/steel_crypt.dart';
 import 'package:stegos_wallet/env_stegos.dart';
 import 'package:stegos_wallet/log/loggable.dart';
+import 'package:stegos_wallet/utils/crypto.dart';
 import 'package:stegos_wallet/utils/crypto_aes.dart';
 
 class StegosNodeMessage {
@@ -119,36 +122,27 @@ class StegosNodeClient with Loggable<StegosNodeClient> {
     });
   }
 
-  /*
-    assert len(key) == 16
-
-    # Choose a random, 16-byte IV.
-    iv = Random.new().read(AES.block_size)
-
-    # Convert the IV to a Python integer.
-    iv_int = int(binascii.hexlify(iv), 16)
-
-    # Create a new Counter object with IV = iv_int.
-    ctr = Counter.new(AES.block_size * 8, initial_value=iv_int)
-
-    # Create AES-CTR cipher.
-    aes = AES.new(key, AES.MODE_CTR, counter=ctr)
-
-    # Encrypt and return IV and ciphertext.
-    ciphertext = aes.encrypt(plaintext)
-    return iv+ciphertext
-  */
-
-  /// Encodes a given `input` command string as payload
-  /// for websocket channel connected to stegos node
-  String _messageEncrypt(String input) {
-    // final iv = CryptKey().genDart(16);
-    // final
-    // final aes = StegosAesCrypt()
-
-
-
-    //final encrypter = StegosAesCrypt()
+  /// Encodes a given [payload]for websocket channel
+  /// connected to stegos node.
+  String _messageEncrypt(String payload) {
     // aes-128-ctr
+    final aes = StegosAesCrypt(env.configNodeWsEndpointApiToken, 'ctr');
+    final iv = const StegosCryptKey().genDartRaw(16);
+    final encrypted = aes.encrypt(const Utf8Encoder().convert(payload), iv);
+    return base64Encode(iv + encrypted);
+  }
+
+  /// Decodes receved [buffer] into plain text
+  String _messageDecrypt(String buffer) {
+    // aes-128-ctr
+    final bytes = base64Decode(buffer);
+    if (bytes.length <= 16) {
+      throw Exception('Invalid data recieved');
+    }
+    final iv = bytes.sublist(0, 16);
+    final encrypted = bytes.sublist(16);
+    final aes = StegosAesCrypt(env.configNodeWsEndpointApiToken, 'ctr');
+    final payload = aes.decrypt(encrypted, iv);
+    return const Utf8Decoder().convert(payload);
   }
 }

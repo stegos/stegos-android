@@ -36,7 +36,7 @@ class StegosEnv extends Env<Widget> {
   int get configNodeWsEndpointMinReconnectTimeoutMs => 1000;
 
   /// Maximal stegos node next connect attempt in milliseconds
-  int get configNodeWsEndpointMaxReconnectTimeoutMs => 10000;
+  int get configNodeWsEndpointMaxReconnectTimeoutMs => 15000;
 
   /// User fingerprint wallet protection
   bool get configAllowFingerprintWalletProtection => false;
