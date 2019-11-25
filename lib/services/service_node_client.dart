@@ -1,16 +1,14 @@
 import 'dart:async';
+import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as Math;
-import 'dart:typed_data';
 
 import 'package:pedantic/pedantic.dart';
-import 'package:steel_crypt/steel_crypt.dart';
 import 'package:stegos_wallet/env_stegos.dart';
 import 'package:stegos_wallet/log/loggable.dart';
 import 'package:stegos_wallet/utils/crypto.dart';
 import 'package:stegos_wallet/utils/crypto_aes.dart';
-import 'package:stegos_wallet/utils/extensions.dart';
 
 /// Message sequence
 int _seq = 0;
@@ -34,12 +32,14 @@ class _Message {
   _Message(this.payload, bool awaitResponse, [this.maxAwaitMs])
       : id = _nextId(),
         ts = DateTime.now().millisecondsSinceEpoch,
-        completer = awaitResponse ? Completer<StegosNodeMessage>() : null;
+        completer = awaitResponse ? Completer<StegosNodeMessage>() : null {
+    payload['id'] = id;
+  }
   final Completer<StegosNodeMessage> completer;
   final int id;
   final int ts;
   final int maxAwaitMs;
-  final dynamic payload;
+  final Map<String, dynamic> payload;
 }
 
 /// Stegos node client.
@@ -56,13 +56,20 @@ class StegosNodeClient with Loggable<StegosNodeClient> {
     return wss;
   }
 
+  /// Env ref
   final StegosEnv env;
 
   /// Message waiting to send
-  final _pending = <_Message>[];
+  final _pending = Queue<_Message>();
 
   /// Messages awaiting server  response
   final _awaitingResponse = <int, _Message>{};
+
+  final int _minWait;
+
+  final int _maxWait;
+
+  int _nextWait;
 
   var _controller = StreamController<StegosNodeMessage>.broadcast();
 
@@ -79,19 +86,14 @@ class StegosNodeClient with Loggable<StegosNodeClient> {
 
   bool _connected = false;
 
-  final int _minWait;
+  void sendAndForget(Map<String, dynamic> payload) =>
+      unawaited(send(payload, awaitResponse: false));
 
-  final int _maxWait;
-
-  int _nextWait;
-
-  void sendAndForget(dynamic payload) => unawaited(send(payload, awaitResponse: false));
-
-  Future<StegosNodeMessage> send(dynamic payload,
+  Future<StegosNodeMessage> send(Map<String, dynamic> payload,
       {bool awaitResponse = true, Duration maxAwaitTime}) {
     awaitResponse ??= false;
     final maxAwaitTimeMs = maxAwaitTime?.inMilliseconds ?? env.configNodeMaxAwaitNodeResponseMs;
-    final _Message msg = _Message(payload, awaitResponse, maxAwaitTimeMs);
+    final _Message msg = _Message(Map.of(payload), awaitResponse, maxAwaitTimeMs);
     _pending.add(msg);
     _processPendingMessages();
     return msg.completer?.future ?? Future.value();
@@ -124,12 +126,42 @@ class StegosNodeClient with Loggable<StegosNodeClient> {
   Future<void> ensureOpened() => _connect(ensureOpened: true);
 
   void _processPendingMessages() {
-    if (!_connected) {
+    if (!_connected || _ws == null) {
       while (_pending.length > env.configNodeMaxPendingMessages) {
         _pending.removeFirst();
       }
       return;
     }
+    while (_pending.isNotEmpty) {
+      final msg = _pending.removeFirst();
+      if (msg == null) {
+        continue;
+      }
+      _sendMessage(msg);
+    }
+  }
+
+  void _sendMessage(_Message msg) {
+    if (msg.completer != null) {
+      _awaitingResponse[msg.id] = msg;
+    }
+    final data = jsonEncode(msg.payload);
+    final chunk = _messageEncrypt(jsonEncode(msg.payload));
+    if (log.isFine) {
+      log.fine('sendMessage: ${data}\nchunk: ${chunk}');
+    }
+    _ws.add(chunk);
+  }
+
+  void _onIncomingMessage(String payload) {
+    if (log.isFine) {
+      log.fine('onIncomingMessage: ${payload}');
+    }
+    payload = _messageDecrypt(payload);
+    if (log.isFine) {
+      log.fine('onIncomingMessage decrypted: ${payload}');
+    }
+    final json = jsonDecode(payload) as Map<String, dynamic>;
     // todo:
   }
 
@@ -158,6 +190,7 @@ class StegosNodeClient with Loggable<StegosNodeClient> {
     return WebSocket.connect(env.configNodeWsEndpoint).then((ws) {
       _ws = ws;
       _subscription = _ws.listen((line_) {
+        _connected = true;
         _nextWait = _minWait;
         final line = line_ as String;
         log.info('WS line: $line');

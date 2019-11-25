@@ -17,6 +17,7 @@ class StegosEnv extends Env<Widget> {
   StegosEnv() : super() {
     // fixme:
     Log('StegosStore').level = Level.FINE;
+    Log('StegosNodeClient').level = Level.FINE;
   }
 
   /// Main app state store.
