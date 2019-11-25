@@ -56,31 +56,18 @@ class StegosAesCrypt {
   String _paddingName;
   String _cipherName;
 
-  ///Get this AesCrypt's type of padding.
-  String get padding => _paddingName;
-
-  ///Get this AesCrypt's mode of AES.
-  String get mode => _mode;
-
   ///Encrypt (with iv) and return in base 64.
   /// [iv] base64 encoded initial vector or raw [Uint8List] data
   Uint8List encrypt(Uint8List input, dynamic iv) {
-    if (_mode != 'ecb') {
-      if (_paddingName == 'none') {
-        final liv = (iv is String) ? base64.decode(iv) : iv as Uint8List;
-        final params = ParametersWithIV<KeyParameter>(KeyParameter(_key), liv);
-        _encrypter.init(true, params);
-        return _encrypter.process(input) as Uint8List;
-      } else {
-        final liv = (iv is String) ? base64.decode(iv) : iv as Uint8List;
-        final params = PaddedBlockCipherParameters(
-            ParametersWithIV<KeyParameter>(KeyParameter(_key), liv), null);
-        final cipher = PaddedBlockCipher(_cipherName);
-        cipher.init(true, params);
-        return cipher.process(input);
-      }
+    if (_paddingName == 'none') {
+      final liv = (iv is String) ? base64.decode(iv) : iv as Uint8List;
+      final params = ParametersWithIV<KeyParameter>(KeyParameter(_key), liv);
+      _encrypter.init(true, params);
+      return _encrypter.process(input) as Uint8List;
     } else {
-      final params = PaddedBlockCipherParameters(KeyParameter(_key), null);
+      final liv = (iv is String) ? base64.decode(iv) : iv as Uint8List;
+      final params = PaddedBlockCipherParameters(
+          ParametersWithIV<KeyParameter>(KeyParameter(_key), liv), null);
       final cipher = PaddedBlockCipher(_cipherName);
       cipher.init(true, params);
       return cipher.process(input);
@@ -90,21 +77,14 @@ class StegosAesCrypt {
   ///Decrypt base 64 (with iv) and return original.
   /// [iv] base64 encoded initial vector or raw [Uint8List] data
   Uint8List decrypt(Uint8List encrypted, dynamic iv) {
-    if (_mode != 'ecb') {
-      if (_paddingName == 'none') {
-        final liv = (iv is String) ? base64.decode(iv) : iv as Uint8List;
-        final params = ParametersWithIV<KeyParameter>(KeyParameter(_key), liv);
-        _encrypter.init(false, params);
-        return _encrypter.process(encrypted) as Uint8List;
-      } else {
-        final liv = (iv is String) ? base64.decode(iv) : iv as Uint8List;
-        final params = PaddedBlockCipherParameters(ParametersWithIV(KeyParameter(_key), liv), null);
-        final cipher = PaddedBlockCipher(_cipherName);
-        cipher.init(false, params);
-        return cipher.process(encrypted);
-      }
+    if (_paddingName == 'none') {
+      final liv = (iv is String) ? base64.decode(iv) : iv as Uint8List;
+      final params = ParametersWithIV<KeyParameter>(KeyParameter(_key), liv);
+      _encrypter.init(false, params);
+      return _encrypter.process(encrypted) as Uint8List;
     } else {
-      final params = PaddedBlockCipherParameters(KeyParameter(_key), null);
+      final liv = (iv is String) ? base64.decode(iv) : iv as Uint8List;
+      final params = PaddedBlockCipherParameters(ParametersWithIV(KeyParameter(_key), liv), null);
       final cipher = PaddedBlockCipher(_cipherName);
       cipher.init(false, params);
       return cipher.process(encrypted);
