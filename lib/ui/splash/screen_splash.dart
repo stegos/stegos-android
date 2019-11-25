@@ -4,13 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:stegos_wallet/ui/themes.dart';
 import 'package:stegos_wallet/widgets/widget_app_icon.dart';
 
-import '../routes.dart';
-
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({Key key, this.nextRoute = Routes.welcome, this.timeoutMilliseconds = 3000}) : super(key: key);
+  const SplashScreen({Key key, this.nextRoute, this.timeoutMilliseconds = 3000}) : super(key: key);
 
   /// Optional next route after timeout.
-  final String nextRoute;
+  final RouteSettings nextRoute;
 
   /// Timeout before next route
   final int timeoutMilliseconds;
@@ -38,7 +36,8 @@ class _SplashScreenState extends State<SplashScreen> {
 
   Timer startTimer() => Timer(Duration(milliseconds: widget.timeoutMilliseconds), () {
         if (context != null) {
-          Navigator.of(context).pushReplacementNamed(widget.nextRoute);
+          Navigator.of(context)
+              .pushReplacementNamed(widget.nextRoute.name, arguments: widget.nextRoute.arguments);
         }
       });
 }

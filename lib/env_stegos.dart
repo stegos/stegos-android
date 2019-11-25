@@ -1,9 +1,12 @@
 import 'package:ejdb2_flutter/ejdb2_flutter.dart';
 import 'package:flutter/widgets.dart';
+import 'package:logging/logging.dart';
 import 'package:pedantic/pedantic.dart';
 import 'package:provider/provider.dart';
 import 'package:stegos_wallet/env.dart';
+import 'package:stegos_wallet/log/loggable.dart';
 import 'package:stegos_wallet/services/service_node_client.dart';
+import 'package:stegos_wallet/services/service_security.dart';
 import 'package:stegos_wallet/store/store_stegos.dart';
 import 'package:stegos_wallet/ui/app.dart';
 import 'package:stegos_wallet/widgets/widget_lifecycle.dart';
@@ -11,7 +14,10 @@ import 'package:stegos_wallet/widgets/widget_lifecycle.dart';
 /// Stegos wallet app environment.
 ///
 class StegosEnv extends Env<Widget> {
-  StegosEnv() : super();
+  StegosEnv() : super() {
+    // fixme:
+    Log('StegosStore').level = Level.FINE;
+  }
 
   /// Main app state store.
   StegosStore store;
@@ -26,17 +32,36 @@ class StegosEnv extends Env<Widget> {
   /// Minimal splash screen show period.
   int get configSlashScreenMinTimeoutMs => 300;
 
-  /// Stegos node websocket endpoint
-  String get configNodeWsEndpoint => 'ws://10.0.2.2:3145';
-
   /// Minimal stegos node next connect attempt in milliseconds
   int get configNodeWsEndpointMinReconnectTimeoutMs => 1000;
 
   /// Maximal stegos node next connect attempt in milliseconds
-  int get configNodeWsEndpointMaxReconnectTimeoutMs => 10000;
+  int get configNodeWsEndpointMaxReconnectTimeoutMs => 15000;
+
+  /// User fingerprint wallet protection
+  bool get configAllowFingerprintWalletProtection => false;
+
+  /// Length of random generated passwords
+  int get configGeneratedPasswordsLength => 15;
+
+  /// Max unlocked app period in milleseconds
+  int get configMaxAppUnlockedPeriod => 60 * 60 * 1000; // 1h
+
+  /// Maximum number of messages awaiting sending to stegos node
+  int get configNodeMaxPendingMessages => 1024;
+
+  /// Maximum period of time in millisconds
+  /// to wait for specific reply for message from stegos node.
+  int get configNodeMaxAwaitNodeResponseMs => 30 * 60 * 1000; // 30min
+
+  /// Stegos node websocket endpoint
+  String get configNodeWsEndpoint => 'ws://10.0.2.2:3145';
 
   /// Stegos node API access token
-  String get configNodeWsEndpointApiToken => 'nnUdgME/PZlmhQ1norzG9g==';
+  String get configNodeWsEndpointApiToken => 'xPM4oRn0/GintAaKOZA6Qw==';
+
+  /// Shared security service
+  SecurityService securityService;
 
   /// Use database in given [fn] function.
   /// This method don't leave database in open state
@@ -59,6 +84,7 @@ class StegosEnv extends Env<Widget> {
   /// Bring environment to operational state
   Future<void> activate() async {
     await getDb();
+    securityService ??= SecurityService(this);
     if (_client == null) {
       _client = StegosNodeClient.open(this);
     } else {

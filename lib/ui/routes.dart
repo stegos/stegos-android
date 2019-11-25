@@ -4,7 +4,7 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:mobx/mobx.dart';
 import 'package:pedantic/pedantic.dart';
 import 'package:stegos_wallet/env_stegos.dart';
-import 'package:stegos_wallet/ui/pinpad/screen_pinpad.dart';
+import 'package:stegos_wallet/ui/pinprotect/screen_pin_protect.dart';
 import 'package:stegos_wallet/ui/recover/screen_recover.dart';
 import 'package:stegos_wallet/ui/splash/screen_splash.dart';
 import 'package:stegos_wallet/ui/wallet/screen_wallet.dart';
@@ -45,16 +45,21 @@ class _InitialRouteScreenState extends State<_InitialRouteScreen> {
           default:
             break;
         }
-        String initialRoute;
-        if (!store.hasPinProtectedPassword) {
-          initialRoute = Routes.pin;
-        } else if (store.needWelcome) {
-          initialRoute = Routes.welcome;
-        } else {
-          // should be untracked!
-          // nextRoute = store.lastRoute.value?.name; todo:
-          initialRoute = Routes.accounts;
-        }
+
+        final initialRoute = untracked(() {
+          if (!store.hasPinProtectedPassword) {
+            return const RouteSettings(name: Routes.pinprotect);
+          } else if (store.needAppUnlock) {
+            return const RouteSettings(name: Routes.unlock);
+          } else if (store.needWelcome) {
+            return const RouteSettings(name: Routes.welcome);
+          } else {
+            // should be untracked!
+            // nextRoute = store.lastRoute.value?.name; todo:
+            return const RouteSettings(name: Routes.accounts);
+          }
+        });
+
         if (widget.showSplash) {
           int timeoutMs = env.configSplashScreenTimeoutMs;
           if (_splashStart > 0) {
@@ -67,14 +72,16 @@ class _InitialRouteScreenState extends State<_InitialRouteScreen> {
                 key: UniqueKey(), nextRoute: initialRoute, timeoutMilliseconds: timeoutMs);
           }
         }
-        return widget.routeFactoryFn(RouteSettings(name: initialRoute)).builder(context);
+
+        return widget.routeFactoryFn(initialRoute).builder(context);
       });
 }
 
 mixin Routes {
   static const root = '/';
   static const splash = 'splash';
-  static const pin = 'pin';
+  static const pinprotect = 'pinprotect';
+  static const unlock = 'unlock';
   static const welcome = 'welcome';
   static const accounts = 'accounts';
   static const wallet = 'wallet';
@@ -102,12 +109,21 @@ mixin Routes {
       switch (name) {
         case root:
           return MaterialPageRoute(builder: buildInitialRouteScreen);
-        case pin:
-          return MaterialPageRoute(
-              maintainState: false,
-              builder: (BuildContext context) => PinpadScreen(
-                    size: 4,
-                  ));
+        case pinprotect:
+        case unlock:
+          {
+            final arguments = settings.arguments as Map<String, dynamic> ?? {};
+            var nextRoute = const RouteSettings(name: welcome);
+            if (arguments['nextRoute'] is RouteSettings) {
+              nextRoute = arguments['nextRoute'] as RouteSettings;
+            }
+            return MaterialPageRoute(
+                maintainState: false,
+                builder: (BuildContext context) => PinProtectScreen(
+                      nextRoute: nextRoute,
+                      unlock: unlock == name,
+                    ));
+          }
         case welcome:
           return MaterialPageRoute(builder: (BuildContext context) => WelcomeScreen());
         case wallet:
@@ -116,7 +132,9 @@ mixin Routes {
           return MaterialPageRoute(builder: (BuildContext context) => RecoverScreen());
         case splash:
           return MaterialPageRoute(
-              maintainState: false, builder: (BuildContext context) => const SplashScreen(nextRoute: welcome));
+              maintainState: false,
+              builder: (BuildContext context) =>
+                  const SplashScreen(nextRoute: RouteSettings(name: welcome)));
         default:
           return MaterialPageRoute(
               maintainState: false,

@@ -20,11 +20,55 @@ mixin _$StegosStore on _StegosStore, Store {
   bool get hasPinProtectedPassword => (_$hasPinProtectedPasswordComputed ??=
           Computed<bool>(() => super.hasPinProtectedPassword))
       .value;
+  Computed<int> _$lastAppUnlockTsComputed;
+
+  @override
+  int get lastAppUnlockTs =>
+      (_$lastAppUnlockTsComputed ??= Computed<int>(() => super.lastAppUnlockTs))
+          .value;
+  Computed<bool> _$needAppUnlockComputed;
+
+  @override
+  bool get needAppUnlock =>
+      (_$needAppUnlockComputed ??= Computed<bool>(() => super.needAppUnlock))
+          .value;
 
   final _$activateAsyncAction = AsyncAction('activate');
 
   @override
   Future<void> activate() {
     return _$activateAsyncAction.run(() => super.activate());
+  }
+
+  final _$_StegosStoreActionController = ActionController(name: '_StegosStore');
+
+  @override
+  void resetError() {
+    final _$actionInfo = _$_StegosStoreActionController.startAction();
+    try {
+      return super.resetError();
+    } finally {
+      _$_StegosStoreActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  void setError(String errorText) {
+    final _$actionInfo = _$_StegosStoreActionController.startAction();
+    try {
+      return super.setError(errorText);
+    } finally {
+      _$_StegosStoreActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  Future<void> mergeSettings(Map<String, dynamic> update) {
+    final _$actionInfo = _$_StegosStoreActionController.startAction();
+    try {
+      return super.mergeSettings(update);
+    } finally {
+      _$_StegosStoreActionController.endAction(_$actionInfo);
+    }
   }
 }

@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'store_recover_screen.dart';
+part of 'store_screen_recover.dart';
 
 // **************************************************************************
 // StoreGenerator
