@@ -11,11 +11,7 @@ import 'dart:typed_data';
 import 'package:steel_crypt/PointyCastleN/api.dart';
 import 'package:steel_crypt/PointyCastleN/block/aes_fast.dart';
 import 'package:steel_crypt/PointyCastleN/block/modes/cbc.dart';
-import 'package:steel_crypt/PointyCastleN/block/modes/cfb.dart';
-import 'package:steel_crypt/PointyCastleN/block/modes/ecb.dart';
-import 'package:steel_crypt/PointyCastleN/block/modes/ofb.dart';
 import 'package:steel_crypt/PointyCastleN/stream/ctr.dart';
-import 'package:steel_crypt/PointyCastleN/stream/sic.dart';
 
 /// Create symmetric encryption machine (Crypt).
 ///
@@ -30,23 +26,24 @@ class StegosAesCrypt {
       case 'cbc':
         _encrypter = CBCBlockCipher(AESFastEngine());
         break;
-      case 'sic':
-        _paddingName = 'none';
-        _encrypter = SICStreamCipher(AESFastEngine());
-        break;
-      case 'cfb':
-        _encrypter = CFBBlockCipher(AESFastEngine(), 64);
-        break;
       case 'ctr':
         _paddingName = 'none';
         _encrypter = CTRStreamCipher(AESFastEngine());
         break;
-      case 'ecb':
-        _encrypter = ECBBlockCipher(AESFastEngine());
-        break;
-      case 'ofb':
-        _encrypter = OFBBlockCipher(AESFastEngine(), 64);
-        break;
+      // Excluded as not needed to save app size
+      // case 'sic':
+      //   _paddingName = 'none';
+      //   _encrypter = SICStreamCipher(AESFastEngine());
+      //   break;
+      // case 'cfb':
+      //   _encrypter = CFBBlockCipher(AESFastEngine(), 64);
+      //   break;
+      // case 'ecb':
+      //   _encrypter = ECBBlockCipher(AESFastEngine());
+      //   break;
+      // case 'ofb':
+      //   _encrypter = OFBBlockCipher(AESFastEngine(), 64);
+      //   break;
       default:
         throw Exception('Unknown cipher type: $intype');
     }
