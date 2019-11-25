@@ -23,7 +23,7 @@ class _RecoverScreenState extends State<RecoverScreen> {
             centerTitle: false,
             backgroundColor: Theme.of(context).colorScheme.primary,
             leading: IconButton(
-              icon: SizedBox(
+              icon: const SizedBox(
                 width: 24,
                 height: 24,
                 child: Image(image: _iconBackImage),
@@ -40,13 +40,13 @@ class _RecoverScreenState extends State<RecoverScreen> {
                         child: Column(
                           children: <Widget>[
                             Text(
-                              'Please white down the phase in case to restore your account',
+                              'Please write down account restore the phase',
                               textAlign: TextAlign.center,
                               style: StegosThemes.defaultCaptionTextStyle,
                             ),
                             const SizedBox(height: 10),
                             Text(
-                              'The field is case sensitive',
+                              'All fiekds are case sensitive',
                               textAlign: TextAlign.center,
                               style: StegosThemes.defaultSubCaptionTextStyle,
                             ),

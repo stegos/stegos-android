@@ -47,6 +47,13 @@ class StegosEnv extends Env<Widget> {
   /// Max unlocked app period in milleseconds
   int get configMaxAppUnlockedPeriod => 60 * 60 * 1000; // 1h
 
+  /// Maximum number of messages awaiting sending to stegos node
+  int get configNodeMaxPendingMessages => 1024;
+
+  /// Maximum period of time in millisconds
+  /// to wait for specific reply for message from stegos node.
+  int get configNodeMaxAwaitNodeResponseMs => 30 * 60 * 1000; // 30min
+
   /// Stegos node websocket endpoint
   String get configNodeWsEndpoint => 'ws://10.0.2.2:3145';
 
