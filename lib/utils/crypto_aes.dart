@@ -17,12 +17,14 @@ import 'package:steel_crypt/PointyCastleN/block/modes/ofb.dart';
 import 'package:steel_crypt/PointyCastleN/stream/ctr.dart';
 import 'package:steel_crypt/PointyCastleN/stream/sic.dart';
 
-///Create symmetric encryption machine (Crypt).
+/// Create symmetric encryption machine (Crypt).
+///
 class StegosAesCrypt {
+  /// [key] - base64 encoded key
   StegosAesCrypt(String key, [String intype = 'cbc', String padding = 'pkcs7']) {
     ///Creates 'Crypt', serves as encrypter/decrypter of text.
     _mode = intype;
-    _key = key;
+    _key = base64.decode(key);
     _paddingName = padding;
 
     if (_mode == 'cbc') {
@@ -44,13 +46,10 @@ class StegosAesCrypt {
   }
 
   String _mode;
-  String _key;
+  Uint8List _key;
   dynamic _encrypter;
   String _paddingName;
   String _cipherName;
-
-  ///Get this AesCrypt's key;
-  String get key => _key;
 
   ///Get this AesCrypt's type of padding.
   String get padding => _paddingName;
@@ -60,75 +59,50 @@ class StegosAesCrypt {
 
   ///Encrypt (with iv) and return in base 64.
   /// [iv] base64 encoded initial vector
-  String encrypt(String input, String iv) {
-    const utf8Encoder = Utf8Encoder();
-
+  Uint8List encrypt(Uint8List input, String iv) {
     if (_mode != 'ecb') {
       if (_paddingName == 'none') {
-        final key = utf8Encoder.convert(_key);
         final liv = base64.decode(iv);
-        final linput = utf8Encoder.convert(input);
-        final params = ParametersWithIV<KeyParameter>(KeyParameter(key), liv);
+        final params = ParametersWithIV<KeyParameter>(KeyParameter(_key), liv);
         _encrypter.init(true, params);
-        final inter = _encrypter.process(linput) as Uint8List;
-        return base64.encode(inter);
+        return _encrypter.process(input) as Uint8List;
       } else {
-        final key = utf8Encoder.convert(_key);
         final liv = base64.decode(iv);
         final params = PaddedBlockCipherParameters(
-            ParametersWithIV<KeyParameter>(KeyParameter(key), liv), null);
+            ParametersWithIV<KeyParameter>(KeyParameter(_key), liv), null);
         final cipher = PaddedBlockCipher(_cipherName);
         cipher.init(true, params);
-        final inter = cipher.process(utf8Encoder.convert(input));
-        return base64.encode(inter);
+        return cipher.process(input);
       }
     } else {
-      final key = utf8Encoder.convert(_key);
-      final params = PaddedBlockCipherParameters(KeyParameter(key), null);
+      final params = PaddedBlockCipherParameters(KeyParameter(_key), null);
       final cipher = PaddedBlockCipher(_cipherName);
       cipher.init(true, params);
-      final inter = cipher.process(utf8Encoder.convert(input));
-      return base64.encode(inter);
+      return cipher.process(input);
     }
   }
 
   ///Decrypt base 64 (with iv) and return original.
   /// [iv] base64 encoded initial vector
-  String decrypt(String encrypted, String iv) {
-    const utf8Encoder = Utf8Encoder();
-    const utf8Decoder = Utf8Decoder();
-
+  Uint8List decrypt(Uint8List encrypted, String iv) {
     if (_mode != 'ecb') {
       if (_paddingName == 'none') {
-        final key = utf8Encoder.convert(_key);
         final liv = base64.decode(iv);
-        final linput = base64.decode(encrypted);
-        final params = ParametersWithIV<KeyParameter>(KeyParameter(key), liv);
+        final params = ParametersWithIV<KeyParameter>(KeyParameter(_key), liv);
         _encrypter.init(false, params);
-        final inter = _encrypter.process(linput) as Uint8List;
-        return utf8Decoder.convert(inter);
+        return _encrypter.process(encrypted) as Uint8List;
       } else {
-        final key = utf8Encoder.convert(_key);
         final liv = base64.decode(iv);
-        final params = PaddedBlockCipherParameters(ParametersWithIV(KeyParameter(key), liv), null);
+        final params = PaddedBlockCipherParameters(ParametersWithIV(KeyParameter(_key), liv), null);
         final cipher = PaddedBlockCipher(_cipherName);
         cipher.init(false, params);
-        final inter = cipher.process(base64.decode(encrypted));
-        return utf8Decoder.convert(inter);
+        return cipher.process(encrypted);
       }
     } else {
-      final key = utf8Encoder.convert(_key);
-      final params = PaddedBlockCipherParameters(KeyParameter(key), null);
+      final params = PaddedBlockCipherParameters(KeyParameter(_key), null);
       final cipher = PaddedBlockCipher(_cipherName);
       cipher.init(false, params);
-      final inter = cipher.process(base64.decode(encrypted));
-      return utf8Decoder.convert(inter);
+      return cipher.process(encrypted);
     }
   }
 }
-
-// void main() {
-//   final aes = AesCrypt2('xPM4oRn0/GintAaKOZA6Qw==', 'cbc');
-//   final data = aes.encrypt('test', '1111111111111111');
-//   print('Data: ${data}');
-// }

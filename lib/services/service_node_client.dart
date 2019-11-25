@@ -6,6 +6,7 @@ import 'package:pedantic/pedantic.dart';
 import 'package:steel_crypt/steel_crypt.dart';
 import 'package:stegos_wallet/env_stegos.dart';
 import 'package:stegos_wallet/log/loggable.dart';
+import 'package:stegos_wallet/utils/crypto_aes.dart';
 
 class StegosNodeMessage {
   StegosNodeMessage(this.raw);
@@ -118,13 +119,36 @@ class StegosNodeClient with Loggable<StegosNodeClient> {
     });
   }
 
+  /*
+    assert len(key) == 16
+
+    # Choose a random, 16-byte IV.
+    iv = Random.new().read(AES.block_size)
+
+    # Convert the IV to a Python integer.
+    iv_int = int(binascii.hexlify(iv), 16)
+
+    # Create a new Counter object with IV = iv_int.
+    ctr = Counter.new(AES.block_size * 8, initial_value=iv_int)
+
+    # Create AES-CTR cipher.
+    aes = AES.new(key, AES.MODE_CTR, counter=ctr)
+
+    # Encrypt and return IV and ciphertext.
+    ciphertext = aes.encrypt(plaintext)
+    return iv+ciphertext
+  */
+
   /// Encodes a given `input` command string as payload
   /// for websocket channel connected to stegos node
   String _messageEncrypt(String input) {
-    final key = this.env.configNodeWsEndpointApiToken;
-    final iv = CryptKey().genDart(16);
-    //final encrypter = StegosAesCrypt()
+    // final iv = CryptKey().genDart(16);
+    // final
+    // final aes = StegosAesCrypt()
 
+
+
+    //final encrypter = StegosAesCrypt()
     // aes-128-ctr
   }
 }

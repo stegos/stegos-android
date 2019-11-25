@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:math' as Math;
 
 import 'package:random_string/random_string.dart';
@@ -23,11 +24,13 @@ class SecurityService {
 
   Future<void> setupAccountPassword(String password, String pin) => env.useDb((db) async {
         unlockedPassword = null;
-        final ekey = '${pin.padRight(32, '@')}';
+        const utf8Encoder = Utf8Encoder();
+        final key = base64Encode(utf8Encoder.convert(pin.padRight(32, '@')));
         final iv = const StegosCryptKey().genDart(16);
-        final encyptedPassword = StegosAesCrypt(ekey).encrypt('pin:${password}', iv);
+        final encyptedPassword =
+            StegosAesCrypt(key).encrypt(utf8Encoder.convert('stegos:${password}'), iv);
         await env.store.mergeSettings({
-          'password': encyptedPassword,
+          'password': base64Encode(encyptedPassword),
           'iv': iv,
           'lastAppUnlockTs': DateTime.now().millisecondsSinceEpoch
         });
@@ -35,15 +38,18 @@ class SecurityService {
 
   /// Recover pin protected password.
   Future<String> recoverAccountPassword(String pin) {
+    const utf8Encoder = Utf8Encoder();
+    const utf8Decoder = Utf8Decoder();
+
     final store = env.store;
-    final ekey = pin.padRight(32, '@');
+    final key = base64Encode(utf8Encoder.convert(pin.padRight(32, '@')));
     final iv = store.settings['iv'] as String;
     final password = store.settings['password'] as String;
     if (password == null || iv == null) {
-      return Future.error(Exception('Invalid settings'));
+      return Future.error(Exception('Invalid password recover data'));
     }
-    final pw = StegosAesCrypt(ekey).decrypt(password, iv);
-    if (!pw.startsWith('pin:')) {
+    final pw = utf8Decoder.convert(StegosAesCrypt(key).decrypt(base64Decode(password), iv));
+    if (!pw.startsWith('stegos:')) {
       return Future.error(Exception('Invalid password recovered'));
     }
     unlockedPassword = unlockedPassword;
