@@ -1,8 +1,8 @@
 import 'dart:math' as Math;
 
 import 'package:random_string/random_string.dart';
-import 'package:steel_crypt/steel_crypt.dart';
 import 'package:stegos_wallet/env_stegos.dart';
+import 'package:stegos_wallet/utils/crypto.dart';
 import 'package:stegos_wallet/utils/crypto_aes.dart';
 
 /// Varios security related utility methods.
@@ -24,7 +24,7 @@ class SecurityService {
   Future<void> setupAccountPassword(String password, String pin) => env.useDb((db) async {
         unlockedPassword = null;
         final ekey = '${pin.padRight(32, '@')}';
-        final iv = CryptKey().genDart(16).substring(0, 16);
+        final iv = const StegosCryptKey().genDart(16);
         final encyptedPassword = StegosAesCrypt(ekey).encrypt('pin:${password}', iv);
         await env.store.mergeSettings({
           'password': encyptedPassword,

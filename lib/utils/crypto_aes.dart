@@ -59,13 +59,14 @@ class StegosAesCrypt {
   String get mode => _mode;
 
   ///Encrypt (with iv) and return in base 64.
+  /// [iv] base64 encoded initial vector
   String encrypt(String input, String iv) {
     const utf8Encoder = Utf8Encoder();
 
     if (_mode != 'ecb') {
       if (_paddingName == 'none') {
         final key = utf8Encoder.convert(_key);
-        final liv = utf8Encoder.convert(iv);
+        final liv = base64.decode(iv);
         final linput = utf8Encoder.convert(input);
         final params = ParametersWithIV<KeyParameter>(KeyParameter(key), liv);
         _encrypter.init(true, params);
@@ -73,7 +74,7 @@ class StegosAesCrypt {
         return base64.encode(inter);
       } else {
         final key = utf8Encoder.convert(_key);
-        final liv = utf8Encoder.convert(iv);
+        final liv = base64.decode(iv);
         final params = PaddedBlockCipherParameters(
             ParametersWithIV<KeyParameter>(KeyParameter(key), liv), null);
         final cipher = PaddedBlockCipher(_cipherName);
@@ -92,6 +93,7 @@ class StegosAesCrypt {
   }
 
   ///Decrypt base 64 (with iv) and return original.
+  /// [iv] base64 encoded initial vector
   String decrypt(String encrypted, String iv) {
     const utf8Encoder = Utf8Encoder();
     const utf8Decoder = Utf8Decoder();
@@ -99,7 +101,7 @@ class StegosAesCrypt {
     if (_mode != 'ecb') {
       if (_paddingName == 'none') {
         final key = utf8Encoder.convert(_key);
-        final liv = utf8Encoder.convert(iv);
+        final liv = base64.decode(iv);
         final linput = base64.decode(encrypted);
         final params = ParametersWithIV<KeyParameter>(KeyParameter(key), liv);
         _encrypter.init(false, params);
@@ -107,7 +109,7 @@ class StegosAesCrypt {
         return utf8Decoder.convert(inter);
       } else {
         final key = utf8Encoder.convert(_key);
-        final liv = utf8Encoder.convert(iv);
+        final liv = base64.decode(iv);
         final params = PaddedBlockCipherParameters(ParametersWithIV(KeyParameter(key), liv), null);
         final cipher = PaddedBlockCipher(_cipherName);
         cipher.init(false, params);
