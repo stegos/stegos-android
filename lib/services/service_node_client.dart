@@ -29,6 +29,8 @@ class StegosNodeMessage {
   StegosNodeMessage(this.id, this.json);
   final int id;
   final Map<String, dynamic> json;
+  @override
+  String toString() => '${id}: ${json}';
 }
 
 class _Message {
@@ -168,7 +170,7 @@ abstract class _StegosNodeClient with Store, Loggable<StegosNodeClient> {
     final data = jsonEncode(msg.payload);
     final chunk = _messageEncrypt(jsonEncode(msg.payload));
     if (log.isFine) {
-      log.fine('sendMessage: ${data}\nchunk: ${chunk}');
+      log.fine('sendMessage:\n\t${data}');
     }
     _ws.add(chunk);
     _cleanupAwaiters();
@@ -177,7 +179,7 @@ abstract class _StegosNodeClient with Store, Loggable<StegosNodeClient> {
   void _onIncomingMessage(String payload) {
     payload = _messageDecrypt(payload);
     if (log.isFine) {
-      log.fine('onIncomingMessage decrypted: ${payload}');
+      log.fine('onIncomingMessage: ${payload}');
     }
     final json = jsonDecode(payload) as Map<String, dynamic>;
     final id = json['id'] is int ? json['id'] as int : 0;

@@ -1,4 +1,5 @@
 import 'package:mobx/mobx.dart';
+import 'package:pedantic/pedantic.dart';
 import 'package:stegos_wallet/log/loggable.dart';
 import 'package:stegos_wallet/services/service_node_client.dart';
 import 'package:stegos_wallet/store/store_common.dart';
@@ -33,7 +34,8 @@ abstract class _StegosNodeStore with Store, StoreLifecycle, Loggable<StegosNodeS
     if (!connected) {
       return;
     }
-    //print('Get node status now!!!');
-    //client.sendAndAwait({});
+    unawaited(client.sendAndAwait({'type': 'status_info'}).then((msg) {
+      print('Got message: ${msg}');
+    }));
   }
 }
