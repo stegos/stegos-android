@@ -10,20 +10,18 @@ import 'package:stegos_wallet/ui/pinprotect/store_screen_pinprotect.dart';
 import 'package:stegos_wallet/widgets/widget_pinpad.dart';
 import 'package:stegos_wallet/widgets/widget_scaffold_body_wrapper.dart';
 
-Future<void> _setupPassword(StegosEnv env, String pin) {
+Future<String> _setupPassword(StegosEnv env, String pin) async {
   final ss = env.securityService;
   final pw = ss.createRandomPassword();
-  return ss.setupAccountPassword(pw, pin);
+  await ss.setupAccountPassword(pw, pin);
+  return pw;
 }
 
-Future<void> _unlockPassword(StegosEnv env, String pin) async {
-  final ss = env.securityService;
-  await ss.recoverAccountPassword(pin);
-}
+Future<String> _unlockPassword(StegosEnv env, String pin) =>
+    env.securityService.recoverAccountPassword(pin);
 
 class PinProtectScreen extends StatefulWidget {
-  const PinProtectScreen({Key key, @required this.nextRoute, @required this.unlock})
-      : super(key: key);
+  const PinProtectScreen({Key key, this.nextRoute, @required this.unlock}) : super(key: key);
 
   final RouteSettings nextRoute;
 
@@ -42,17 +40,23 @@ class _PinProtectScreenState extends State<PinProtectScreen> with Loggable<PinPr
     store = PinprotectScreenStore(widget.unlock ? 1 : 0);
   }
 
+  void _onDone(String result) {
+    if (widget.nextRoute != null) {
+      Navigator.of(context).pushReplacementNamed(widget.nextRoute.name,
+          result: result, arguments: widget.nextRoute.arguments);
+    } else {
+      Navigator.of(context).pop(result);
+    }
+  }
+
   void _onPinReady(String pin) {
+    final env = Provider.of<StegosEnv>(context);
     runInAction(() {
       if (store.firstPin == null || store.secondPin != null) {
         store.firstPin = pin;
         store.secondPin = null;
       } else if (pin == store.firstPin) {
-        final env = Provider.of<StegosEnv>(context);
-        unawaited(_setupPassword(env, pin).then((_) {
-          Navigator.of(context)
-              .pushReplacementNamed(widget.nextRoute.name, arguments: widget.nextRoute.arguments);
-        }));
+        unawaited(_setupPassword(env, pin).then(_onDone));
       } else {
         store.secondPin = pin;
       }
@@ -61,10 +65,7 @@ class _PinProtectScreenState extends State<PinProtectScreen> with Loggable<PinPr
 
   void _onUnlockPinready(String pin) {
     final env = Provider.of<StegosEnv>(context);
-    unawaited(_unlockPassword(env, pin).then((_) {
-      Navigator.of(context)
-          .pushReplacementNamed(widget.nextRoute.name, arguments: widget.nextRoute.arguments);
-    }).catchError((err) {
+    unawaited(_unlockPassword(env, pin).then(_onDone).catchError((err) {
       if (err != null) {
         log.warning('Error unlocking app', err);
       }

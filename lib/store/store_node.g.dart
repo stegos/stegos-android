@@ -60,6 +60,23 @@ mixin _$AccountStore on _AccountStore, Store {
     }, _$balanceAvailableAtom, name: '${_$balanceAvailableAtom.name}_set');
   }
 
+  final _$sealedAtom = Atom(name: '_AccountStore.sealed');
+
+  @override
+  bool get sealed {
+    _$sealedAtom.context.enforceReadPolicy(_$sealedAtom);
+    _$sealedAtom.reportObserved();
+    return super.sealed;
+  }
+
+  @override
+  set sealed(bool value) {
+    _$sealedAtom.context.conditionallyRunInAction(() {
+      super.sealed = value;
+      _$sealedAtom.reportChanged();
+    }, _$sealedAtom, name: '${_$sealedAtom.name}_set');
+  }
+
   final _$_AccountStoreActionController =
       ActionController(name: '_AccountStore');
 
