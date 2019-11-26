@@ -1,15 +1,18 @@
-import 'package:flutter/widgets.dart';
 import 'package:mobx/mobx.dart';
+import 'package:pedantic/pedantic.dart';
 
-abstract class StoreSupport implements Store {
-  StoreSupport() {
+mixin StoreLifecycle implements Store {
+  Future<void> activate();
+  Future<void> disposeAsync();
+  @override
+  void dispose() {
+    unawaited(disposeAsync());
+  }
+}
+
+abstract class MainStoreSupport with StoreLifecycle {
+  MainStoreSupport() {
     activated = ObservableFuture<void>(activate());
   }
-
   ObservableFuture<void> activated;
-
-  @protected
-  Future<void> activate();
-
-  Future<void> disposeAsync();
 }

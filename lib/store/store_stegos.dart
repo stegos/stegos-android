@@ -18,7 +18,7 @@ class ErrorState implements Exception {
   final String message;
 }
 
-abstract class _StegosStore extends StoreSupport with Store, Loggable<StegosStore> {
+abstract class _StegosStore extends MainStoreSupport with Store, Loggable<StegosStore> {
   _StegosStore(this.env);
 
   static const int DOC_SETTINGS_ID = 1;
@@ -101,7 +101,6 @@ abstract class _StegosStore extends StoreSupport with Store, Loggable<StegosStor
     await env.activate();
 
     settings.clear();
-
     final db = await env.getDb();
     await db.getOptional('settings', DOC_SETTINGS_ID).then((ov) {
       if (ov.isPresent) {
@@ -128,13 +127,13 @@ abstract class _StegosStore extends StoreSupport with Store, Loggable<StegosStor
     }
 
     // Activate substores
-    await storeNode.activate();
+    return Future.forEach(<StoreLifecycle>[storeNode], (StoreLifecycle e) => e.activate());
   }
 
   @override
-  Future<void> disposeAsync() {
-    return _flushSettings();
-  }
+  Future<void> disposeAsync() =>
+      Future.forEach(<StoreLifecycle>[storeNode], (StoreLifecycle e) => e.disposeAsync())
+          .whenComplete(_flushSettings);
 
   Future<int> _flushSettings() => env.useDb((db) => db.put(
       'settings', settings.map((k, v) => MapEntry<dynamic, dynamic>(k, v)), DOC_SETTINGS_ID));

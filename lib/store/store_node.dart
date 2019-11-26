@@ -1,7 +1,6 @@
-
-
 import 'package:mobx/mobx.dart';
 import 'package:stegos_wallet/log/loggable.dart';
+import 'package:stegos_wallet/services/service_node_client.dart';
 import 'package:stegos_wallet/store/store_common.dart';
 import 'package:stegos_wallet/store/store_stegos.dart';
 
@@ -9,21 +8,32 @@ part 'store_node.g.dart';
 
 class StegosNodeStore = _StegosNodeStore with _$StegosNodeStore;
 
-abstract class _StegosNodeStore extends StoreSupport with Store, Loggable<StegosNodeStore> {
-
+abstract class _StegosNodeStore with Store, StoreLifecycle, Loggable<StegosNodeStore> {
   _StegosNodeStore(this.parent);
 
   final StegosStore parent;
 
-  @override
-  @action
-  Future<void> activate() async {
-    final env = parent.env;
+  StegosNodeClient get client => parent.env.nodeClient;
 
+  @computed
+  bool get connected => client.connected;
+
+  @observable
+  bool synchronized = false;
+
+  @override
+  Future<void> activate() async {
+    reaction((_) => client.connected, _syncNodeStatus);
   }
 
   @override
-  Future<void> disposeAsync() async {
+  Future<void> disposeAsync() async {}
 
+  void _syncNodeStatus(bool connected) {
+    if (!connected) {
+      return;
+    }
+    //print('Get node status now!!!');
+    //client.sendAndAwait({});
   }
 }

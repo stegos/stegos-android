@@ -214,16 +214,16 @@ abstract class _StegosNodeClient with Store, Loggable<StegosNodeClient> {
   }
 
   Future<void> _connect({bool ensureOpened = false}) async {
+    if (ensureOpened && (_reconnecting || connected)) {
+      return Future.value();
+    }
     log.info('Connecting...');
     if (_disposed) {
       _controller = StreamController<StegosNodeMessage>.broadcast();
     }
-    if (ensureOpened && (_reconnecting || connected)) {
-      return Future.value();
-    }
     _reconnecting = true;
     await close(dispose: false).catchError((err, StackTrace st) {
-      log.severe('', err, st);
+      log.warning('', err, st);
     });
     return WebSocket.connect(env.configNodeWsEndpoint).then((ws) {
       _ws = ws;
