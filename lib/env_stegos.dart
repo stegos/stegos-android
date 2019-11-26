@@ -20,9 +20,6 @@ class StegosEnv extends Env<Widget> {
     Log('StegosNodeClient').level = Level.FINE;
   }
 
-  /// Main app state store.
-  StegosStore store;
-
   /// Environment name
   @override
   String get name => 'stegos';
@@ -76,56 +73,55 @@ class StegosEnv extends Env<Widget> {
     });
   }
 
+  /// Main app state store.
+  StegosStore get store => _store ??= StegosStore(this);
+
   /// Get database handle
   Future<EJDB2> getDb() async => _db ??= await EJDB2Builder('stegos_wallet.db').open();
 
+  /// Get stegos node websocket client
+  StegosNodeClient get nodeClient => _client ??= StegosNodeClient.open(this);
+
   /// Get broadcast stream of stegos node messages
-  Stream<StegosNodeMessage> get nodeStream => (_client ??= StegosNodeClient.open(this)).stream;
+  Stream<StegosNodeMessage> get nodeStream => nodeClient.stream;
 
   /// Bring environment to operational state
   Future<void> activate() async {
     await getDb();
     securityService ??= SecurityService(this);
-    if (_client == null) {
-      _client = StegosNodeClient.open(this);
-    } else {
-      await _client.ensureOpened();
-    }
+    unawaited(nodeClient.ensureOpened());
   }
 
   /// Create initial application widget.
   @override
-  Future<Widget> openWidget() async {
-    store = StegosStore(this);
-    return MultiProvider(
-      providers: [
-        Provider<StegosEnv>.value(value: this),
-        Provider<StegosStore>.value(value: store),
-      ],
-      child: LifecycleWatcher(builder: (context, state) {
-        switch (state) {
-          case AppLifecycleState.paused:
-          case AppLifecycleState.inactive:
-          case AppLifecycleState.suspending:
-            if (!_suspended) {
-              _suspended = true;
-              unawaited(_suspend(state));
-            }
-            // Dot not show anything
-            return const SizedBox.shrink();
-          default:
-            if (_suspended) {
-              _suspended = false;
-              // App resume
-              unawaited(activate());
-            }
-            return StegosApp(
-              showSplash: state == null,
-            );
-        }
-      }),
-    );
-  }
+  Future<Widget> openWidget() async => MultiProvider(
+        providers: [
+          Provider<StegosEnv>.value(value: this),
+          Provider<StegosStore>(builder: (_) => store),
+        ],
+        child: LifecycleWatcher(builder: (context, state) {
+          switch (state) {
+            case AppLifecycleState.paused:
+            case AppLifecycleState.inactive:
+            case AppLifecycleState.suspending:
+              if (!_suspended) {
+                _suspended = true;
+                unawaited(_suspend(state));
+              }
+              // Dot not show anything
+              return const SizedBox.shrink();
+            default:
+              if (_suspended) {
+                _suspended = false;
+                // App resume
+                unawaited(activate());
+              }
+              return StegosApp(
+                showSplash: state == null,
+              );
+          }
+        }),
+      );
 
   //
   // Private staff
@@ -133,6 +129,9 @@ class StegosEnv extends Env<Widget> {
 
   /// Database handle.
   EJDB2 _db;
+
+  /// Root store
+  StegosStore _store;
 
   /// Is mobile app suspended
   bool _suspended = false;

@@ -3,10 +3,15 @@ import 'package:mobx/mobx.dart';
 import 'package:stegos_wallet/env_stegos.dart';
 import 'package:stegos_wallet/log/loggable.dart';
 import 'package:stegos_wallet/store/store_common.dart';
+import 'package:stegos_wallet/store/store_node.dart';
 
 part 'store_stegos.g.dart';
 
-class StegosStore = _StegosStore with _$StegosStore;
+class StegosStore extends _StegosStore with _$StegosStore {
+  StegosStore(StegosEnv env) : super(env) {
+    storeNode = StegosNodeStore(this);
+  }
+}
 
 class ErrorState implements Exception {
   ErrorState(this.message);
@@ -43,6 +48,9 @@ abstract class _StegosStore extends StoreSupport with Store, Loggable<StegosStor
 
   /// Current error state text of `null`
   final error = Observable<ErrorState>(null);
+
+  /// Stegos not substore
+  StegosNodeStore storeNode;
 
   /// Reset current error state
   @action
@@ -118,6 +126,9 @@ abstract class _StegosStore extends StoreSupport with Store, Loggable<StegosStor
       log.fine(
           '\n\t${settings.entries.map((e) => 'settings: ${e.key} => ${e.value}').join('\n\t')}');
     }
+
+    // Activate substores
+    await storeNode.activate();
   }
 
   @override

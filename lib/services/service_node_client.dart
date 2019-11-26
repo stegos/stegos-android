@@ -4,11 +4,14 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as Math;
 
+import 'package:mobx/mobx.dart';
 import 'package:pedantic/pedantic.dart';
 import 'package:stegos_wallet/env_stegos.dart';
 import 'package:stegos_wallet/log/loggable.dart';
 import 'package:stegos_wallet/utils/crypto.dart';
 import 'package:stegos_wallet/utils/crypto_aes.dart';
+
+part 'service_node_client.g.dart';
 
 /// Message sequence
 int _seq = 0;
@@ -42,22 +45,32 @@ class _Message {
   final Map<String, dynamic> payload;
 }
 
-/// Stegos node client.
-///
-class StegosNodeClient with Loggable<StegosNodeClient> {
-  StegosNodeClient._(this.env)
-      : _minWait = env.configNodeWsEndpointMinReconnectTimeoutMs,
-        _maxWait = env.configNodeWsEndpointMaxReconnectTimeoutMs,
-        _nextWait = env.configNodeWsEndpointMinReconnectTimeoutMs;
-
+class StegosNodeClient extends _StegosNodeClient with _$StegosNodeClient {
   factory StegosNodeClient.open(StegosEnv env) {
     final wss = StegosNodeClient._(env);
     unawaited(wss._connect());
     return wss;
   }
+  StegosNodeClient._(StegosEnv env) : super(env);
+}
+
+/// Stegos node client.
+///
+abstract class _StegosNodeClient with Store, Loggable<StegosNodeClient> {
+  _StegosNodeClient(this.env)
+      : _minWait = env.configNodeWsEndpointMinReconnectTimeoutMs,
+        _maxWait = env.configNodeWsEndpointMaxReconnectTimeoutMs,
+        _nextWait = env.configNodeWsEndpointMinReconnectTimeoutMs;
 
   /// Env ref
   final StegosEnv env;
+
+  /// Is connected to node
+  @observable
+  bool connected = false;
+
+  /// Node incoming messages stream
+  Stream<StegosNodeMessage> get stream => _controller.stream;
 
   /// Message waiting to send
   final _pending = Queue<_Message>();
@@ -73,8 +86,6 @@ class StegosNodeClient with Loggable<StegosNodeClient> {
 
   var _controller = StreamController<StegosNodeMessage>.broadcast();
 
-  Stream<StegosNodeMessage> get stream => _controller.stream;
-
   WebSocket _ws;
 
   /// ignore: cancel_subscriptions
@@ -83,8 +94,6 @@ class StegosNodeClient with Loggable<StegosNodeClient> {
   bool get _disposed => _controller.isClosed;
 
   bool _reconnecting = false;
-
-  bool _connected = false;
 
   void sendAndForget(Map<String, dynamic> payload) =>
       unawaited(send(payload, awaitResponse: false));
@@ -102,7 +111,15 @@ class StegosNodeClient with Loggable<StegosNodeClient> {
     return msg.completer?.future ?? Future.value();
   }
 
+  @override
+  void dispose() {
+    unawaited(close(dispose: true));
+  }
+
   Future<void> close({bool dispose}) async {
+    runInAction(() {
+      connected = false;
+    });
     if (_disposed) {
       return;
     }
@@ -129,7 +146,7 @@ class StegosNodeClient with Loggable<StegosNodeClient> {
   Future<void> ensureOpened() => _connect(ensureOpened: true);
 
   void _processPendingMessages() {
-    if (!_connected || _ws == null) {
+    if (!connected || _ws == null) {
       while (_pending.length > env.configNodeMaxPendingMessages) {
         _pending.removeFirst();
       }
@@ -185,42 +202,49 @@ class StegosNodeClient with Loggable<StegosNodeClient> {
   }
 
   Future<void> _reconnect() {
-    _connected = false;
+    runInAction(() {
+      connected = false;
+    });
     if (_reconnecting || _disposed) {
       return Future.value();
     }
     _reconnecting = true;
     _nextWait = Math.min((_nextWait * 1.1).ceil(), _maxWait);
-    return Future.delayed(Duration(milliseconds: _nextWait), () {
-      _reconnecting = false;
-      log.info('Reconnecting...');
-      return _connect();
-    });
+    return Future.delayed(Duration(milliseconds: _nextWait), _connect);
   }
 
   Future<void> _connect({bool ensureOpened = false}) async {
+    log.info('Connecting...');
     if (_disposed) {
       _controller = StreamController<StegosNodeMessage>.broadcast();
     }
-    if (ensureOpened && _ws != null) {
+    if (ensureOpened && (_reconnecting || connected)) {
       return Future.value();
     }
-    await close(dispose: false);
+    _reconnecting = true;
+    await close(dispose: false).catchError((err, StackTrace st) {
+      log.severe('', err, st);
+    });
     return WebSocket.connect(env.configNodeWsEndpoint).then((ws) {
       _ws = ws;
-      _connected = true;
+      _reconnecting = false;
+      runInAction(() {
+        connected = true;
+      });
       _subscription = _ws.listen((chunk) {
         _nextWait = _minWait;
         if (chunk is String) {
           _onIncomingMessage(chunk);
         }
       }, onDone: () {
-        _subscription = null;
-        _nextWait = _minWait;
         log.warning('Connection closed');
+        _nextWait = _minWait;
+        _subscription = null;
+        _reconnecting = false;
         unawaited(_reconnect());
       }, onError: (err) {
         log.warning('Connection error', err);
+        _reconnecting = false;
         unawaited(_reconnect());
       });
     }).then((_) {
@@ -228,6 +252,7 @@ class StegosNodeClient with Loggable<StegosNodeClient> {
       _processPendingMessages();
     }).catchError((err, StackTrace st) {
       log.warning('Connection error', err);
+      _reconnecting = false;
       unawaited(_reconnect());
     });
   }
