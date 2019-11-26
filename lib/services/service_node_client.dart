@@ -23,9 +23,9 @@ int _nextId() {
 }
 
 class StegosNodeMessage {
-  StegosNodeMessage(this.id, this.raw);
-  final id;
-  final String raw;
+  StegosNodeMessage(this.id, this.json);
+  final int id;
+  final Map<String, dynamic> json;
 }
 
 class _Message {
@@ -89,10 +89,13 @@ class StegosNodeClient with Loggable<StegosNodeClient> {
   void sendAndForget(Map<String, dynamic> payload) =>
       unawaited(send(payload, awaitResponse: false));
 
+  Future<StegosNodeMessage> sendAndAwait(Map<String, dynamic> payload, [Duration maxAwaitTime]) =>
+      send(payload, awaitResponse: true, maxAwaitTime: maxAwaitTime);
+
   Future<StegosNodeMessage> send(Map<String, dynamic> payload,
       {bool awaitResponse = true, Duration maxAwaitTime}) {
     awaitResponse ??= false;
-    final maxAwaitTimeMs = maxAwaitTime?.inMilliseconds ?? env.configNodeMaxAwaitNodeResponseMs;
+    final maxAwaitTimeMs = maxAwaitTime?.inMilliseconds ?? env.configNodeMaxAwaitMessageResponseMs;
     final _Message msg = _Message(Map.of(payload), awaitResponse, maxAwaitTimeMs);
     _pending.add(msg);
     _processPendingMessages();
@@ -151,18 +154,34 @@ class StegosNodeClient with Loggable<StegosNodeClient> {
       log.fine('sendMessage: ${data}\nchunk: ${chunk}');
     }
     _ws.add(chunk);
+    _cleanupAwaiters();
   }
 
   void _onIncomingMessage(String payload) {
-    if (log.isFine) {
-      log.fine('onIncomingMessage: ${payload}');
-    }
     payload = _messageDecrypt(payload);
     if (log.isFine) {
       log.fine('onIncomingMessage decrypted: ${payload}');
     }
     final json = jsonDecode(payload) as Map<String, dynamic>;
-    // todo:
+    final id = json['id'] is int ? json['id'] as int : 0;
+    final msg = StegosNodeMessage(id, json);
+    final awaited = _awaitingResponse[id];
+    if (awaited != null) {
+      _awaitingResponse.remove(id);
+      awaited.completer.complete(msg);
+    }
+    _controller.add(msg);
+    _cleanupAwaiters();
+  }
+
+  void _cleanupAwaiters() {
+    final ts = DateTime.now().millisecondsSinceEpoch;
+    final ep = env.configNodeMaxAwaitMessageResponseMs;
+    _awaitingResponse.entries
+        .where((e) => ts - e.value.ts >= ep)
+        .map((e) => e.key)
+        .toList()
+        .forEach(_awaitingResponse.remove);
   }
 
   Future<void> _reconnect() {
@@ -189,13 +208,12 @@ class StegosNodeClient with Loggable<StegosNodeClient> {
     await close(dispose: false);
     return WebSocket.connect(env.configNodeWsEndpoint).then((ws) {
       _ws = ws;
-      _subscription = _ws.listen((line_) {
-        _connected = true;
+      _connected = true;
+      _subscription = _ws.listen((chunk) {
         _nextWait = _minWait;
-        final line = line_ as String;
-        log.info('WS line: $line');
-        // todo:
-        // _controller.add(StegosNodeMessage(line));
+        if (chunk is String) {
+          _onIncomingMessage(chunk);
+        }
       }, onDone: () {
         _subscription = null;
         _nextWait = _minWait;
@@ -207,7 +225,6 @@ class StegosNodeClient with Loggable<StegosNodeClient> {
       });
     }).then((_) {
       log.info('Connected');
-      _connected = true;
       _processPendingMessages();
     }).catchError((err, StackTrace st) {
       log.warning('Connection error', err);

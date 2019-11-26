@@ -51,9 +51,9 @@ class StegosEnv extends Env<Widget> {
   /// Maximum number of messages awaiting sending to stegos node
   int get configNodeMaxPendingMessages => 1024;
 
-  /// Maximum period of time in millisconds
+  /// Maximum period of time in milliseconds
   /// to wait for specific reply for message from stegos node.
-  int get configNodeMaxAwaitNodeResponseMs => 30 * 60 * 1000; // 30min
+  int get configNodeMaxAwaitMessageResponseMs => 30 * 60 * 1000; // 30min
 
   /// Stegos node websocket endpoint
   String get configNodeWsEndpoint => 'ws://10.0.2.2:3145';
