@@ -285,7 +285,7 @@ packages:
     source: hosted
     version: "3.0.0"
   json_at:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: json_at
       url: "https://pub.dartlang.org"

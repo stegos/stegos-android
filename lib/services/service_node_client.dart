@@ -4,8 +4,10 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as Math;
 
+import 'package:json_at/json_at.dart';
 import 'package:mobx/mobx.dart';
 import 'package:pedantic/pedantic.dart';
+import 'package:quiver/core.dart';
 import 'package:stegos_wallet/env_stegos.dart';
 import 'package:stegos_wallet/log/loggable.dart';
 import 'package:stegos_wallet/utils/crypto.dart';
@@ -29,6 +31,13 @@ class StegosNodeMessage {
   StegosNodeMessage(this.id, this.json);
   final int id;
   final Map<String, dynamic> json;
+
+  /// Gets subset of document using RFC 6901 JSON [pointer].
+  Optional<dynamic> at(String pointer) => jsonAt(json, pointer);
+
+  /// Gets subset of document using RFC 6901 JSON [pointer].
+  Optional<dynamic> operator [](String pointer) => at(pointer);
+
   @override
   String toString() => '${id}: ${json}';
 }

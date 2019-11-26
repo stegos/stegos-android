@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:mobx/mobx.dart';
 import 'package:pedantic/pedantic.dart';
 import 'package:stegos_wallet/log/loggable.dart';
@@ -35,7 +37,10 @@ abstract class _StegosNodeStore with Store, StoreLifecycle, Loggable<StegosNodeS
       return;
     }
     unawaited(client.sendAndAwait({'type': 'status_info'}).then((msg) {
-      print('Got message: ${msg}');
+      final json = msg.json;
+      runInAction(() {
+        synchronized = json['is_synchronized'] as bool ?? false;
+      });
     }));
   }
 }
