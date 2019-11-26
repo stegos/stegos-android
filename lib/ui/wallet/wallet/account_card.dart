@@ -4,20 +4,22 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stegos_wallet/ui/themes.dart';
 
 class Account {
-  Account({this.name = '', this.balance = 0, this.qrUrl = ''});
+  Account({this.name = '', this.balance = 0, this.qrUrl = '', @required this.order});
 
   String name;
   double balance;
   String qrUrl;
+  int order;
 }
 
 class AccountCard extends StatefulWidget {
-  AccountCard({Key key, @required this.account, this.collapsed = false, this.index = 0})
+  AccountCard({@required ValueKey<Account> key, this.collapsed = false, this.order = 0})
       : super(key: key);
 
-  final Account account;
   final bool collapsed;
-  final int index;
+  final int order;
+
+  Account get account => (key as ValueKey<Account>).value;
 
   @override
   AccountCardState createState() => AccountCardState();
@@ -36,7 +38,7 @@ class AccountCardState extends State<AccountCard> {
   double get aspectRation => widget.collapsed ? collapsedAspectRatio : normalAspectRatio;
 
   Alignment get bgAlignment {
-    switch (widget.index % 3) {
+    switch (widget.order % 3) {
       case 0:
         return Alignment.topCenter;
       case 1:
@@ -51,6 +53,7 @@ class AccountCardState extends State<AccountCard> {
   @override
   Widget build(BuildContext context) => Container(
         width: MediaQuery.of(context).size.width - 60,
+        margin: EdgeInsets.symmetric(vertical: widget.collapsed ? 4 : 15),
         color: StegosColors.backgroundColor,
         child: Material(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(3.0)),
