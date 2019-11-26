@@ -19,7 +19,6 @@ Future<void> _setupPassword(StegosEnv env, String pin) {
 Future<void> _unlockPassword(StegosEnv env, String pin) async {
   final ss = env.securityService;
   await ss.recoverAccountPassword(pin);
-  unawaited(env.store.touchAppUnlockedPeriod());
 }
 
 class PinProtectScreen extends StatefulWidget {

@@ -43,6 +43,12 @@ abstract class _StegosStore extends MainStoreSupport with Store, Loggable<Stegos
   bool get needAppUnlock =>
       DateTime.now().millisecondsSinceEpoch - lastAppUnlockTs >= env.configMaxAppUnlockedPeriod;
 
+  @observable
+  String accountPassword;
+
+  @observable
+  String prevAccountPassword;
+
   /// Last known active route
   final lastRoute = Observable<RouteSettings>(null);
 
@@ -66,9 +72,17 @@ abstract class _StegosStore extends MainStoreSupport with Store, Loggable<Stegos
     error.value = ErrorState(errorText);
   }
 
-  Future<void> touchAppUnlockedPeriod([int touchTs]) {
-    touchTs ??= DateTime.now().millisecondsSinceEpoch;
-    return mergeSingle('lastAppUnlockTs', touchTs);
+  @action
+  Future<void> touchAppUnlockedPeriod({String password, int touchTs}) {
+    prevAccountPassword = accountPassword;
+    accountPassword = password;
+    if (password != null) {
+      touchTs ??= DateTime.now().millisecondsSinceEpoch;
+      return mergeSingle('lastAppUnlockTs', touchTs);
+    } else {
+      // Remove stored account passwords
+      return mergeSettings({'password': null, 'iv': null, 'lastAppUnlockTs': null});
+    }
   }
 
   Future<void> mergeSingle(String key, dynamic value) =>

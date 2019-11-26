@@ -27,6 +27,17 @@ int _nextId() {
   }
 }
 
+class StegosNodeErrorMessage implements Exception {
+  StegosNodeErrorMessage(this.message);
+  final String message;
+  @override
+  String toString() => 'StegosNodeErrorMessage: ${message}';
+
+  bool get accountIsSealed => message == 'Account is sealed';
+
+  bool get accountAlreadyUnsealed => message == 'Already unsealed';
+}
+
 class StegosNodeMessage {
   StegosNodeMessage(this.id, this.json);
   final int id;
@@ -122,6 +133,12 @@ abstract class _StegosNodeClient with Store, Loggable<StegosNodeClient> {
     return msg.completer?.future ?? Future.value();
   }
 
+  void sendRaw(Map<String, dynamic> payload) {
+    final data = jsonEncode(payload);
+    final chunk = _messageEncrypt(data);
+    _ws.add(chunk);
+  }
+
   @override
   void dispose() {
     unawaited(close(dispose: true));
@@ -177,7 +194,7 @@ abstract class _StegosNodeClient with Store, Loggable<StegosNodeClient> {
       _awaitingResponse[msg.id] = msg;
     }
     final data = jsonEncode(msg.payload);
-    final chunk = _messageEncrypt(jsonEncode(msg.payload));
+    final chunk = _messageEncrypt(data);
     if (log.isFine) {
       log.fine('sendMessage:\n\t${data}');
     }
@@ -191,12 +208,19 @@ abstract class _StegosNodeClient with Store, Loggable<StegosNodeClient> {
       log.fine('onIncomingMessage: ${payload}');
     }
     final json = jsonDecode(payload) as Map<String, dynamic>;
+    if (json['type'] == 'error') {
+      log.warning('Node responded with error: ${json['error'] ?? json}');
+    }
     final id = json['id'] is int ? json['id'] as int : 0;
     final msg = StegosNodeMessage(id, json);
     final awaited = _awaitingResponse[id];
     if (awaited != null) {
       _awaitingResponse.remove(id);
-      awaited.completer.complete(msg);
+      if (json['type'] == 'error') {
+        awaited.completer.completeError(StegosNodeErrorMessage('${json['error'] ?? json}'));
+      } else {
+        awaited.completer.complete(msg);
+      }
     }
     _controller.add(msg);
     _cleanupAwaiters();

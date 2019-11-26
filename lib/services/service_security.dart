@@ -15,29 +15,25 @@ class SecurityService {
 
   final _RandomStringProvider _provider;
 
-  /// Last known unlocked password
-  String unlockedPassword;
-
   /// Create new random generated password
   String createRandomPassword() =>
       randomAlphaNumeric(env.configGeneratedPasswordsLength, provider: _provider);
 
-  Future<void> setupAccountPassword(String password, String pin) => env.useDb((db) async {
-        unlockedPassword = null;
+  Future<void> setupAccountPassword(String pw, String pin) => env.useDb((db) async {
         const utf8Encoder = Utf8Encoder();
         final key = base64Encode(utf8Encoder.convert(pin.padRight(32, '@')));
         final iv = const StegosCryptKey().genDartRaw(16);
         final encyptedPassword =
-            StegosAesCrypt(key).encrypt(utf8Encoder.convert('stegos:${password}'), iv);
+            StegosAesCrypt(key).encrypt(utf8Encoder.convert('stegos:${pw}'), iv);
         await env.store.mergeSettings({
           'password': base64Encode(encyptedPassword),
           'iv': base64Encode(iv),
-          'lastAppUnlockTs': DateTime.now().millisecondsSinceEpoch
         });
+        return env.store.touchAppUnlockedPeriod(password: pw);
       });
 
   /// Recover pin protected password.
-  Future<String> recoverAccountPassword(String pin) {
+  Future<String> recoverAccountPassword(String pin) async {
     const utf8Encoder = Utf8Encoder();
     const utf8Decoder = Utf8Decoder();
 
@@ -48,13 +44,12 @@ class SecurityService {
     if (password == null || iv == null) {
       return Future.error(Exception('Invalid password recover data'));
     }
-    final pw = utf8Decoder.convert(StegosAesCrypt(key).decrypt(base64Decode(password), iv));
+    var pw = utf8Decoder.convert(StegosAesCrypt(key).decrypt(base64Decode(password), iv));
     if (!pw.startsWith('stegos:')) {
       return Future.error(Exception('Invalid password recovered'));
     }
-    unlockedPassword = unlockedPassword;
-    store.touchAppUnlockedPeriod();
-    return Future.value(unlockedPassword);
+    pw = pw.substring('stegos:'.length);
+    return store.touchAppUnlockedPeriod(password: pw).then((_) => pw);
   }
 }
 
