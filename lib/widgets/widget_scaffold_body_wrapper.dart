@@ -16,25 +16,43 @@ class ScaffoldBodyWrapperWidget extends StatelessWidget {
     return Observer(
       builder: (context) {
         final error = store.error.value;
-        if (error == null || (error.message?.isEmpty ?? true)) {
+        final operable = store.storeNode.operable;
+        final connected = store.storeNode.connected;
+        final hasError = error?.message?.isNotEmpty ?? false;
+        if (operable && !hasError) {
           return builder(context);
         }
+        final widgets = <Widget>[];
+        if (!operable) {
+          widgets.add(Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 50),
+            color: StegosColors.accentColor,
+            child: Text(
+              !connected ? 'Stegos node is not connected' : 'Stegos node synchronizing...',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontWeight: FontWeight.w500, fontSize: 9),
+            ),
+          ));
+        }
+        if (hasError) {
+          widgets.add(Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 50),
+            color: StegosColors.errorColor,
+            child: Text(
+              error.message,
+              textAlign: TextAlign.center,
+              style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+            ),
+          ));
+        }
+        widgets.add(Expanded(child: builder(context)));
+
         return SafeArea(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
-            children: <Widget>[
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 50),
-                color: StegosColors.errorColor,
-                child: Text(
-                  error.message,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
-                ),
-              ),
-              Expanded(child: builder(context))
-            ],
+            children: widgets,
           ),
         );
       },

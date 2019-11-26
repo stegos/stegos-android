@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:mobx/mobx.dart';
 import 'package:pedantic/pedantic.dart';
 import 'package:stegos_wallet/log/loggable.dart';
@@ -20,6 +18,9 @@ abstract class _StegosNodeStore with Store, StoreLifecycle, Loggable<StegosNodeS
 
   @computed
   bool get connected => client.connected;
+
+  @computed
+  bool get operable => client.connected && synchronized;
 
   @observable
   bool synchronized = false;
