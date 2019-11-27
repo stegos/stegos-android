@@ -42,9 +42,9 @@ abstract class _SecurityService with Store, Loggable<SecurityService> {
 
   String _cachedAccountPassword;
 
-  Future<void> checkAppPin() => acquireAccountPassword(forceUnlock: true);
+  Future<void> checkAppPin() => acquirePasswordForAccount(forceUnlock: true);
 
-  Future<String> acquireAccountPassword({int accountId, bool forceUnlock = false}) async {
+  Future<String> acquirePasswordForAccount({int accountId, bool forceUnlock = false}) async {
     if (!hasPinProtectedPassword) {
       final password =
           await appShowDialog<String>(builder: (context) => const PinProtectScreen(unlock: false));

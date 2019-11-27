@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:ejdb2_flutter/ejdb2_flutter.dart';
 import 'package:mobx/mobx.dart';
@@ -14,34 +15,98 @@ part 'service_node.g.dart';
 class NodeService = _NodeService with _$NodeService;
 
 class AccountStore extends _AccountStore with _$AccountStore {
-  AccountStore._(int id, String name, int balanceCurrent, int balanceAvailable)
-      : super(id, name, balanceCurrent, balanceAvailable);
+  AccountStore.empty(int id) : super(id);
+  AccountStore._(
+      int id,
+      String name,
+      bool balanceIsFinal,
+      int balanceCurrent,
+      int balanceAvailable,
+      int balanceStakeCurrent,
+      int balanceStakeAvailable,
+      int balancePublicCurrent,
+      int balancePublicAvailable,
+      int balancePaymentCurrent,
+      int balancePaymentAvailable)
+      : super(
+            id,
+            name,
+            balanceIsFinal,
+            balanceCurrent,
+            balanceAvailable,
+            balanceStakeCurrent,
+            balanceStakeAvailable,
+            balancePublicCurrent,
+            balancePublicAvailable,
+            balancePaymentCurrent,
+            balancePaymentAvailable);
 
   factory AccountStore._fromJBDOC(JBDOC doc) {
-    final id = doc.object['id'] as int;
-    final name = doc.object['name'] as String;
-    final balanceCurrent = doc.object['balance_current'] as int ?? 0;
-    final balanceAvailable = doc.object['balance_available'] as int ?? 0;
-    return AccountStore._(id, name, balanceCurrent, balanceAvailable);
+    return AccountStore._(
+        doc.object['id'] as int,
+        doc.object['name'] as String,
+        doc.object['balance_is_final'] as bool ?? false,
+        doc.object['balance_current'] as int ?? 0,
+        doc.object['balance_available'] as int ?? 0,
+        doc.object['balance_stake_current'] as int ?? 0,
+        doc.object['balance_stake_available'] as int ?? 0,
+        doc.object['balance_public_current'] as int ?? 0,
+        doc.object['balance_public_available'] as int ?? 0,
+        doc.object['balance_payment_current'] as int ?? 0,
+        doc.object['balance_payment_available'] as int ?? 0);
   }
 }
 
 abstract class _AccountStore with Store {
-  _AccountStore(this.id, this.name, this.balanceCurrent, this.balanceAvailable);
+  _AccountStore(this.id,
+      [this.name,
+      this.balanceIsFinal,
+      this.balanceCurrent,
+      this.balanceAvailable,
+      this.balanceStakeCurrent,
+      this.balanceStakeAvailable,
+      this.balancePublicCurrent,
+      this.balancePublicAvailable,
+      this.balancePaymentCurrent,
+      this.balancePaymentAvailable]);
 
   final int id;
+
+  @computed
+  String get humanName => name ?? 'Account #${name}';
 
   @observable
   String name;
 
   @observable
-  int balanceCurrent;
-
-  @observable
-  int balanceAvailable;
-
-  @observable
   bool sealed = true;
+
+  @observable
+  bool balanceIsFinal = false;
+
+  @observable
+  int balanceCurrent = 0;
+
+  @observable
+  int balanceAvailable = 0;
+
+  @observable
+  int balanceStakeCurrent = 0;
+
+  @observable
+  int balanceStakeAvailable = 0;
+
+  @observable
+  int balancePublicCurrent = 0;
+
+  @observable
+  int balancePublicAvailable = 0;
+
+  @observable
+  int balancePaymentCurrent = 0;
+
+  @observable
+  int balancePaymentAvailable = 0;
 
   @override
   int get hashCode => id.hashCode;
@@ -52,16 +117,43 @@ abstract class _AccountStore with Store {
   @action
   void _update(JBDOC doc) {
     name = doc.object['name'] as String;
+    balanceIsFinal = doc.object['balance_is_final'] as bool;
     balanceCurrent = doc.object['balance_current'] as int ?? balanceCurrent;
     balanceAvailable = doc.object['balance_available'] as int ?? balanceAvailable;
+    balanceStakeCurrent = doc.object['balance_stake_current'] as int ?? balanceStakeCurrent;
+    balanceStakeAvailable = doc.object['balance_stake_available'] as int ?? balanceStakeAvailable;
+    balancePublicCurrent = doc.object['balance_public_current'] as int ?? balancePublicCurrent;
+    balancePublicAvailable =
+        doc.object['balance_public_available'] as int ?? balancePublicAvailable;
+    balancePaymentCurrent = doc.object['balance_payment_current'] as int ?? balancePaymentCurrent;
+    balancePaymentAvailable =
+        doc.object['balance_payment_available'] as int ?? balancePaymentAvailable;
   }
 
+  dynamic toJson() => {
+        'id': id,
+        'name': name,
+        'balance_is_final': balanceIsFinal,
+        'balance_current': balanceCurrent,
+        'balance_available': balanceAvailable,
+        'balance_stake_current': balanceStakeCurrent,
+        'balance_stake_available': balanceStakeAvailable,
+        'balance_public_current': balancePublicCurrent,
+        'balance_public_available': balancePublicAvailable,
+        'balance_payment_current': balancePaymentCurrent,
+        'balance_payment_available': balancePaymentAvailable,
+      };
+
   @override
-  String toString() => 'AccountStore{id=${id}'
-      ', name=${name}'
-      ', balanceCurrent=${balanceCurrent}'
-      ', balanceAvailable=${balanceAvailable}'
-      '}';
+  String toString() => jsonEncode(this);
+}
+
+class _UnsealAccountStatus {
+  const _UnsealAccountStatus({this.unsealed = false, this.invalidPassword = false});
+  final bool unsealed;
+  final bool invalidPassword;
+  @override
+  String toString() => 'usealed=${unsealed}, invalidPassword=${invalidPassword}';
 }
 
 abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
@@ -129,22 +221,117 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
     }));
   }
 
-  Future<void> _syncAccountsBalances(Iterable<int> ids) {
-    // todo:
-    // if (env.store.accountPassword == null) {
-    // }
+  Future<void> _syncAccountsInfos(Iterable<int> ids, {bool forceSealing = false}) =>
+      Future.forEach(ids, (int id) {
+        return _syncAccountInfo(id, forceSealing: forceSealing).catchError((err, StackTrace st) {
+          log.warning('Error getting account info #${id}', err, st);
+          accounts.remove(id);
+        });
+      });
+
+  Future<AccountStore> _syncAccountInfo(int id, {bool forceSealing = false}) async {
+    final acc = await _unsealAccount(id, force: forceSealing);
+    try {
+      final msg = await client.sendAndAwait({'type': 'balance_info', 'account_id': '$id'});
+      acc.balanceIsFinal = msg.at('/is_final').transform((v) => v as bool).or(false);
+      acc.balanceCurrent = msg.at('/current').transform((v) => v as int).or(0);
+      acc.balanceAvailable = msg.at('/available').transform((v) => v as int).or(0);
+      acc.balancePaymentCurrent = msg.at('/payment/current').transform((v) => v as int).or(0);
+      acc.balancePaymentAvailable = msg.at('/payment/available').transform((v) => v as int).or(0);
+      acc.balancePublicCurrent = msg.at('/public_payment/current').transform((v) => v as int).or(0);
+      acc.balancePublicAvailable =
+          msg.at('/public_payment/available').transform((v) => v as int).or(0);
+      acc.balanceStakeCurrent = msg.at('/stake/current').transform((v) => v as int).or(0);
+      acc.balanceStakeAvailable = msg.at('/stake/available').transform((v) => v as int).or(0);
+    } finally {
+      await _sealAccount(id, force: forceSealing);
+    }
+    if (log.isFine) {
+      log.fine('Fetched account info: ${acc}');
+    }
+    return acc;
   }
 
-  Future<void> _syncAccountBalance(int id) async {
-    // todo:
+  Future<AccountStore> _sealAccount(int id, {bool force = false}) {
+    if (log.isFine) {
+      log.fine('Sealing account: #${id}');
+    }
+    final acc = _account(id);
+    if (!force && acc.sealed) {
+      return Future.value(acc);
+    }
+    return client.sendAndAwait({'type': 'seal', 'account_id': '$id'}).then((_) {
+      runInAction(() {
+        acc.sealed = true;
+      });
+      if (log.isFine) {
+        log.fine('Account#${id} is sealed');
+      }
+      return acc;
+    });
   }
 
-  Future<void> _sealAccount(int id) async {
-    // todo:
+  Future<AccountStore> _unsealAccount(int id, {bool force = false}) async {
+    final acc = _account(id);
+    if (!force && !acc.sealed) {
+      return acc;
+    }
+    final pw = await env.securityService.acquirePasswordForAccount(accountId: id);
+    var status = await _unsealAccountRaw(acc, pw);
+    if (status.unsealed) {
+      return acc;
+    }
+    if (status.invalidPassword) {
+      // Maybe default empty password is used?
+      status = await _unsealAccountRaw(acc, '');
+      if (status.unsealed) {
+        // Try to change password
+        print('!!!!! PW=${pw}');
+        log.warning('Trying to change default password for account: $id');
+        await client
+            .sendAndAwait({'type': 'change_password', 'account_id': '$id', 'new_password': pw});
+      } else {
+        log.warning('It seems what wrong password entered');
+        // todo: ask user for password!!
+      }
+    }
+    return acc;
   }
 
-  Future<void> _unsealAccount(int id) async {
-    // todo:
+  Future<_UnsealAccountStatus> _unsealAccountRaw(AccountStore acc, String password) {
+    if (log.isFine) {
+      log.fine('Unsealing account raw #${acc.id}');
+    }
+    return client
+        .sendAndAwait({'type': 'unseal', 'account_id': '${acc.id}', 'password': password})
+        .then((_) => const _UnsealAccountStatus(unsealed: true))
+        .catchError((err) {
+          if (err is StegosNodeErrorMessage) {
+            if (err.accountAlreadyUnsealed) {
+              return const _UnsealAccountStatus(unsealed: true);
+            } else if (err.invalidPassword) {
+              return const _UnsealAccountStatus(unsealed: false, invalidPassword: true);
+            }
+          }
+          return Future.error(err);
+        })
+        .then((v) {
+          runInAction(() {
+            acc.sealed = !v.unsealed;
+          });
+          if (log.isFine) {
+            log.fine('Unsealing status #${acc.id}: ${v}');
+          }
+          return v;
+        });
+  }
+
+  AccountStore _account(int id) {
+    final acc = accounts[id];
+    if (acc == null) {
+      throw Exception('Unknown account: ${id}');
+    }
+    return acc;
   }
 
   Future<void> _syncAccounts() async {
@@ -169,6 +356,12 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
           acc._update(doc);
         }
       }
-    }).then((_) => _syncAccountsBalances(ids));
+      ids.forEach((id) {
+        if (!accounts.containsKey(id)) {
+          accounts[id] = AccountStore.empty(id);
+        }
+      });
+      // todo:
+    }).then((_) => _syncAccountsInfos(ids.sublist(0, 1), forceSealing: true));
   }
 }

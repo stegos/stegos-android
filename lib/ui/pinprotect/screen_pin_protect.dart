@@ -42,6 +42,7 @@ class _PinProtectScreenState extends State<PinProtectScreen> with Loggable<PinPr
   }
 
   void _onDone(String result) {
+    // log.info('????? onDone=${result}');
     if (widget.nextRoute != null) {
       StegosApp.navigatorKey.currentState.pushReplacementNamed(widget.nextRoute.name,
           result: result, arguments: widget.nextRoute.arguments);

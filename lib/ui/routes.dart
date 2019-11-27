@@ -49,17 +49,24 @@ class _InitialRouteScreenState extends State<_InitialRouteScreen> {
         }
 
         final initialRoute = untracked(() {
-          if (!ss.hasPinProtectedPassword) {
-            return const RouteSettings(name: Routes.pinprotect);
-          } else if (ss.needAppUnlock) {
-            return const RouteSettings(name: Routes.unlock);
-          } else if (store.needWelcome) {
+          if (store.needWelcome) {
             return const RouteSettings(name: Routes.welcome);
           } else {
             // should be untracked!
             // nextRoute = store.lastRoute.value?.name; todo:
             return const RouteSettings(name: Routes.accounts);
           }
+          // if (!ss.hasPinProtectedPassword) {
+          //   return const RouteSettings(name: Routes.pinprotect);
+          // } else if (ss.needAppUnlock) {
+          //   return const RouteSettings(name: Routes.unlock);
+          // } else if (store.needWelcome) {
+          //   return const RouteSettings(name: Routes.welcome);
+          // } else {
+          //   // should be untracked!
+          //   // nextRoute = store.lastRoute.value?.name; todo:
+          //   return const RouteSettings(name: Routes.accounts);
+          // }
         });
 
         if (widget.showSplash) {

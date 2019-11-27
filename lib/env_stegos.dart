@@ -18,6 +18,7 @@ class StegosEnv extends Env<Widget> {
     // fixme:
     Log('StegosStore').level = Level.FINE;
     Log('StegosNodeClient').level = Level.FINE;
+    Log('NodeService').level = Level.FINE;
   }
 
   /// Environment name

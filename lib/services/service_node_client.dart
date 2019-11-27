@@ -36,6 +36,8 @@ class StegosNodeErrorMessage implements Exception {
   bool get accountIsSealed => message == 'Account is sealed';
 
   bool get accountAlreadyUnsealed => message == 'Already unsealed';
+
+  bool get invalidPassword => message.startsWith('Invalid password');
 }
 
 class StegosNodeMessage {
