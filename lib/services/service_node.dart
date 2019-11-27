@@ -73,6 +73,10 @@ abstract class _AccountStore with Store {
 
   final int id;
 
+  String pkey;
+
+  String networkPkey;
+
   @computed
   String get humanName => name ?? 'Account #${name}';
 
@@ -109,6 +113,11 @@ abstract class _AccountStore with Store {
   @observable
   int balancePaymentAvailable = 0;
 
+  /// PIN encrypted dedicated account password
+  String _password;
+
+  String _iv;
+
   @override
   int get hashCode => id.hashCode;
 
@@ -118,15 +127,8 @@ abstract class _AccountStore with Store {
   @action
   void _updateFromJson(dynamic json) {
     name = json['name'] as String ?? name;
-    balanceIsFinal = json['balance_is_final'] as bool ?? balanceIsFinal;
-    balanceCurrent = json['balance_current'] as int ?? balanceCurrent;
-    balanceAvailable = json['balance_available'] as int ?? balanceAvailable;
-    balanceStakeCurrent = json['balance_stake_current'] as int ?? balanceStakeCurrent;
-    balanceStakeAvailable = json['balance_stake_available'] as int ?? balanceStakeAvailable;
-    balancePublicCurrent = json['balance_public_current'] as int ?? balancePublicCurrent;
-    balancePublicAvailable = json['balance_public_available'] as int ?? balancePublicAvailable;
-    balancePaymentCurrent = json['balance_payment_current'] as int ?? balancePaymentCurrent;
-    balancePaymentAvailable = json['balance_payment_available'] as int ?? balancePaymentAvailable;
+    _password = json['password'] as String;
+    _iv = json['iv'] as String;
   }
 
   void _updateFromJBDOC(JBDOC doc) => _updateFromJson(doc.object);
@@ -153,17 +155,11 @@ abstract class _AccountStore with Store {
   }
 
   dynamic toJson() => {
+        // Note: Sensitive info is not stored in db
         'id': id,
         'name': name,
-        'balance_is_final': balanceIsFinal,
-        'balance_current': balanceCurrent,
-        'balance_available': balanceAvailable,
-        'balance_stake_current': balanceStakeCurrent,
-        'balance_stake_available': balanceStakeAvailable,
-        'balance_public_current': balancePublicCurrent,
-        'balance_public_available': balancePublicAvailable,
-        'balance_payment_current': balancePaymentCurrent,
-        'balance_payment_available': balancePaymentAvailable,
+        'password': _password,
+        'iv': _iv
       };
 
   @override
@@ -308,21 +304,21 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
     if (!force && !acc.sealed) {
       return acc;
     }
-    final pw = await env.securityService.acquirePasswordForAccount(accountId: id);
-    var status = await _unsealAccountRaw(acc, pw);
+    final pwpin = await env.securityService.acquirePasswordForApp();
+    var status = await _unsealAccountRaw(acc, pwpin.first);
     if (status.unsealed) {
       return acc;
     }
     if (status.invalidPassword) {
-      // Maybe default empty password is used?
+      // Default empty password is used?
       status = await _unsealAccountRaw(acc, '');
       if (status.unsealed) {
-        // Try to change password
+        // If so try to change password
         log.warning('Trying to change default password for account: $id');
-        await client
-            .sendAndAwait({'type': 'change_password', 'account_id': '$id', 'new_password': pw});
+        await client.sendAndAwait(
+            {'type': 'change_password', 'account_id': '$id', 'new_password': pwpin.first});
       } else {
-        log.warning('It seems what wrong password entered');
+        log.warning('It seems account has different password');
         // todo: ask user for password!!
       }
     }
@@ -380,7 +376,7 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
         final id = doc.object['id'] as int;
         final acc = accounts[id];
         if (log.isFine) {
-          log.fine('Loaded account: ${doc}');
+          log.fine('Loaded db account: ${doc}');
         }
         if (acc == null) {
           runInAction(() {
@@ -390,12 +386,22 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
           acc._updateFromJBDOC(doc);
         }
       }
-
-      ids.forEach((id) {
-        if (!accounts.containsKey(id)) {
-          accounts[id] = AccountStore.empty(id);
-        }
+      runInAction(() {
+        ids.forEach((id) {
+          AccountStore acc = accounts[id];
+          if (acc == null) {
+            acc = AccountStore.empty(id);
+            accounts[id] = acc;
+          }
+          final ainfo = nodeAccounts['$id'];
+          if (ainfo != null) {
+            acc.pkey = ainfo['account_pkey'] as String;
+            acc.networkPkey = ainfo['network_pkey'] as String;
+          }
+        });
       });
-    }).then((_) => _syncAccountsInfos(ids, forceSealing: true));
+    }).then((_) {
+      return _syncAccountsInfos(ids, forceSealing: true);
+    });
   }
 }
