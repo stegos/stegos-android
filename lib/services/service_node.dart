@@ -17,59 +17,16 @@ class NodeService = _NodeService with _$NodeService;
 
 class AccountStore extends _AccountStore with _$AccountStore {
   AccountStore.empty(int id) : super(id);
-  AccountStore._(
-      int id,
-      String name,
-      bool balanceIsFinal,
-      int balanceCurrent,
-      int balanceAvailable,
-      int balanceStakeCurrent,
-      int balanceStakeAvailable,
-      int balancePublicCurrent,
-      int balancePublicAvailable,
-      int balancePaymentCurrent,
-      int balancePaymentAvailable)
-      : super(
-            id,
-            name,
-            balanceIsFinal,
-            balanceCurrent,
-            balanceAvailable,
-            balanceStakeCurrent,
-            balanceStakeAvailable,
-            balancePublicCurrent,
-            balancePublicAvailable,
-            balancePaymentCurrent,
-            balancePaymentAvailable);
+  AccountStore._(int id, String name, String password, String iv) : super(id, name, password, iv);
 
   factory AccountStore._fromJBDOC(JBDOC doc) {
-    return AccountStore._(
-        doc.object['id'] as int,
-        doc.object['name'] as String,
-        doc.object['balance_is_final'] as bool ?? false,
-        doc.object['balance_current'] as int ?? 0,
-        doc.object['balance_available'] as int ?? 0,
-        doc.object['balance_stake_current'] as int ?? 0,
-        doc.object['balance_stake_available'] as int ?? 0,
-        doc.object['balance_public_current'] as int ?? 0,
-        doc.object['balance_public_available'] as int ?? 0,
-        doc.object['balance_payment_current'] as int ?? 0,
-        doc.object['balance_payment_available'] as int ?? 0);
+    return AccountStore._(doc.object['id'] as int, doc.object['name'] as String,
+        doc.object['password'] as String, doc.object['iv'] as String);
   }
 }
 
 abstract class _AccountStore with Store {
-  _AccountStore(this.id,
-      [this.name,
-      this.balanceIsFinal,
-      this.balanceCurrent,
-      this.balanceAvailable,
-      this.balanceStakeCurrent,
-      this.balanceStakeAvailable,
-      this.balancePublicCurrent,
-      this.balancePublicAvailable,
-      this.balancePaymentCurrent,
-      this.balancePaymentAvailable]);
+  _AccountStore(this.id, [this.name, this._password, this._iv]);
 
   final int id;
 
