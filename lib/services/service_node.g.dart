@@ -91,7 +91,7 @@ mixin _$AccountStore on _AccountStore, Store {
   }
 }
 
-mixin _$StegosNodeStore on _StegosNodeStore, Store {
+mixin _$NodeService on _NodeService, Store {
   Computed<bool> _$connectedComputed;
 
   @override
@@ -103,7 +103,7 @@ mixin _$StegosNodeStore on _StegosNodeStore, Store {
   bool get operable =>
       (_$operableComputed ??= Computed<bool>(() => super.operable)).value;
 
-  final _$synchronizedAtom = Atom(name: '_StegosNodeStore.synchronized');
+  final _$synchronizedAtom = Atom(name: '_NodeService.synchronized');
 
   @override
   bool get synchronized {

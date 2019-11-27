@@ -11,7 +11,7 @@ import 'package:stegos_wallet/stores/store_stegos.dart';
 
 part 'service_node.g.dart';
 
-class StegosNodeStore = _StegosNodeStore with _$StegosNodeStore;
+class NodeService = _NodeService with _$NodeService;
 
 class AccountStore extends _AccountStore with _$AccountStore {
   AccountStore._(int id, String name, int balanceCurrent, int balanceAvailable)
@@ -64,8 +64,8 @@ abstract class _AccountStore with Store {
       '}';
 }
 
-abstract class _StegosNodeStore with Store, StoreLifecycle, Loggable<StegosNodeStore> {
-  _StegosNodeStore(this.parent);
+abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
+  _NodeService(this.parent);
 
   final StegosStore parent;
 
