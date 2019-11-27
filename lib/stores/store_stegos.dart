@@ -2,18 +2,23 @@ import 'package:flutter/widgets.dart';
 import 'package:mobx/mobx.dart';
 import 'package:stegos_wallet/env_stegos.dart';
 import 'package:stegos_wallet/log/loggable.dart';
-import 'package:stegos_wallet/store/store_common.dart';
+import 'package:stegos_wallet/stores/store_common.dart';
+import 'package:stegos_wallet/services/service_node.dart';
 
 part 'store_stegos.g.dart';
 
-class StegosStore = _StegosStore with _$StegosStore;
+class StegosStore extends _StegosStore with _$StegosStore {
+  StegosStore(StegosEnv env) : super(env) {
+    nodeService = NodeService(this);
+  }
+}
 
 class ErrorState implements Exception {
   ErrorState(this.message);
   final String message;
 }
 
-abstract class _StegosStore extends StoreSupport with Store, Loggable<StegosStore> {
+abstract class _StegosStore extends MainStoreSupport with Store, Loggable<StegosStore> {
   _StegosStore(this.env);
 
   static const int DOC_SETTINGS_ID = 1;
@@ -27,22 +32,14 @@ abstract class _StegosStore extends StoreSupport with Store, Loggable<StegosStor
   @computed
   bool get needWelcome => settings['needWelcome'] as bool ?? true;
 
-  /// User has pin protected password
-  @computed
-  bool get hasPinProtectedPassword => settings['password'] != null;
-
-  @computed
-  int get lastAppUnlockTs => settings['lastAppUnlockTs'] as int ?? 0;
-
-  @computed
-  bool get needAppUnlock =>
-      DateTime.now().millisecondsSinceEpoch - lastAppUnlockTs >= env.configMaxAppUnlockedPeriod;
-
   /// Last known active route
   final lastRoute = Observable<RouteSettings>(null);
 
   /// Current error state text of `null`
   final error = Observable<ErrorState>(null);
+
+  /// Stegos not substore
+  NodeService nodeService;
 
   /// Reset current error state
   @action
@@ -56,11 +53,6 @@ abstract class _StegosStore extends StoreSupport with Store, Loggable<StegosStor
   @action
   void setError(String errorText) {
     error.value = ErrorState(errorText);
-  }
-
-  Future<void> touchAppUnlockedPeriod([int touchTs]) {
-    touchTs ??= DateTime.now().millisecondsSinceEpoch;
-    return mergeSingle('lastAppUnlockTs', touchTs);
   }
 
   Future<void> mergeSingle(String key, dynamic value) =>
@@ -93,7 +85,6 @@ abstract class _StegosStore extends StoreSupport with Store, Loggable<StegosStor
     await env.activate();
 
     settings.clear();
-
     final db = await env.getDb();
     await db.getOptional('settings', DOC_SETTINGS_ID).then((ov) {
       if (ov.isPresent) {
@@ -118,12 +109,15 @@ abstract class _StegosStore extends StoreSupport with Store, Loggable<StegosStor
       log.fine(
           '\n\t${settings.entries.map((e) => 'settings: ${e.key} => ${e.value}').join('\n\t')}');
     }
+
+    // Activate substores
+    return Future.forEach(<StoreLifecycle>[nodeService], (StoreLifecycle e) => e.activate());
   }
 
   @override
-  Future<void> disposeAsync() {
-    return _flushSettings();
-  }
+  Future<void> disposeAsync() =>
+      Future.forEach(<StoreLifecycle>[nodeService], (StoreLifecycle e) => e.disposeAsync())
+          .whenComplete(_flushSettings);
 
   Future<int> _flushSettings() => env.useDb((db) => db.put(
       'settings', settings.map((k, v) => MapEntry<dynamic, dynamic>(k, v)), DOC_SETTINGS_ID));

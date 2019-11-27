@@ -34,7 +34,9 @@ class _InitialRouteScreenState extends State<_InitialRouteScreen> {
   @override
   Widget build(BuildContext context) => Observer(builder: (BuildContext context) {
         final env = widget.env;
+        final ss = env.securityService;
         final store = env.store;
+
         switch (store.activated.status) {
           case FutureStatus.pending:
             _splashStart = DateTime.now().millisecondsSinceEpoch;
@@ -48,9 +50,9 @@ class _InitialRouteScreenState extends State<_InitialRouteScreen> {
         }
 
         final initialRoute = untracked(() {
-          if (!store.hasPinProtectedPassword) {
+          if (!ss.hasPinProtectedPassword) {
             return const RouteSettings(name: Routes.pinprotect);
-          } else if (store.needAppUnlock) {
+          } else if (ss.needAppUnlock) {
             return const RouteSettings(name: Routes.unlock);
           } else if (store.needWelcome) {
             return const RouteSettings(name: Routes.welcome);
@@ -80,13 +82,13 @@ class _InitialRouteScreenState extends State<_InitialRouteScreen> {
 
 mixin Routes {
   static const root = '/';
-  static const splash = 'splash';
-  static const pinprotect = 'pinprotect';
-  static const unlock = 'unlock';
-  static const welcome = 'welcome';
   static const accounts = 'accounts';
-  static const wallet = 'wallet';
+  static const pinprotect = 'pinprotect';
   static const recover = 'recover';
+  static const splash = 'splash';
+  static const unlock = 'unlock';
+  static const wallet = 'wallet';
+  static const welcome = 'welcome';
   static const settings = 'settings';
 
   static RouteFactory createRouteFactory(StegosEnv env, bool showSplash) {

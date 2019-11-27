@@ -1,0 +1,17 @@
+{"account_id":"1","type":"snowball_status","state":"pool_wait"}
+{"account_id":"1","type":"snowball_status","state":"shared_keying"}
+{"account_id":"1","type":"snowball_status","state":"commitment"}
+{"account_id":"1","type":"snowball_status","state":"cloaked_vals"}
+{"account_id":"1","type":"snowball_status","state":"signature"}
+{"account_id":"1","type":"snowball_status","state":"succeeded"}
+{"account_id":"1","type":"transaction_status","tx_hash":"d167cc58cbc977eef605fb10b5c2f33a992d91fb45027a23e56febfd53a6ab37","status":"accepted"}
+{"account_id":"1","type":"transaction_status","tx_hash":"d167cc58cbc977eef605fb10b5c2f33a992d91fb45027a23e56febfd53a6ab37","status":"prepared","epoch":1058,"offset":27}
+{"account_id":"2","type":"received","output_hash":"7ef4d9c98c6c4bdb23009e9f715a85df17d8bebb5cadbd80c4d1a5889e318d78","amount":2000000,"comment":"","recipient":"stt1zz6u5zlgh5292lz5nasykazdtsf65vptd8hg6uryhzcxr0ykyvxq4kk5a5","is_change":false}
+{"account_id":"1","type":"received","output_hash":"4dafa7d132aa5ae5d72ba91be6b2fd11384bdc56b1776bbff1b0d9dbf6412abd","amount":17998000,"comment":"Change","recipient":"stt1ec87ng9y65jar8vg6n4mc9875tzmd4vdkrulc6vnsam50jjrsf8ql254qv","is_change":false}
+{"account_id":"2","type":"balance_changed","payment":{"current":2000000,"available":2000000},"public_payment":{"current":0,"available":0},"stake":{"current":0,"available":0},"current":2000000,"available":2000000,"is_final":false}
+{"account_id":"1","type":"spent","output_hash":"bca8811e48302be5c3fc2fa741efd373f97e89c4b8abdfb7850a0bb7bf618b2b","amount":10000000,"comment":"","pending_timestamp":"2019-11-26T10:35:21.112Z","recipient":"stt1ec87ng9y65jar8vg6n4mc9875tzmd4vdkrulc6vnsam50jjrsf8ql254qv","is_change":false}
+{"account_id":"1","type":"spent","output_hash":"b5a02e7f86efcfa5ee3439595158d664198ac01126ab571e84710165b8d480d7","amount":10000000,"comment":"","pending_timestamp":"2019-11-26T10:35:21.112Z","recipient":"stt1ec87ng9y65jar8vg6n4mc9875tzmd4vdkrulc6vnsam50jjrsf8ql254qv","is_change":false}
+{"account_id":"1","type":"balance_changed","payment":{"current":17998000,"available":17998000},"public_payment":{"current":0,"available":0},"stake":{"current":0,"available":0},"current":17998000,"available":17998000,"is_final":true}
+
+
+
