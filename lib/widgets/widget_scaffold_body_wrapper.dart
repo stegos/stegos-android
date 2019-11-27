@@ -16,8 +16,8 @@ class ScaffoldBodyWrapperWidget extends StatelessWidget {
     return Observer(
       builder: (context) {
         final error = store.error.value;
-        final operable = store.storeNode.operable;
-        final connected = store.storeNode.connected;
+        final operable = store.nodeService.operable;
+        final connected = store.nodeService.connected;
         final hasError = error?.message?.isNotEmpty ?? false;
         if (operable && !hasError) {
           return builder(context);

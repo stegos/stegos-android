@@ -9,7 +9,7 @@ part 'store_stegos.g.dart';
 
 class StegosStore extends _StegosStore with _$StegosStore {
   StegosStore(StegosEnv env) : super(env) {
-    storeNode = NodeService(this);
+    nodeService = NodeService(this);
   }
 }
 
@@ -39,7 +39,7 @@ abstract class _StegosStore extends MainStoreSupport with Store, Loggable<Stegos
   final error = Observable<ErrorState>(null);
 
   /// Stegos not substore
-  NodeService storeNode;
+  NodeService nodeService;
 
   /// Reset current error state
   @action
@@ -111,12 +111,12 @@ abstract class _StegosStore extends MainStoreSupport with Store, Loggable<Stegos
     }
 
     // Activate substores
-    return Future.forEach(<StoreLifecycle>[storeNode], (StoreLifecycle e) => e.activate());
+    return Future.forEach(<StoreLifecycle>[nodeService], (StoreLifecycle e) => e.activate());
   }
 
   @override
   Future<void> disposeAsync() =>
-      Future.forEach(<StoreLifecycle>[storeNode], (StoreLifecycle e) => e.disposeAsync())
+      Future.forEach(<StoreLifecycle>[nodeService], (StoreLifecycle e) => e.disposeAsync())
           .whenComplete(_flushSettings);
 
   Future<int> _flushSettings() => env.useDb((db) => db.put(
