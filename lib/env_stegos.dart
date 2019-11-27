@@ -7,7 +7,7 @@ import 'package:stegos_wallet/env.dart';
 import 'package:stegos_wallet/log/loggable.dart';
 import 'package:stegos_wallet/services/service_node_client.dart';
 import 'package:stegos_wallet/services/service_security.dart';
-import 'package:stegos_wallet/store/store_stegos.dart';
+import 'package:stegos_wallet/stores/store_stegos.dart';
 import 'package:stegos_wallet/ui/app.dart';
 import 'package:stegos_wallet/widgets/widget_lifecycle.dart';
 

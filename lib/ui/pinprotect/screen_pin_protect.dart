@@ -6,6 +6,7 @@ import 'package:pedantic/pedantic.dart';
 import 'package:provider/provider.dart';
 import 'package:stegos_wallet/env_stegos.dart';
 import 'package:stegos_wallet/log/loggable.dart';
+import 'package:stegos_wallet/ui/app.dart';
 import 'package:stegos_wallet/ui/pinprotect/store_screen_pinprotect.dart';
 import 'package:stegos_wallet/widgets/widget_pinpad.dart';
 import 'package:stegos_wallet/widgets/widget_scaffold_body_wrapper.dart';
@@ -42,10 +43,10 @@ class _PinProtectScreenState extends State<PinProtectScreen> with Loggable<PinPr
 
   void _onDone(String result) {
     if (widget.nextRoute != null) {
-      Navigator.of(context).pushReplacementNamed(widget.nextRoute.name,
+      StegosApp.navigatorKey.currentState.pushReplacementNamed(widget.nextRoute.name,
           result: result, arguments: widget.nextRoute.arguments);
     } else {
-      Navigator.of(context).pop(result);
+      StegosApp.navigatorKey.currentState.pop(result);
     }
   }
 

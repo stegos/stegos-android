@@ -6,10 +6,11 @@ import 'package:mobx/mobx.dart';
 import 'package:random_string/random_string.dart';
 import 'package:stegos_wallet/env_stegos.dart';
 import 'package:stegos_wallet/log/loggable.dart';
-import 'package:stegos_wallet/store/store_stegos.dart';
+import 'package:stegos_wallet/stores/store_stegos.dart';
 import 'package:stegos_wallet/ui/pinprotect/screen_pin_protect.dart';
 import 'package:stegos_wallet/utils/crypto.dart';
 import 'package:stegos_wallet/utils/crypto_aes.dart';
+import 'package:stegos_wallet/utils/dialogs.dart';
 
 part 'service_security.g.dart';
 
@@ -41,18 +42,16 @@ abstract class _SecurityService with Store, Loggable<SecurityService> {
 
   String _cachedAccountPassword;
 
-  Future<void> checkAppPin(BuildContext context) =>
-      acquireAccountPassword(context, forceUnlock: true);
+  Future<void> checkAppPin() => acquireAccountPassword(forceUnlock: true);
 
-  Future<String> acquireAccountPassword(BuildContext context,
-      {int accountId, bool forceUnlock = false}) async {
+  Future<String> acquireAccountPassword({int accountId, bool forceUnlock = false}) async {
     if (!hasPinProtectedPassword) {
-      final password = await showDialog<String>(
-          context: context, builder: (context) => const PinProtectScreen(unlock: false));
+      final password =
+          await appShowDialog<String>(builder: (context) => const PinProtectScreen(unlock: false));
       return _cachedAccountPassword = password;
     } else if (forceUnlock || needAppUnlock) {
-      final password = await showDialog<String>(
-          context: context, builder: (context) => const PinProtectScreen(unlock: true));
+      final password =
+          await showDialog<String>(builder: (context) => const PinProtectScreen(unlock: true));
       return _cachedAccountPassword = password;
     } else {
       return _cachedAccountPassword;

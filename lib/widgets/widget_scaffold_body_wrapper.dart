@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:provider/provider.dart';
-import 'package:stegos_wallet/store/store_stegos.dart';
+import 'package:stegos_wallet/stores/store_stegos.dart';
 import 'package:stegos_wallet/ui/themes.dart';
 
 class ScaffoldBodyWrapperWidget extends StatelessWidget {

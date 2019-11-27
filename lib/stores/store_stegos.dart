@@ -2,8 +2,8 @@ import 'package:flutter/widgets.dart';
 import 'package:mobx/mobx.dart';
 import 'package:stegos_wallet/env_stegos.dart';
 import 'package:stegos_wallet/log/loggable.dart';
-import 'package:stegos_wallet/store/store_common.dart';
-import 'package:stegos_wallet/store/store_node.dart';
+import 'package:stegos_wallet/stores/store_common.dart';
+import 'package:stegos_wallet/services/service_node.dart';
 
 part 'store_stegos.g.dart';
 

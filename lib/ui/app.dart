@@ -9,6 +9,8 @@ import 'package:stegos_wallet/ui/themes.dart';
 class StegosApp extends StatelessWidget {
   const StegosApp({Key key, this.showSplash}) : super(key: key);
 
+  static final navigatorKey = GlobalKey<NavigatorState>(debugLabel: 'StegosApp:Navigator');
+
   final bool showSplash;
 
   @override
@@ -19,6 +21,7 @@ class StegosApp extends StatelessWidget {
       debugShowCheckedModeBanner: env.type != EnvType.PRODUCTION,
       title: 'Stegos Wallet',
       theme: StegosThemes.baseTheme,
+      navigatorKey: navigatorKey,
       onGenerateRoute: Routes.createRouteFactory(env, showSplash),
     );
   }
