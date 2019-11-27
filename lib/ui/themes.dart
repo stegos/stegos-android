@@ -187,10 +187,6 @@ mixin StegosThemes {
       hoverColor: StegosColors.primaryColor,
       splashColor: const Color(0xffe26e04),
       ),
-    inputDecorationTheme: InputDecorationTheme(
-      prefixStyle: defaultInputTextStyle.copyWith(color: Colors.transparent),
-      contentPadding: const EdgeInsets.only(left: 40.0, right: 13.0, top: 6.0, bottom: 6.0),
-      ),
     appBarTheme: const AppBarTheme(
       color: Color(0xff2b2e3b),
       textTheme: TextTheme(body1: TextStyle(fontSize: 20)),

@@ -28,7 +28,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     const TextStyle subtitleStyle =
         TextStyle(fontSize: 12, letterSpacing: 0.3, color: Color(0xff7d8b97));
 
-    List<Widget> body = <Widget>[
+    final List<Widget> body = <Widget>[
       Text(
         title,
         style: titleStyle,
@@ -115,7 +115,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       group: 'General',
                       trailing: Icon(
                         Icons.navigate_next,
-                        color: Color(0xff7d8b97),
+                        color: StegosColors.primaryColorDark,
                       )),
                   _buildListTile(
                     leading: SvgPicture.asset('assets/images/packet_main_account.svg'),
@@ -124,6 +124,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     trailing: Switch(
                       onChanged: (bool value) {},
                       value: true,
+                      activeColor: StegosColors.primaryColor,
                     ),
                   ),
                   _buildListTile(
@@ -133,7 +134,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     group: 'Security',
                     trailing: Icon(
                       Icons.check,
-                      color: Color(0xffff6c00).withOpacity(0.54),
+                      color: StegosColors.accentColor.withOpacity(0.54),
                     ),
                   ),
                   _buildListTile(
@@ -141,7 +142,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       title: 'Password',
                       trailing: Icon(
                         Icons.navigate_next,
-                        color: Color(0xff7d8b97),
+                        color: StegosColors.primaryColorDark,
                       )),
                   _buildListTile(
                       leading: SvgPicture.asset(
@@ -153,6 +154,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       trailing: Switch(
                         onChanged: (bool value) {},
                         value: true,
+                        activeColor: StegosColors.primaryColor,
                       )),
                   _buildListTile(
                     leading: SvgPicture.asset(
