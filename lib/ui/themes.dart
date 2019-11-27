@@ -170,4 +170,31 @@ mixin StegosThemes {
   static final welcomeTheme = baseTheme;
 
   static final pinpadTheme = baseTheme;
+
+  static final settingsTheme = baseTheme.copyWith(
+    buttonTheme: _defaults.buttonTheme.copyWith(
+      shape: RoundedRectangleBorder(),
+      textTheme: ButtonTextTheme.accent,
+      colorScheme: ColorScheme.fromSwatch(
+          primaryColorDark: StegosColors.primaryColorDark,
+          accentColor: StegosColors.white,
+          backgroundColor: StegosColors.primaryColorDark,
+          brightness: Brightness.dark),
+      disabledColor: StegosColors.primaryColorDark,
+      buttonColor: StegosColors.primaryColor,
+      focusColor: StegosColors.white,
+      highlightColor: StegosColors.primaryColor,
+      hoverColor: StegosColors.primaryColor,
+      splashColor: const Color(0xffe26e04),
+      ),
+    inputDecorationTheme: InputDecorationTheme(
+      prefixStyle: defaultInputTextStyle.copyWith(color: Colors.transparent),
+      contentPadding: const EdgeInsets.only(left: 40.0, right: 13.0, top: 6.0, bottom: 6.0),
+      ),
+    appBarTheme: const AppBarTheme(
+      color: Color(0xff2b2e3b),
+      textTheme: TextTheme(body1: TextStyle(fontSize: 20)),
+      elevation: 0,
+      ),
+    );
 }

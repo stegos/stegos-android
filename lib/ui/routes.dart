@@ -6,7 +6,7 @@ import 'package:pedantic/pedantic.dart';
 import 'package:stegos_wallet/env_stegos.dart';
 import 'package:stegos_wallet/ui/pinprotect/screen_pin_protect.dart';
 import 'package:stegos_wallet/ui/recover/screen_recover.dart';
-import 'package:stegos_wallet/ui/settings/settings.dart';
+import 'package:stegos_wallet/ui/settings/screen_settings.dart';
 import 'package:stegos_wallet/ui/splash/screen_splash.dart';
 import 'package:stegos_wallet/ui/wallet/screen_wallet.dart';
 import 'package:stegos_wallet/ui/welcome/screen_welcome.dart';
