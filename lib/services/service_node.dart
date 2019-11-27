@@ -324,7 +324,9 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
     final ids = nodeAccounts.keys.map(int.parse).toList();
 
     // Cleanup not matched accounts
-    accounts.removeWhere((k, v) => !ids.contains(k));
+    runInAction(() {
+      accounts.removeWhere((k, v) => !ids.contains(k));
+    });
     if (ids.isEmpty) {
       return Future.value();
     }
