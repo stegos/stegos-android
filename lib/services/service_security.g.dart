@@ -15,10 +15,24 @@ mixin _$SecurityService on _SecurityService, Store {
   bool get hasPinProtectedPassword => (_$hasPinProtectedPasswordComputed ??=
           Computed<bool>(() => super.hasPinProtectedPassword))
       .value;
-  Computed<int> _$lastAppUnlockTsComputed;
+
+  final _$_cachedAccountPasswordAtom =
+      Atom(name: '_SecurityService._cachedAccountPassword');
 
   @override
-  int get lastAppUnlockTs =>
-      (_$lastAppUnlockTsComputed ??= Computed<int>(() => super.lastAppUnlockTs))
-          .value;
+  String get _cachedAccountPassword {
+    _$_cachedAccountPasswordAtom.context
+        .enforceReadPolicy(_$_cachedAccountPasswordAtom);
+    _$_cachedAccountPasswordAtom.reportObserved();
+    return super._cachedAccountPassword;
+  }
+
+  @override
+  set _cachedAccountPassword(String value) {
+    _$_cachedAccountPasswordAtom.context.conditionallyRunInAction(() {
+      super._cachedAccountPassword = value;
+      _$_cachedAccountPasswordAtom.reportChanged();
+    }, _$_cachedAccountPasswordAtom,
+        name: '${_$_cachedAccountPasswordAtom.name}_set');
+  }
 }

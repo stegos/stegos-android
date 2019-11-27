@@ -224,10 +224,20 @@ mixin _$AccountStore on _AccountStore, Store {
       ActionController(name: '_AccountStore');
 
   @override
-  void _update(JBDOC doc) {
+  void _updateFromJson(dynamic json) {
     final _$actionInfo = _$_AccountStoreActionController.startAction();
     try {
-      return super._update(doc);
+      return super._updateFromJson(json);
+    } finally {
+      _$_AccountStoreActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  void _updateFromBalanceMessage(StegosNodeMessage msg) {
+    final _$actionInfo = _$_AccountStoreActionController.startAction();
+    try {
+      return super._updateFromBalanceMessage(msg);
     } finally {
       _$_AccountStoreActionController.endAction(_$actionInfo);
     }

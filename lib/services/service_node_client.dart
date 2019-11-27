@@ -45,6 +45,10 @@ class StegosNodeMessage {
   final int id;
   final Map<String, dynamic> json;
 
+  String get type => json['type'] as String;
+
+  int get accountId => int.parse(json['account_id'] as String ?? '0');
+
   /// Gets subset of document using RFC 6901 JSON [pointer].
   Optional<dynamic> at(String pointer) => jsonAt(json, pointer);
 

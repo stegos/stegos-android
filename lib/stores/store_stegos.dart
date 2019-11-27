@@ -58,14 +58,15 @@ abstract class _StegosStore extends MainStoreSupport with Store, Loggable<Stegos
   Future<void> mergeSingle(String key, dynamic value) =>
       mergeSettings(<String, dynamic>{key: value});
 
-  @action
   Future<void> mergeSettings(Map<String, dynamic> update) => env.useDb((db) async {
-        update.entries.forEach((e) {
-          if (e.value == null) {
-            settings.remove(e.key);
-          } else {
-            settings[e.key] = e.value;
-          }
+        runInAction(() {
+          update.entries.forEach((e) {
+            if (e.value == null) {
+              settings.remove(e.key);
+            } else {
+              settings[e.key] = e.value;
+            }
+          });
         });
         return db.patch('settings', update, DOC_SETTINGS_ID);
       });

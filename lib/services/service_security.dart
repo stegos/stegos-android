@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:math' as Math;
 
-import 'package:flutter/material.dart';
 import 'package:mobx/mobx.dart';
 import 'package:random_string/random_string.dart';
 import 'package:stegos_wallet/env_stegos.dart';
@@ -33,14 +32,12 @@ abstract class _SecurityService with Store, Loggable<SecurityService> {
   @computed
   bool get hasPinProtectedPassword => store.settings['password'] != null;
 
-  @computed
-  int get lastAppUnlockTs => store.settings['lastAppUnlockTs'] as int ?? 0;
-
-  bool get needAppUnlock =>
-      _cachedAccountPassword == null ||
-      DateTime.now().millisecondsSinceEpoch - lastAppUnlockTs >= env.configMaxAppUnlockedPeriod;
-
+  @observable
   String _cachedAccountPassword;
+
+  bool get needAppUnlock => !(_cachedAccountPassword != null &&
+      DateTime.now().millisecondsSinceEpoch - (store.settings['lastAppUnlockTs'] as int ?? 0) <
+          env.configMaxAppUnlockedPeriod);
 
   Future<void> checkAppPin() => acquirePasswordForAccount(forceUnlock: true);
 
@@ -48,11 +45,17 @@ abstract class _SecurityService with Store, Loggable<SecurityService> {
     if (!hasPinProtectedPassword) {
       final password =
           await appShowDialog<String>(builder: (context) => const PinProtectScreen(unlock: false));
-      return _cachedAccountPassword = password;
+      runInAction(() {
+        _cachedAccountPassword = password;
+      });
+      return _cachedAccountPassword;
     } else if (forceUnlock || needAppUnlock) {
       final password =
           await appShowDialog<String>(builder: (context) => const PinProtectScreen(unlock: true));
-      return _cachedAccountPassword = password;
+      runInAction(() {
+        _cachedAccountPassword = password;
+      });
+      return _cachedAccountPassword;
     } else {
       return _cachedAccountPassword;
     }
@@ -92,6 +95,9 @@ abstract class _SecurityService with Store, Loggable<SecurityService> {
       return Future.error(Exception('Invalid password recovered'));
     }
     pw = pw.substring('stegos:'.length);
+    runInAction(() {
+      _cachedAccountPassword = pw;
+    });
     return _touchAppUnlockedPeriod().then((_) => pw);
   }
 

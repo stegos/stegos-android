@@ -9,6 +9,7 @@ import 'package:stegos_wallet/log/loggable.dart';
 import 'package:stegos_wallet/services/service_node_client.dart';
 import 'package:stegos_wallet/stores/store_common.dart';
 import 'package:stegos_wallet/stores/store_stegos.dart';
+import 'package:stegos_wallet/utils/extensions_db.dart';
 
 part 'service_node.g.dart';
 
@@ -115,19 +116,40 @@ abstract class _AccountStore with Store {
   bool operator ==(dynamic other) => other is _AccountStore && other.id == id;
 
   @action
-  void _update(JBDOC doc) {
-    name = doc.object['name'] as String;
-    balanceIsFinal = doc.object['balance_is_final'] as bool;
-    balanceCurrent = doc.object['balance_current'] as int ?? balanceCurrent;
-    balanceAvailable = doc.object['balance_available'] as int ?? balanceAvailable;
-    balanceStakeCurrent = doc.object['balance_stake_current'] as int ?? balanceStakeCurrent;
-    balanceStakeAvailable = doc.object['balance_stake_available'] as int ?? balanceStakeAvailable;
-    balancePublicCurrent = doc.object['balance_public_current'] as int ?? balancePublicCurrent;
-    balancePublicAvailable =
-        doc.object['balance_public_available'] as int ?? balancePublicAvailable;
-    balancePaymentCurrent = doc.object['balance_payment_current'] as int ?? balancePaymentCurrent;
+  void _updateFromJson(dynamic json) {
+    name = json['name'] as String ?? name;
+    balanceIsFinal = json['balance_is_final'] as bool ?? balanceIsFinal;
+    balanceCurrent = json['balance_current'] as int ?? balanceCurrent;
+    balanceAvailable = json['balance_available'] as int ?? balanceAvailable;
+    balanceStakeCurrent = json['balance_stake_current'] as int ?? balanceStakeCurrent;
+    balanceStakeAvailable = json['balance_stake_available'] as int ?? balanceStakeAvailable;
+    balancePublicCurrent = json['balance_public_current'] as int ?? balancePublicCurrent;
+    balancePublicAvailable = json['balance_public_available'] as int ?? balancePublicAvailable;
+    balancePaymentCurrent = json['balance_payment_current'] as int ?? balancePaymentCurrent;
+    balancePaymentAvailable = json['balance_payment_available'] as int ?? balancePaymentAvailable;
+  }
+
+  void _updateFromJBDOC(JBDOC doc) => _updateFromJson(doc.object);
+
+  @action
+  void _updateFromBalanceMessage(StegosNodeMessage msg) {
+    balanceIsFinal = msg.at('/is_final').transform((v) => v as bool).or(balanceIsFinal ?? false);
+    balanceCurrent = msg.at('/current').transform((v) => v as int).or(balanceCurrent ?? 0);
+    balanceAvailable = msg.at('/available').transform((v) => v as int).or(balanceAvailable ?? 0);
+    balancePaymentCurrent =
+        msg.at('/payment/current').transform((v) => v as int).or(balancePaymentCurrent ?? 0);
     balancePaymentAvailable =
-        doc.object['balance_payment_available'] as int ?? balancePaymentAvailable;
+        msg.at('/payment/available').transform((v) => v as int).or(balancePaymentAvailable ?? 0);
+    balancePublicCurrent =
+        msg.at('/public_payment/current').transform((v) => v as int).or(balancePublicCurrent ?? 0);
+    balancePublicAvailable = msg
+        .at('/public_payment/available')
+        .transform((v) => v as int)
+        .or(balancePublicAvailable ?? 0);
+    balanceStakeCurrent =
+        msg.at('/stake/current').transform((v) => v as int).or(balanceStakeCurrent ?? 0);
+    balanceStakeAvailable =
+        msg.at('/stake/available').transform((v) => v as int).or(balanceStakeAvailable ?? 0);
   }
 
   dynamic toJson() => {
@@ -184,6 +206,12 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
   @override
   Future<void> activate() async {
     disposers.add(reaction((_) => client.connected, _syncNodeStatus));
+    disposers.add(
+        reaction((_) => client.connected && !env.securityService.needAppUnlock, (bool connected) {
+      if (connected) {
+        _syncAccounts();
+      }
+    }));
     _clientSubscription = client.stream.listen(_onNodeMessage);
   }
 
@@ -198,14 +226,26 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
     }
   }
 
+  Future<void> _onUpdateBalance(StegosNodeMessage msg) {
+    final acc = accounts[msg.accountId];
+    if (acc == null) {
+      return Future.value();
+    }
+    if (log.isFine) {
+      log.info('Update balance: ${msg}');
+    }
+    return env.useDb((db) {
+      acc._updateFromBalanceMessage(msg);
+      return db.patchOrPut('accounts', acc, acc.id);
+    });
+  }
+
   void _onNodeMessage(StegosNodeMessage msg) {
-    print('!!!!!! ON NODE  ${msg}');
-    //{"account_id":"2","type":"balance_changed",
-    //"payment":{"current":2000000,"availamessageble":2000000},
-    //"public_payment":{"current":0,"available":0},
-    //"stake":{"current":0,"available":0},
-    //"current":2000000,"available":2000000,
-    //"is_final":false}
+    switch (msg.type) {
+      case 'balance_changed':
+        unawaited(_onUpdateBalance(msg));
+        break;
+    }
   }
 
   void _syncNodeStatus(bool connected) {
@@ -213,11 +253,9 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
       return;
     }
     unawaited(client.sendAndAwait({'type': 'status_info'}).then((msg) {
-      final json = msg.json;
       runInAction(() {
-        synchronized = json['is_synchronized'] as bool ?? false;
+        synchronized = msg.json['is_synchronized'] as bool ?? false;
       });
-      _syncAccounts();
     }));
   }
 
@@ -233,16 +271,10 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
     final acc = await _unsealAccount(id, force: forceSealing);
     try {
       final msg = await client.sendAndAwait({'type': 'balance_info', 'account_id': '$id'});
-      acc.balanceIsFinal = msg.at('/is_final').transform((v) => v as bool).or(false);
-      acc.balanceCurrent = msg.at('/current').transform((v) => v as int).or(0);
-      acc.balanceAvailable = msg.at('/available').transform((v) => v as int).or(0);
-      acc.balancePaymentCurrent = msg.at('/payment/current').transform((v) => v as int).or(0);
-      acc.balancePaymentAvailable = msg.at('/payment/available').transform((v) => v as int).or(0);
-      acc.balancePublicCurrent = msg.at('/public_payment/current').transform((v) => v as int).or(0);
-      acc.balancePublicAvailable =
-          msg.at('/public_payment/available').transform((v) => v as int).or(0);
-      acc.balanceStakeCurrent = msg.at('/stake/current').transform((v) => v as int).or(0);
-      acc.balanceStakeAvailable = msg.at('/stake/available').transform((v) => v as int).or(0);
+      await env.useDb((db) {
+        acc._updateFromBalanceMessage(msg);
+        return db.patchOrPut('accounts', acc, id);
+      });
     } finally {
       await _sealAccount(id, force: forceSealing);
     }
@@ -286,7 +318,6 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
       status = await _unsealAccountRaw(acc, '');
       if (status.unsealed) {
         // Try to change password
-        print('!!!!! PW=${pw}');
         log.warning('Trying to change default password for account: $id');
         await client
             .sendAndAwait({'type': 'change_password', 'account_id': '$id', 'new_password': pw});
@@ -348,20 +379,23 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
       await for (final doc in db.createQuery('@accounts/[id in :?]').setJson(0, ids).execute()) {
         final id = doc.object['id'] as int;
         final acc = accounts[id];
+        if (log.isFine) {
+          log.fine('Loaded account: ${doc}');
+        }
         if (acc == null) {
           runInAction(() {
             accounts[id] = AccountStore._fromJBDOC(doc);
           });
         } else {
-          acc._update(doc);
+          acc._updateFromJBDOC(doc);
         }
       }
+
       ids.forEach((id) {
         if (!accounts.containsKey(id)) {
           accounts[id] = AccountStore.empty(id);
         }
       });
-      // todo:
-    }).then((_) => _syncAccountsInfos(ids.sublist(0, 1), forceSealing: true));
+    }).then((_) => _syncAccountsInfos(ids, forceSealing: true));
   }
 }
