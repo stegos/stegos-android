@@ -51,7 +51,7 @@ abstract class _SecurityService with Store, Loggable<SecurityService> {
       return _cachedAccountPassword = password;
     } else if (forceUnlock || needAppUnlock) {
       final password =
-          await showDialog<String>(builder: (context) => const PinProtectScreen(unlock: true));
+          await appShowDialog<String>(builder: (context) => const PinProtectScreen(unlock: true));
       return _cachedAccountPassword = password;
     } else {
       return _cachedAccountPassword;
