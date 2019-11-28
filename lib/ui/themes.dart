@@ -117,7 +117,7 @@ mixin StegosThemes {
 
   static final backupTheme = baseTheme.copyWith(
     buttonTheme: _defaults.buttonTheme.copyWith(
-      shape: RoundedRectangleBorder(),
+      shape: const RoundedRectangleBorder(),
       textTheme: ButtonTextTheme.accent,
       colorScheme: ColorScheme.fromSwatch(
           primaryColorDark: StegosColors.primaryColorDark,

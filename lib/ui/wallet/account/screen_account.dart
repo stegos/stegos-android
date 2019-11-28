@@ -33,7 +33,7 @@ class AccountScreenState extends State<AccountScreen> {
         child: Container(
             height: 54,
             decoration:
-                BoxDecoration(border: Border(bottom: BorderSide(color: const Color(0xff979797)))),
+                const BoxDecoration(border: Border(bottom: BorderSide(color: Color(0xff979797)))),
             child: Row(
               children: <Widget>[
                 SizedBox(
@@ -41,13 +41,13 @@ class AccountScreenState extends State<AccountScreen> {
                   height: 5,
                   child: Transform.scale(
                     scale: transaction.amount.sign.toDouble(),
-                    child: Image(image: const AssetImage('assets/images/down.png')),
+                    child: const Image(image: AssetImage('assets/images/down.png')),
                   ),
                 ),
                 Expanded(
                     child: Text(
                   txTowDateFormatter.format(transaction.created),
-                  style: TextStyle(fontSize: 18, color: const Color(0xff676767)),
+                  style: const TextStyle(fontSize: 18, color: Color(0xff676767)),
                 )),
                 Text(
                   '${transaction.amount.abs().toString()} STG',
@@ -58,7 +58,7 @@ class AccountScreenState extends State<AccountScreen> {
                   width: 24,
                   height: 24,
                   child: transaction.certificateURL != null
-                      ? Image(image: const AssetImage('assets/images/transactions.png'))
+                      ? const Image(image: AssetImage('assets/images/transactions.png'))
                       : null,
                 )
               ],
@@ -69,7 +69,7 @@ class AccountScreenState extends State<AccountScreen> {
     if (transactions.isEmpty) {
       return Container(
         padding: const EdgeInsets.only(top: 53),
-        child: Text(
+        child: const Text(
           'There has been no transaction yet',
           style: TextStyle(fontSize: 14),
         ),
@@ -91,8 +91,8 @@ class AccountScreenState extends State<AccountScreen> {
                     padding: const EdgeInsets.symmetric(vertical: 30),
                     child: Column(
                       children: <Widget>[
-                        Image(
-                          image: const AssetImage('assets/images/qr.png'),
+                        const Image(
+                          image: AssetImage('assets/images/qr.png'),
                           width: 38,
                           height: 38,
                         ),

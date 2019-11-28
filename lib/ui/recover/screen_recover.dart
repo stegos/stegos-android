@@ -38,13 +38,13 @@ class _RecoverScreenState extends State<RecoverScreen> {
                       Padding(
                         padding: StegosThemes.defaultPaddingHorizontal,
                         child: Column(
-                          children: <Widget>[
+                          children: const <Widget>[
                             Text(
                               'Please write down account restore the phase',
                               textAlign: TextAlign.center,
                               style: StegosThemes.defaultCaptionTextStyle,
                             ),
-                            const SizedBox(height: 10),
+                            SizedBox(height: 10),
                             Text(
                               'All fiekds are case sensitive',
                               textAlign: TextAlign.center,

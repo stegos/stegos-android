@@ -36,13 +36,13 @@ class _PasswordScreenState extends State<PasswordScreen> {
                       Padding(
                         padding: StegosThemes.defaultPaddingHorizontal,
                         child: Column(
-                          children: <Widget>[
+                          children: const <Widget>[
                             Text(
                               'It seems what Account #1 is locked by different password.',
                               textAlign: TextAlign.center,
                               style: StegosThemes.defaultCaptionTextStyle,
                             ),
-                            const SizedBox(height: 10),
+                            SizedBox(height: 10),
                             Text(
                               'Please provide password to unlock:',
                               textAlign: TextAlign.center,
@@ -73,7 +73,6 @@ class _PasswordScreenState extends State<PasswordScreen> {
             onPressed: _onSubmit,
             child: const Text('SAVE'),
           ));
-
 
   void _onSubmit() {
     // todo:
