@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 mixin StegosColors {
   static const white = Color(0xffffffff);
   static const black = Color(0xff000000);
-  static const splashBackground = Color(0xff0f0f1a);
+  static const splashBackground = Color(0xff15151f);
   static const backgroundColor = Color(0xff343946);
 
   static const primaryColor = MaterialColor(0xffff6c00, {
@@ -142,6 +142,19 @@ mixin StegosThemes {
     ),
   );
 
+  static final accountsTheme = baseTheme.copyWith(
+      floatingActionButtonTheme: const FloatingActionButtonThemeData(
+          backgroundColor: Color(0xff15151f), foregroundColor: StegosColors.primaryColor),
+      buttonTheme: ButtonThemeData(
+          buttonColor: Color(0xff15151f),
+          colorScheme: ColorScheme.fromSwatch(
+            primaryColorDark: Color(0xff15151f),
+            accentColor: Color(0xff15151f),
+            backgroundColor: Color(0xff15151f),
+            brightness: Brightness.dark
+
+          )));
+
   static final walletTheme = baseTheme.copyWith(
     tabBarTheme: const TabBarTheme(
       labelPadding: EdgeInsets.all(0),
@@ -158,11 +171,6 @@ mixin StegosThemes {
       textTheme: TextTheme(body1: TextStyle(fontSize: 20)),
       elevation: 0,
     ),
-  );
-
-  static final accountsTheme = baseTheme.copyWith(
-    floatingActionButtonTheme: const FloatingActionButtonThemeData(
-        backgroundColor: Color(0xff15151f), foregroundColor: StegosColors.primaryColor),
   );
 
   static final appBarTheme = baseTheme;

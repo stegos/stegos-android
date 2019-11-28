@@ -46,7 +46,7 @@ class _RecoverScreenState extends State<RecoverScreen> {
                             ),
                             SizedBox(height: 10),
                             Text(
-                              'All fiekds are case sensitive',
+                              'All fields are case sensitive',
                               textAlign: TextAlign.center,
                               style: StegosThemes.defaultSubCaptionTextStyle,
                             ),

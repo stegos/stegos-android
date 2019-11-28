@@ -113,17 +113,18 @@ class _PinpadWidgetState extends State<PinpadWidget> {
       final List<Widget> dots = [];
       for (int i = 0; i < widget.digits; i++) {
         dots.add(
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 15),
-            child: Container(
-              width: 17,
-              height: 17,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8.5),
-                color: i < codeLength ? StegosColors.primaryColor : Colors.transparent,
-                border: Border.all(
-                  color: i < codeLength ? Colors.transparent : Colors.white,
-                  width: 1,
+          Expanded(
+            child: Center(
+              child: Container(
+                width: 17,
+                height: 17,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8.5),
+                  color: i < codeLength ? StegosColors.primaryColor : Colors.transparent,
+                  border: Border.all(
+                    color: i < codeLength ? Colors.transparent : Colors.white,
+                    width: 1,
+                  ),
                 ),
               ),
             ),
