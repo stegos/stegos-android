@@ -26,10 +26,18 @@ class AccountStore extends _AccountStore with _$AccountStore {
     return AccountStore._(doc.object['id'] as int, doc.object['name'] as String,
         doc.object['password'] as String, doc.object['iv'] as String);
   }
+
+  @override
+  int get hashCode => id.hashCode;
+
+  @override
+  bool operator ==(dynamic other) => other is AccountStore && other.id == id;
 }
 
 abstract class _AccountStore with Store {
-  _AccountStore(this.id, [this.name, this._password, this._iv]);
+  _AccountStore(this.id, [this.name, this._password, this._iv]) {
+    ordinal = id;
+  }
 
   final int id;
 
@@ -39,6 +47,8 @@ abstract class _AccountStore with Store {
 
   @computed
   String get humanName => name ?? 'Account #${id}';
+
+  String get humanBalance => '${balanceCurrent}';
 
   @observable
   String name;
@@ -73,6 +83,9 @@ abstract class _AccountStore with Store {
   @observable
   int balancePaymentAvailable = 0;
 
+  @observable
+  int ordinal = 0;
+
   /// PIN encrypted dedicated account password
   String _password;
 
@@ -87,6 +100,7 @@ abstract class _AccountStore with Store {
   @action
   void _updateFromJson(dynamic json) {
     name = json['name'] as String ?? name;
+    ordinal = json['ordinal'] as int ?? ordinal;
     _password = json['password'] as String;
     _iv = json['iv'] as String;
   }
@@ -118,6 +132,7 @@ abstract class _AccountStore with Store {
         // Note: Sensitive info is not stored in db
         'id': id,
         'name': name,
+        'ordinal': ordinal,
         'password': _password,
         'iv': _iv
       };
@@ -141,9 +156,13 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
 
   StegosNodeClient get client => parent.env.nodeClient;
 
+  StegosEnv get env => parent.env;
+
   final accounts = ObservableMap<int, AccountStore>();
 
-  StegosEnv get env => parent.env;
+  @computed
+  List<AccountStore> get accountsList =>
+      accounts.values.toList(growable: false)..sort((a, b) => a.ordinal.compareTo(b.ordinal));
 
   /// Is app is connected to network
   @computed
@@ -183,13 +202,32 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
     }
   }
 
-  // ignore: cancel_subscriptions
-  StreamSubscription<StegosNodeMessage> _nodeClientSubscription;
+  Future<void> swapAccounts(int fromIndex, int toIndex) {
+    final alist = accountsList;
+    if (fromIndex != toIndex && fromIndex < alist.length && toIndex < alist.length) {
+      log.warning('reorderAccounts: invalid arguments: ${fromIndex}, ${toIndex}');
+      return Future.value();
+    }
+    final from = alist[fromIndex];
+    final to = alist[toIndex];
+    runInAction(() {
+      final tmp = from.ordinal;
+      from.ordinal = to.ordinal;
+      to.ordinal = tmp;
+    });
+    return env.useDb((db) => Future.wait([
+          db.patch(_accountsCollecton, {'ordinal': to.ordinal}, to.id),
+          db.patch(_accountsCollecton, {'ordinal': from.ordinal}, from.id),
+        ]));
+  }
 
   @computed
   String get _accountsCollecton => 'accounts_$network';
 
   final _disposers = <ReactionDisposer>[];
+
+  // ignore: cancel_subscriptions
+  StreamSubscription<StegosNodeMessage> _nodeClientSubscription;
 
   @override
   Future<void> activate() async {

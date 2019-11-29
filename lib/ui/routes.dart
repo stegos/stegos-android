@@ -4,7 +4,7 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:mobx/mobx.dart';
 import 'package:pedantic/pedantic.dart';
 import 'package:stegos_wallet/env_stegos.dart';
-import 'package:stegos_wallet/ui/dev_menu/screen_dev_menu.dart';
+import 'package:stegos_wallet/ui/dev/screen_dev_menu.dart';
 import 'package:stegos_wallet/ui/pinprotect/screen_pin_protect.dart';
 import 'package:stegos_wallet/ui/recover/screen_recover.dart';
 import 'package:stegos_wallet/ui/settings/screen_settings.dart';
@@ -82,14 +82,14 @@ class _InitialRouteScreenState extends State<_InitialRouteScreen> {
 mixin Routes {
   static const root = '/';
   static const accounts = 'accounts';
+  static const devmenu = 'devmenu';
   static const pinprotect = 'pinprotect';
   static const recover = 'recover';
+  static const settings = 'settings';
   static const splash = 'splash';
   static const unlock = 'unlock';
   static const wallet = 'wallet';
   static const welcome = 'welcome';
-  static const settings = 'settings';
-  static const devMenu = 'devMenu';
 
   static RouteFactory createRouteFactory(StegosEnv env, bool showSplash) {
     MaterialPageRoute Function(RouteSettings settings) routeFactoryFn;
@@ -141,7 +141,7 @@ mixin Routes {
                   const SplashScreen(nextRoute: RouteSettings(name: welcome)));
         case Routes.settings:
           return MaterialPageRoute(builder: (BuildContext context) => SettingsScreen());
-        case Routes.devMenu:
+        case Routes.devmenu:
           return MaterialPageRoute(builder: (BuildContext context) => DevMenuScreen());
         default:
           return MaterialPageRoute(

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:stegos_wallet/ui/themes.dart';
 import 'package:stegos_wallet/widgets/widget_app_bar.dart';
 import 'package:stegos_wallet/widgets/widget_scaffold_body_wrapper.dart';
