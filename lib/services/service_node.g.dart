@@ -255,6 +255,12 @@ mixin _$NodeService on _NodeService, Store {
   @override
   bool get operable =>
       (_$operableComputed ??= Computed<bool>(() => super.operable)).value;
+  Computed<String> _$networkNameComputed;
+
+  @override
+  String get networkName =>
+      (_$networkNameComputed ??= Computed<String>(() => super.networkName))
+          .value;
   Computed<String> _$_accountsCollectonComputed;
 
   @override
