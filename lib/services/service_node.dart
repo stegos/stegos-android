@@ -38,7 +38,7 @@ abstract class _AccountStore with Store {
   String networkPkey;
 
   @computed
-  String get humanName => name ?? '#${id}';
+  String get humanName => name ?? 'Account #${id}';
 
   @observable
   String name;
