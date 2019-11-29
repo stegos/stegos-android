@@ -57,8 +57,6 @@ class _InitialRouteScreenState extends State<_InitialRouteScreen> {
           } else if (store.needWelcome) {
             return const RouteSettings(name: Routes.welcome);
           } else {
-            // should be untracked!
-            // nextRoute = store.lastRoute.value?.name; todo:
             return const RouteSettings(name: Routes.accounts);
           }
         });

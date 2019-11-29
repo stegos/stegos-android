@@ -7,9 +7,10 @@ mixin Loggable<T> {
 }
 
 class Log implements Logger {
+  Log(String name) : _impl = Logger(name);
   static bool _initialized = false;
 
-  static initialize() {
+  static void initialize() {
     if (!_initialized) {
       hierarchicalLoggingEnabled = true;
       _initialized = true;
@@ -28,18 +29,16 @@ class Log implements Logger {
 
   final Logger _impl;
 
-  Log(String name) : _impl = Logger(name);
-
-  bool get isAll => this.isLoggable(Level.ALL);
-  bool get isFinest => this.isLoggable(Level.FINEST);
-  bool get isFiner => this.isLoggable(Level.FINER);
-  bool get isFine => this.isLoggable(Level.FINE);
-  bool get isConfig => this.isLoggable(Level.CONFIG);
-  bool get isInfo => this.isLoggable(Level.INFO);
-  bool get isWarning => this.isLoggable(Level.WARNING);
-  bool get isSevere => this.isLoggable(Level.SEVERE);
-  bool get isShout => this.isLoggable(Level.SHOUT);
-  bool get isOff => this.isLoggable(Level.OFF);
+  bool get isAll => isLoggable(Level.ALL);
+  bool get isFinest => isLoggable(Level.FINEST);
+  bool get isFiner => isLoggable(Level.FINER);
+  bool get isFine => isLoggable(Level.FINE);
+  bool get isConfig => isLoggable(Level.CONFIG);
+  bool get isInfo => isLoggable(Level.INFO);
+  bool get isWarning => isLoggable(Level.WARNING);
+  bool get isSevere => isLoggable(Level.SEVERE);
+  bool get isShout => isLoggable(Level.SHOUT);
+  bool get isOff => isLoggable(Level.OFF);
 
   @override
   Level level;

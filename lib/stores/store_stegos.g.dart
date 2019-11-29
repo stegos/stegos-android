@@ -43,14 +43,4 @@ mixin _$StegosStore on _StegosStore, Store {
       _$_StegosStoreActionController.endAction(_$actionInfo);
     }
   }
-
-  @override
-  Future<void> mergeSettings(Map<String, dynamic> update) {
-    final _$actionInfo = _$_StegosStoreActionController.startAction();
-    try {
-      return super.mergeSettings(update);
-    } finally {
-      _$_StegosStoreActionController.endAction(_$actionInfo);
-    }
-  }
 }

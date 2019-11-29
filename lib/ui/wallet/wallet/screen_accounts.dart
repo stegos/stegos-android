@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stegos_wallet/ui/routes.dart';
 import 'package:stegos_wallet/ui/themes.dart';
 import 'package:stegos_wallet/widgets/reorderable_list.dart';
 
@@ -75,25 +76,65 @@ class AccountsScreenState extends State<AccountsScreen> {
 
   void _settingModalBottomSheet(BuildContext context) {
     showModalBottomSheet(
+        backgroundColor: StegosColors.backgroundColor,
         context: context,
         builder: (BuildContext bc) => Container(
-              child: Wrap(
-                crossAxisAlignment: WrapCrossAlignment.center,
+              height: 211,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: <Widget>[
-                  ListTile(
-                    title: const Text(
-                      'New account',
-                      textAlign: TextAlign.center,
-                    ),
+                  Text(
+                    'New Account',
+                    style: TextStyle(color: StegosColors.primaryColor, fontSize: 18),
                   ),
-                  ListTile(
-                      leading: Icon(Icons.restore_page),
-                      title: const Text('Recover account'),
-                      onTap: () => {Navigator.pushNamed(context, '/restore')}),
-                  ListTile(
-                    leading: Icon(Icons.add),
-                    title: const Text('Create new account'),
-                    onTap: () => {_showMaterialDialog()},
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: <Widget>[
+                      Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: <Widget>[
+                          SizedBox(
+                            width: 65,
+                            height: 65,
+                            child: RaisedButton(
+                              onPressed: () {
+                                Navigator.pushNamed(context, Routes.recover);
+                              },
+                              color: StegosColors.splashBackground,
+                              child: SvgPicture.asset('assets/images/restore_account.svg'),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          const Text(
+                            'Restore account',
+                            style: TextStyle(fontSize: 12),
+                          )
+                        ],
+                      ),
+                      Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: <Widget>[
+                          SizedBox(
+                            width: 65,
+                            height: 65,
+                            child: RaisedButton(
+                              onPressed: _showMaterialDialog,
+                              color: StegosColors.splashBackground,
+                              child: SvgPicture.asset('assets/images/create_account.svg'),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          const Text(
+                            'Create new account',
+                            style: TextStyle(fontSize: 12),
+                          )
+                        ],
+                      )
+                    ],
                   ),
                 ],
               ),
@@ -172,10 +213,7 @@ class AccountsScreenState extends State<AccountsScreen> {
         child: Scaffold(
           body: Stack(alignment: Alignment.topCenter, children: <Widget>[
             _buildTotalBalanceContainer(),
-            Container(
-                padding: const EdgeInsets.only(top: 130),
-                child: _buildCards())
-
+            Container(padding: const EdgeInsets.only(top: 130), child: _buildCards())
           ]),
           floatingActionButton: FloatingActionButton(
             onPressed: () {

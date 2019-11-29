@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:ejdb2_flutter/ejdb2_flutter.dart';
 import 'package:mobx/mobx.dart';
@@ -8,40 +9,71 @@ import 'package:stegos_wallet/log/loggable.dart';
 import 'package:stegos_wallet/services/service_node_client.dart';
 import 'package:stegos_wallet/stores/store_common.dart';
 import 'package:stegos_wallet/stores/store_stegos.dart';
+import 'package:stegos_wallet/utils/extensions_db.dart';
 
 part 'service_node.g.dart';
 
 class NodeService = _NodeService with _$NodeService;
 
 class AccountStore extends _AccountStore with _$AccountStore {
-  AccountStore._(int id, String name, int balanceCurrent, int balanceAvailable)
-      : super(id, name, balanceCurrent, balanceAvailable);
+  AccountStore.empty(int id) : super(id);
+  AccountStore._(int id, String name, String password, String iv) : super(id, name, password, iv);
 
   factory AccountStore._fromJBDOC(JBDOC doc) {
-    final id = doc.object['id'] as int;
-    final name = doc.object['name'] as String;
-    final balanceCurrent = doc.object['balance_current'] as int ?? 0;
-    final balanceAvailable = doc.object['balance_available'] as int ?? 0;
-    return AccountStore._(id, name, balanceCurrent, balanceAvailable);
+    return AccountStore._(doc.object['id'] as int, doc.object['name'] as String,
+        doc.object['password'] as String, doc.object['iv'] as String);
   }
 }
 
 abstract class _AccountStore with Store {
-  _AccountStore(this.id, this.name, this.balanceCurrent, this.balanceAvailable);
+  _AccountStore(this.id, [this.name, this._password, this._iv]);
 
   final int id;
+
+  String pkey;
+
+  String networkPkey;
+
+  @computed
+  String get humanName => name ?? 'Account #${name}';
 
   @observable
   String name;
 
   @observable
-  int balanceCurrent;
-
-  @observable
-  int balanceAvailable;
-
-  @observable
   bool sealed = true;
+
+  @observable
+  bool balanceIsFinal = false;
+
+  @observable
+  int balanceCurrent = 0;
+
+  @observable
+  int balanceAvailable = 0;
+
+  @observable
+  int balanceStakeCurrent = 0;
+
+  @observable
+  int balanceStakeAvailable = 0;
+
+  @observable
+  int balancePublicCurrent = 0;
+
+  @observable
+  int balancePublicAvailable = 0;
+
+  @observable
+  int balancePaymentCurrent = 0;
+
+  @observable
+  int balancePaymentAvailable = 0;
+
+  /// PIN encrypted dedicated account password
+  String _password;
+
+  String _iv;
 
   @override
   int get hashCode => id.hashCode;
@@ -50,18 +82,53 @@ abstract class _AccountStore with Store {
   bool operator ==(dynamic other) => other is _AccountStore && other.id == id;
 
   @action
-  void _update(JBDOC doc) {
-    name = doc.object['name'] as String;
-    balanceCurrent = doc.object['balance_current'] as int ?? balanceCurrent;
-    balanceAvailable = doc.object['balance_available'] as int ?? balanceAvailable;
+  void _updateFromJson(dynamic json) {
+    name = json['name'] as String ?? name;
+    _password = json['password'] as String;
+    _iv = json['iv'] as String;
   }
 
+  void _updateFromJBDOC(JBDOC doc) => _updateFromJson(doc.object);
+
+  @action
+  void _updateFromBalanceMessage(StegosNodeMessage msg) {
+    balanceIsFinal = msg.at('/is_final').transform((v) => v as bool).or(balanceIsFinal ?? false);
+    balanceCurrent = msg.at('/current').transform((v) => v as int).or(balanceCurrent ?? 0);
+    balanceAvailable = msg.at('/available').transform((v) => v as int).or(balanceAvailable ?? 0);
+    balancePaymentCurrent =
+        msg.at('/payment/current').transform((v) => v as int).or(balancePaymentCurrent ?? 0);
+    balancePaymentAvailable =
+        msg.at('/payment/available').transform((v) => v as int).or(balancePaymentAvailable ?? 0);
+    balancePublicCurrent =
+        msg.at('/public_payment/current').transform((v) => v as int).or(balancePublicCurrent ?? 0);
+    balancePublicAvailable = msg
+        .at('/public_payment/available')
+        .transform((v) => v as int)
+        .or(balancePublicAvailable ?? 0);
+    balanceStakeCurrent =
+        msg.at('/stake/current').transform((v) => v as int).or(balanceStakeCurrent ?? 0);
+    balanceStakeAvailable =
+        msg.at('/stake/available').transform((v) => v as int).or(balanceStakeAvailable ?? 0);
+  }
+
+  dynamic toJson() => {
+        // Note: Sensitive info is not stored in db
+        'id': id,
+        'name': name,
+        'password': _password,
+        'iv': _iv
+      };
+
   @override
-  String toString() => 'AccountStore{id=${id}'
-      ', name=${name}'
-      ', balanceCurrent=${balanceCurrent}'
-      ', balanceAvailable=${balanceAvailable}'
-      '}';
+  String toString() => jsonEncode(this);
+}
+
+class _UnsealAccountStatus {
+  const _UnsealAccountStatus({this.unsealed = false, this.invalidPassword = false});
+  final bool unsealed;
+  final bool invalidPassword;
+  @override
+  String toString() => 'usealed=${unsealed}, invalidPassword=${invalidPassword}';
 }
 
 abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
@@ -92,6 +159,12 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
   @override
   Future<void> activate() async {
     disposers.add(reaction((_) => client.connected, _syncNodeStatus));
+    disposers.add(
+        reaction((_) => client.connected && !env.securityService.needAppUnlock, (bool connected) {
+      if (connected) {
+        _syncAccounts();
+      }
+    }));
     _clientSubscription = client.stream.listen(_onNodeMessage);
   }
 
@@ -106,14 +179,26 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
     }
   }
 
+  Future<void> _onUpdateBalance(StegosNodeMessage msg) {
+    final acc = accounts[msg.accountId];
+    if (acc == null) {
+      return Future.value();
+    }
+    if (log.isFine) {
+      log.info('Update balance: ${msg}');
+    }
+    return env.useDb((db) {
+      acc._updateFromBalanceMessage(msg);
+      return db.patchOrPut('accounts', acc, acc.id);
+    });
+  }
+
   void _onNodeMessage(StegosNodeMessage msg) {
-    print('!!!!!! ON NODE  ${msg}');
-    //{"account_id":"2","type":"balance_changed",
-    //"payment":{"current":2000000,"availamessageble":2000000},
-    //"public_payment":{"current":0,"available":0},
-    //"stake":{"current":0,"available":0},
-    //"current":2000000,"available":2000000,
-    //"is_final":false}
+    switch (msg.type) {
+      case 'balance_changed':
+        unawaited(_onUpdateBalance(msg));
+        break;
+    }
   }
 
   void _syncNodeStatus(bool connected) {
@@ -121,30 +206,116 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
       return;
     }
     unawaited(client.sendAndAwait({'type': 'status_info'}).then((msg) {
-      final json = msg.json;
       runInAction(() {
-        synchronized = json['is_synchronized'] as bool ?? false;
+        synchronized = msg.json['is_synchronized'] as bool ?? false;
       });
-      _syncAccounts();
     }));
   }
 
-  Future<void> _syncAccountsBalances(Iterable<int> ids) {
-    // todo:
-    // if (env.store.accountPassword == null) {
-    // }
+  Future<void> _syncAccountsInfos(Iterable<int> ids, {bool forceSealing = false}) =>
+      Future.forEach(ids, (int id) {
+        return _syncAccountInfo(id, forceSealing: forceSealing).catchError((err, StackTrace st) {
+          log.warning('Error getting account info #${id}', err, st);
+          accounts.remove(id);
+        });
+      });
+
+  Future<AccountStore> _syncAccountInfo(int id, {bool forceSealing = false}) async {
+    final acc = await _unsealAccount(id, force: forceSealing);
+    try {
+      final msg = await client.sendAndAwait({'type': 'balance_info', 'account_id': '$id'});
+      await env.useDb((db) {
+        acc._updateFromBalanceMessage(msg);
+        return db.patchOrPut('accounts', acc, id);
+      });
+    } finally {
+      await _sealAccount(id, force: forceSealing);
+    }
+    if (log.isFine) {
+      log.fine('Fetched account info: ${acc}');
+    }
+    return acc;
   }
 
-  Future<void> _syncAccountBalance(int id) async {
-    // todo:
+  Future<AccountStore> _sealAccount(int id, {bool force = false}) {
+    if (log.isFine) {
+      log.fine('Sealing account: #${id}');
+    }
+    final acc = _account(id);
+    if (!force && acc.sealed) {
+      return Future.value(acc);
+    }
+    return client.sendAndAwait({'type': 'seal', 'account_id': '$id'}).then((_) {
+      runInAction(() {
+        acc.sealed = true;
+      });
+      if (log.isFine) {
+        log.fine('Account#${id} is sealed');
+      }
+      return acc;
+    });
   }
 
-  Future<void> _sealAccount(int id) async {
-    // todo:
+  Future<AccountStore> _unsealAccount(int id, {bool force = false}) async {
+    final acc = _account(id);
+    if (!force && !acc.sealed) {
+      return acc;
+    }
+    final pwpin = await env.securityService.acquirePasswordForApp();
+    var status = await _unsealAccountRaw(acc, pwpin.first);
+    if (status.unsealed) {
+      return acc;
+    }
+    if (status.invalidPassword) {
+      // Default empty password is used?
+      status = await _unsealAccountRaw(acc, '');
+      if (status.unsealed) {
+        // If so try to change password
+        log.warning('Trying to change default password for account: $id');
+        await client.sendAndAwait(
+            {'type': 'change_password', 'account_id': '$id', 'new_password': pwpin.first});
+      } else {
+        log.warning('It seems account has different password');
+        // todo: ask user for password!!
+      }
+    }
+    return acc;
   }
 
-  Future<void> _unsealAccount(int id) async {
-    // todo:
+  Future<_UnsealAccountStatus> _unsealAccountRaw(AccountStore acc, String password) {
+    if (log.isFine) {
+      log.fine('Unsealing account raw #${acc.id}');
+    }
+    return client
+        .sendAndAwait({'type': 'unseal', 'account_id': '${acc.id}', 'password': password})
+        .then((_) => const _UnsealAccountStatus(unsealed: true))
+        .catchError((err) {
+          if (err is StegosNodeErrorMessage) {
+            if (err.accountAlreadyUnsealed) {
+              return const _UnsealAccountStatus(unsealed: true);
+            } else if (err.invalidPassword) {
+              return const _UnsealAccountStatus(unsealed: false, invalidPassword: true);
+            }
+          }
+          return Future.error(err);
+        })
+        .then((v) {
+          runInAction(() {
+            acc.sealed = !v.unsealed;
+          });
+          if (log.isFine) {
+            log.fine('Unsealing status #${acc.id}: ${v}');
+          }
+          return v;
+        });
+  }
+
+  AccountStore _account(int id) {
+    final acc = accounts[id];
+    if (acc == null) {
+      throw Exception('Unknown account: ${id}');
+    }
+    return acc;
   }
 
   Future<void> _syncAccounts() async {
@@ -153,7 +324,9 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
     final ids = nodeAccounts.keys.map(int.parse).toList();
 
     // Cleanup not matched accounts
-    accounts.removeWhere((k, v) => !ids.contains(k));
+    runInAction(() {
+      accounts.removeWhere((k, v) => !ids.contains(k));
+    });
     if (ids.isEmpty) {
       return Future.value();
     }
@@ -161,14 +334,33 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
       await for (final doc in db.createQuery('@accounts/[id in :?]').setJson(0, ids).execute()) {
         final id = doc.object['id'] as int;
         final acc = accounts[id];
+        if (log.isFine) {
+          log.fine('Loaded db account: ${doc}');
+        }
         if (acc == null) {
           runInAction(() {
             accounts[id] = AccountStore._fromJBDOC(doc);
           });
         } else {
-          acc._update(doc);
+          acc._updateFromJBDOC(doc);
         }
       }
-    }).then((_) => _syncAccountsBalances(ids));
+      runInAction(() {
+        ids.forEach((id) {
+          AccountStore acc = accounts[id];
+          if (acc == null) {
+            acc = AccountStore.empty(id);
+            accounts[id] = acc;
+          }
+          final ainfo = nodeAccounts['$id'];
+          if (ainfo != null) {
+            acc.pkey = ainfo['account_pkey'] as String;
+            acc.networkPkey = ainfo['network_pkey'] as String;
+          }
+        });
+      });
+    }).then((_) {
+      return _syncAccountsInfos(ids, forceSealing: true);
+    });
   }
 }

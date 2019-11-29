@@ -1,13 +1,13 @@
 import 'dart:convert';
 import 'dart:math' as Math;
 
-import 'package:flutter/material.dart';
 import 'package:mobx/mobx.dart';
 import 'package:random_string/random_string.dart';
 import 'package:stegos_wallet/env_stegos.dart';
 import 'package:stegos_wallet/log/loggable.dart';
 import 'package:stegos_wallet/stores/store_stegos.dart';
 import 'package:stegos_wallet/ui/pinprotect/screen_pin_protect.dart';
+import 'package:stegos_wallet/utils/cont.dart';
 import 'package:stegos_wallet/utils/crypto.dart';
 import 'package:stegos_wallet/utils/crypto_aes.dart';
 import 'package:stegos_wallet/utils/dialogs.dart';
@@ -33,28 +33,33 @@ abstract class _SecurityService with Store, Loggable<SecurityService> {
   @computed
   bool get hasPinProtectedPassword => store.settings['password'] != null;
 
-  @computed
-  int get lastAppUnlockTs => store.settings['lastAppUnlockTs'] as int ?? 0;
+  /// Cached app password / pin pair
+  @observable
+  Pair<String, String> _cachedPwPin;
 
-  bool get needAppUnlock =>
-      _cachedAccountPassword == null ||
-      DateTime.now().millisecondsSinceEpoch - lastAppUnlockTs >= env.configMaxAppUnlockedPeriod;
+  bool get needAppUnlock => !(_cachedPwPin != null &&
+      DateTime.now().millisecondsSinceEpoch - (store.settings['lastAppUnlockTs'] as int ?? 0) <
+          env.configMaxAppUnlockedPeriod);
 
-  String _cachedAccountPassword;
+  Future<void> checkAppPin() => acquirePasswordForApp(forceUnlock: true);
 
-  Future<void> checkAppPin() => acquireAccountPassword(forceUnlock: true);
-
-  Future<String> acquireAccountPassword({int accountId, bool forceUnlock = false}) async {
+  Future<Pair<String, String>> acquirePasswordForApp({bool forceUnlock = false}) async {
     if (!hasPinProtectedPassword) {
-      final password =
-          await appShowDialog<String>(builder: (context) => const PinProtectScreen(unlock: false));
-      return _cachedAccountPassword = password;
+      final pwpin = await appShowDialog<Pair<String, String>>(
+          builder: (context) => const PinProtectScreen(unlock: false));
+      runInAction(() {
+        _cachedPwPin = pwpin;
+      });
+      return pwpin;
     } else if (forceUnlock || needAppUnlock) {
-      final password =
-          await appShowDialog<String>(builder: (context) => const PinProtectScreen(unlock: true));
-      return _cachedAccountPassword = password;
+      final pwpin = await appShowDialog<Pair<String, String>>(
+          builder: (context) => const PinProtectScreen(unlock: true));
+      runInAction(() {
+        _cachedPwPin = pwpin;
+      });
+      return _cachedPwPin;
     } else {
-      return _cachedAccountPassword;
+      return _cachedPwPin;
     }
   }
 
@@ -62,37 +67,48 @@ abstract class _SecurityService with Store, Loggable<SecurityService> {
   String createRandomPassword() =>
       randomAlphaNumeric(env.configGeneratedPasswordsLength, provider: _provider);
 
-  Future<String> setupAccountPassword(String pw, String pin) => env.useDb((db) async {
-        const utf8Encoder = Utf8Encoder();
-        final key = base64Encode(utf8Encoder.convert(pin.padRight(32, '@')));
-        final iv = const StegosCryptKey().genDartRaw(16);
-        final encyptedPassword =
-            StegosAesCrypt(key).encrypt(utf8Encoder.convert('stegos:${pw}'), iv);
+  Pair<String, String> setupPinProtectedPassword(String password, String pin) {
+    const utf8Encoder = Utf8Encoder();
+    final key = base64Encode(utf8Encoder.convert(pin.padRight(32, '@')));
+    final iv = const StegosCryptKey().genDartRaw(16);
+    final encyptedPassword =
+        StegosAesCrypt(key).encrypt(utf8Encoder.convert('stegos:${password}'), iv);
+    return Pair(base64Encode(encyptedPassword), base64Encode(iv));
+  }
+
+  Future<String> setupAppPassword(String password, String pin) => env.useDb((db) async {
+        final pp = setupPinProtectedPassword(password, pin);
         await store.mergeSettings({
-          'password': base64Encode(encyptedPassword),
-          'iv': base64Encode(iv),
+          'password': pp.first,
+          'iv': pp.second,
           'lastAppUnlockTs': DateTime.now().millisecondsSinceEpoch
         });
-        return pw;
+        return password;
       });
 
-  /// Recover pin protected password.
-  Future<String> recoverAccountPassword(String pin) async {
+  Pair<String, String> recoverPinProtectedPassword(String pin, String password, String iv) {
+    if (pin == null || password == null || iv == null) {
+      throw Exception('Invalid password recovery data');
+    }
     const utf8Encoder = Utf8Encoder();
     const utf8Decoder = Utf8Decoder();
-
     final key = base64Encode(utf8Encoder.convert(pin.padRight(32, '@')));
-    final iv = store.settings['iv'] as String;
-    final password = store.settings['password'] as String;
-    if (password == null || iv == null) {
-      return Future.error(Exception('Invalid password recover data'));
-    }
-    var pw = utf8Decoder.convert(StegosAesCrypt(key).decrypt(base64Decode(password), iv));
+    final pw = utf8Decoder.convert(StegosAesCrypt(key).decrypt(base64Decode(password), iv));
     if (!pw.startsWith('stegos:')) {
-      return Future.error(Exception('Invalid password recovered'));
+      throw Exception('Invalid password recovered');
     }
-    pw = pw.substring('stegos:'.length);
-    return _touchAppUnlockedPeriod().then((_) => pw);
+    return Pair(pw.substring('stegos:'.length), pin);
+  }
+
+  /// Recover pin protected password.
+  Future<String> recoverAppPassword(String pin) async {
+    final password = store.settings['password'] as String;
+    final iv = store.settings['iv'] as String;
+    final pwpin = recoverPinProtectedPassword(pin, password, iv);
+    runInAction(() {
+      _cachedPwPin = pwpin;
+    });
+    return _touchAppUnlockedPeriod().then((_) => pwpin.first);
   }
 
   Future<void> _touchAppUnlockedPeriod({int touchTs}) =>

@@ -1,23 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
-import 'package:stegos_wallet/ui/recover/store_screen_recover.dart';
 import 'package:stegos_wallet/ui/themes.dart';
 import 'package:stegos_wallet/widgets/widget_app_bar.dart';
 import 'package:stegos_wallet/widgets/widget_scaffold_body_wrapper.dart';
 
-class RecoverScreen extends StatefulWidget {
+class PasswordScreen extends StatefulWidget {
   @override
-  State<StatefulWidget> createState() => _RecoverScreenState();
+  State<StatefulWidget> createState() => _PasswordScreenState();
 }
 
-class _RecoverScreenState extends State<RecoverScreen> {
-  final _store = RecoverScreenStore(24);
+class _PasswordScreenState extends State<PasswordScreen> {
   static const _iconBackImage = AssetImage('assets/images/arrow_back.png');
 
   @override
   Widget build(BuildContext context) => Theme(
-        data: StegosThemes.backupTheme,
+        data: StegosThemes.passwordTheme,
         child: Scaffold(
           appBar: AppBarWidget(
             centerTitle: false,
@@ -30,7 +28,7 @@ class _RecoverScreenState extends State<RecoverScreen> {
               ),
               onPressed: () => Navigator.pop(context, false),
             ),
-            title: const Text('Account back up'),
+            title: const Text('Account #1'),
           ),
           body: ScaffoldBodyWrapperWidget(
               builder: (context) => Column(
@@ -40,13 +38,13 @@ class _RecoverScreenState extends State<RecoverScreen> {
                         child: Column(
                           children: const <Widget>[
                             Text(
-                              'Please write down account restore the phase',
+                              'It seems what Account #1 is locked by different password.',
                               textAlign: TextAlign.center,
                               style: StegosThemes.defaultCaptionTextStyle,
                             ),
                             SizedBox(height: 10),
                             Text(
-                              'All fields are case sensitive',
+                              'Please provide password to unlock:',
                               textAlign: TextAlign.center,
                               style: StegosThemes.defaultSubCaptionTextStyle,
                             ),
@@ -54,56 +52,30 @@ class _RecoverScreenState extends State<RecoverScreen> {
                         ),
                       ),
                       Expanded(
-                        child: SingleChildScrollView(child: _buildForm()),
+                        child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 30),
+                            child: TextField(
+                              onChanged: (val) => {},
+                              style: StegosThemes.defaultInputTextStyle,
+                              obscureText: true,
+                            )),
                       ),
-                      SizedBox(width: double.infinity, height: 50, child: _buildRestoreButton())
+                      SizedBox(width: double.infinity, height: 50, child: _buildSubmitButton())
                     ],
                   )),
         ),
       );
 
-  Widget _buildRestoreButton() => Observer(
+  Widget _buildSubmitButton() => Observer(
       builder: (_) => RaisedButton(
             elevation: 8,
             disabledElevation: 8,
-            onPressed: _store.valid ? _onRestore : null,
-            child: const Text('VERIFY'),
+            onPressed: _onSubmit,
+            child: const Text('SAVE'),
           ));
 
-  Widget _buildForm() => Form(
-        child: Column(
-          children: _store.keys
-              .asMap()
-              .entries
-              .map((e) => Container(
-                    height: 65,
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: _buildTextEntry(e.key, e.value),
-                  ))
-              .toList(),
-        ),
-      );
-
-  Widget _buildTextEntry(int idx, String text) => Stack(
-        alignment: Alignment.centerLeft,
-        children: <Widget>[
-          Builder(
-              builder: (context) => Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 13.0, vertical: 6.0),
-                    child: Text(
-                      '${idx + 1}.',
-                      style: StegosThemes.defaultInputTextStyle,
-                    ),
-                  )),
-          TextField(
-            onChanged: (val) => _store.setKey(idx, val),
-            style: StegosThemes.defaultInputTextStyle,
-          )
-        ],
-      );
-
-  void _onRestore() {
+  void _onSubmit() {
     // todo:
-    print('On restore');
+    print('On submit');
   }
 }

@@ -29,8 +29,8 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) => Theme(
         data: StegosThemes.splashTheme,
-        child: Material(
-          child: Center(child: const AppIconWidget(image: 'assets/icons/logo.png')),
+        child: const Material(
+          child: Center(child: AppIconWidget(image: 'assets/icons/logo.png')),
         ),
       );
 

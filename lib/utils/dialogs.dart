@@ -4,8 +4,8 @@ import 'package:stegos_wallet/ui/app.dart';
 
 Future<T> appShowDialog<T>(
     {@required WidgetBuilder builder, BuildContext context, bool barrierDismissible = true}) {
+  context ??= StegosApp.navigatorKey.currentContext;
   assert(debugCheckHasMaterialLocalizations(context));
-
   final ThemeData theme = Theme.of(context, shadowThemeOnly: true);
   return appShowGeneralDialog(
       pageBuilder: (BuildContext buildContext, Animation<double> animation,

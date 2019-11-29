@@ -17,9 +17,9 @@ class ErrorScreen extends StatelessWidget {
   Widget build(BuildContext context) => Scaffold(
         body: Container(
           padding: StegosThemes.defaultPadding,
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             image: DecorationImage(
-              image: const AssetImage('assets/images/welcome_background.png'),
+              image: AssetImage('assets/images/welcome_background.png'),
               fit: BoxFit.cover,
             ),
           ),

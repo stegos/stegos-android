@@ -14,12 +14,12 @@ import 'package:stegos_wallet/widgets/widget_scaffold_body_wrapper.dart';
 Future<String> _setupPassword(StegosEnv env, String pin) async {
   final ss = env.securityService;
   final pw = ss.createRandomPassword();
-  await ss.setupAccountPassword(pw, pin);
+  await ss.setupAppPassword(pw, pin);
   return pw;
 }
 
 Future<String> _unlockPassword(StegosEnv env, String pin) =>
-    env.securityService.recoverAccountPassword(pin);
+    env.securityService.recoverAppPassword(pin);
 
 class PinProtectScreen extends StatefulWidget {
   const PinProtectScreen({Key key, this.nextRoute, @required this.unlock}) : super(key: key);
@@ -41,7 +41,7 @@ class _PinProtectScreenState extends State<PinProtectScreen> with Loggable<PinPr
     store = PinprotectScreenStore(widget.unlock ? 1 : 0);
   }
 
-  void _onDone(String result) {
+  void _onDone(String result, String pin) {
     if (widget.nextRoute != null) {
       StegosApp.navigatorKey.currentState.pushReplacementNamed(widget.nextRoute.name,
           result: result, arguments: widget.nextRoute.arguments);
@@ -57,7 +57,7 @@ class _PinProtectScreenState extends State<PinProtectScreen> with Loggable<PinPr
         store.firstPin = pin;
         store.secondPin = null;
       } else if (pin == store.firstPin) {
-        unawaited(_setupPassword(env, pin).then(_onDone));
+        unawaited(_setupPassword(env, pin).then((r) => _onDone(r, pin)));
       } else {
         store.secondPin = pin;
       }
@@ -66,7 +66,7 @@ class _PinProtectScreenState extends State<PinProtectScreen> with Loggable<PinPr
 
   void _onUnlockPinready(String pin) {
     final env = Provider.of<StegosEnv>(context);
-    unawaited(_unlockPassword(env, pin).then(_onDone).catchError((err) {
+    unawaited(_unlockPassword(env, pin).then((r) => _onDone(r, pin)).catchError((err) {
       if (err != null) {
         log.warning('Error unlocking app', err);
       }
