@@ -20,11 +20,12 @@ class NodeService = _NodeService with _$NodeService;
 
 class AccountStore extends _AccountStore with _$AccountStore {
   AccountStore.empty(int id) : super(id);
-  AccountStore._(int id, String name, String password, String iv) : super(id, name, password, iv);
+  AccountStore._(int id, String name, String password, String iv, int ordinal)
+      : super(id, name, password, iv, ordinal);
 
   factory AccountStore._fromJBDOC(JBDOC doc) {
     return AccountStore._(doc.object['id'] as int, doc.object['name'] as String,
-        doc.object['password'] as String, doc.object['iv'] as String);
+        doc.object['password'] as String, doc.object['iv'] as String, doc.object['ordinal'] as int);
   }
 
   @override
@@ -35,8 +36,8 @@ class AccountStore extends _AccountStore with _$AccountStore {
 }
 
 abstract class _AccountStore with Store {
-  _AccountStore(this.id, [this.name, this._password, this._iv]) {
-    ordinal = id;
+  _AccountStore(this.id, [this.name, this._password, this._iv, this.ordinal]) {
+    ordinal ??= id > 0 ? id - 1 : 0;
   }
 
   final int id;
@@ -238,11 +239,12 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
 
   @override
   Future<void> activate() async {
-    _disposers.add(reaction((_) => client.connected, _syncNodeStatus));
-    _disposers.add(
-        reaction((_) => client.connected && !env.securityService.needAppUnlock, (bool connected) {
-      if (connected) _syncAccounts();
-    }));
+    _disposers.addAll([
+      reaction((_) => client.connected, _syncNodeStatus),
+      reaction((_) => client.connected && !env.securityService.needAppUnlock, (bool connected) {
+        if (connected) _syncAccounts();
+      })
+    ]);
     _nodeClientSubscription = client.stream.listen(_onNodeMessage);
   }
 
@@ -475,9 +477,6 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
           in db.createQuery('/[id in :?]', _accountsCollecton).setJson(0, ids).execute()) {
         final id = doc.object['id'] as int;
         final acc = accounts[id];
-        if (log.isFine) {
-          log.fine('Loaded db account: ${doc}');
-        }
         if (acc == null) {
           runInAction(() {
             accounts[id] = AccountStore._fromJBDOC(doc);

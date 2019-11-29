@@ -268,6 +268,12 @@ mixin _$NodeService on _NodeService, Store {
   List<AccountStore> get accountsList => (_$accountsListComputed ??=
           Computed<List<AccountStore>>(() => super.accountsList))
       .value;
+  Computed<int> _$totalBalanceComputed;
+
+  @override
+  int get totalBalance =>
+      (_$totalBalanceComputed ??= Computed<int>(() => super.totalBalance))
+          .value;
   Computed<bool> _$connectedComputed;
 
   @override
