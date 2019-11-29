@@ -164,6 +164,10 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
   List<AccountStore> get accountsList =>
       accounts.values.toList(growable: false)..sort((a, b) => a.ordinal.compareTo(b.ordinal));
 
+  @computed
+  int get totalBalance =>
+      accounts.values.fold(0, (s, a) => s + a.balanceCurrent); // todo: balanceCurrent?
+
   /// Is app is connected to network
   @computed
   bool get connected => client.connected;
@@ -207,7 +211,7 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
       log.fine('Swap accounts from=$fromIndex to=$toIndex');
     }
     final alist = accountsList;
-    if (fromIndex != toIndex && fromIndex < alist.length && toIndex < alist.length) {
+    if (fromIndex == toIndex || fromIndex >= alist.length || toIndex >= alist.length) {
       log.warning('reorderAccounts: invalid arguments: ${fromIndex}, ${toIndex}');
       return Future.value();
     }

@@ -45,51 +45,54 @@ class AccountsScreenState extends State<AccountsScreen> with Loggable<AccountsSc
         child: Icon(Icons.add),
       );
 
-  Widget _buildAccountsHeader(BuildContext context) => Container(
-        height: 130,
-        color: StegosColors.backgroundColor,
-        child: Stack(children: [
-          Container(
-            alignment: Alignment.bottomCenter,
-            padding: const EdgeInsets.only(bottom: 42),
-            child: Container(
-              width: double.infinity,
-              color: StegosColors.splashBackground,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  const Text('Total balance'),
-                  const SizedBox(
-                    height: 15,
-                  ),
-                  Text('0 STG', style: TextStyle(fontSize: 24, color: StegosColors.primaryColor))
-                ],
-              ),
+  Widget _buildAccountsHeader(BuildContext context) {
+    final env = Provider.of<StegosEnv>(context);
+    final node = env.nodeService;
+    return Container(
+      height: 130,
+      color: StegosColors.backgroundColor,
+      child: Stack(children: [
+        Container(
+          alignment: Alignment.bottomCenter,
+          padding: const EdgeInsets.only(bottom: 42),
+          child: Container(
+            width: double.infinity,
+            color: StegosColors.splashBackground,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                const Text('Total balance'),
+                const SizedBox(
+                  height: 15,
+                ),
+                Text('${node.totalBalance} STG',
+                    style: TextStyle(fontSize: 24, color: StegosColors.primaryColor))
+              ],
             ),
           ),
-          Container(
-            alignment: Alignment.bottomLeft,
-//            padding: const EdgeInsets.only(left: 15, bottom: 8),
-            decoration: BoxDecoration(
-                border: Border(bottom: BorderSide(color: StegosColors.primaryColorDark))),
-            child: FlatButton(
-              onPressed: () {
-                setState(() {
-                  collapsed = !collapsed;
-                  print(collapsed);
-                });
-              },
-              child: Row(
-                children: <Widget>[
-                  SvgPicture.asset('assets/images/accounts.svg'),
-                  const SizedBox(width: 15),
-                  const Text('Accounts'),
-                ],
-              ),
+        ),
+        Container(
+          alignment: Alignment.bottomLeft,
+          decoration: BoxDecoration(
+              border: Border(bottom: BorderSide(color: StegosColors.primaryColorDark))),
+          child: FlatButton(
+            onPressed: () {
+              setState(() {
+                collapsed = !collapsed;
+              });
+            },
+            child: Row(
+              children: <Widget>[
+                SvgPicture.asset('assets/images/accounts.svg'),
+                const SizedBox(width: 15),
+                const Text('Accounts'),
+              ],
             ),
           ),
-        ]),
-      );
+        ),
+      ]),
+    );
+  }
 
   List<Widget> _accountsArray() {
     final env = Provider.of<StegosEnv>(context);
