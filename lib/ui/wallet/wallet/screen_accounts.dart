@@ -8,10 +8,9 @@ import 'package:stegos_wallet/env_stegos.dart';
 import 'package:stegos_wallet/log/loggable.dart';
 import 'package:stegos_wallet/ui/routes.dart';
 import 'package:stegos_wallet/ui/themes.dart';
+import 'package:stegos_wallet/ui/wallet/wallet/account_card.dart';
 import 'package:stegos_wallet/widgets/reorderable_list.dart';
 import 'package:stegos_wallet/widgets/widget_scaffold_body_wrapper.dart';
-
-import 'account_card.dart';
 
 class AccountsScreen extends StatefulWidget {
   AccountsScreen({Key key}) : super(key: key);
@@ -117,12 +116,12 @@ class AccountsScreenState extends State<AccountsScreen> with Loggable<AccountsSc
         children: _accountsArray());
   }
 
-  Widget _buildNormalAccountsList(BuildContext context) => ListView(
+  Widget _buildExpandedAccountsList(BuildContext context) => ListView(
       padding: EdgeInsets.only(bottom: 80, top: collapsed ? 22 : 15, left: 30, right: 30),
       children: _accountsArray());
 
   Widget _buildAccountsList(BuildContext context) =>
-      collapsed ? _buildCollapsedAccountsList(context) : _buildNormalAccountsList(context);
+      collapsed ? _buildCollapsedAccountsList(context) : _buildExpandedAccountsList(context);
 
   // todo:
   void _showMaterialDialog() {

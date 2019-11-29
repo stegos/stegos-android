@@ -22,24 +22,32 @@ class ScaffoldBodyWrapperWidgetState extends State<ScaffoldBodyWrapperWidget> {
   @override
   void initState() {
     super.initState();
+    error = null;
+    operable = false;
+    connected = false;
+  }
 
-    final store = Provider.of<StegosStore>(context);
-    error = store.error.value;
-    operable = store.nodeService.operable;
-    connected = store.nodeService.connected;
-
-    _disposer = reaction(
-        (_) => [
-              store.error.value,
-              store.nodeService.operable,
-              store.nodeService.connected,
-            ], (arr) {
-      setState(() {
-        error = arr[0] as ErrorState;
-        operable = arr[1] as bool;
-        connected = arr[2] as bool;
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_disposer == null) {
+      final store = Provider.of<StegosStore>(context);
+      error = store.error.value;
+      operable = store.nodeService.operable;
+      connected = store.nodeService.connected;
+      _disposer = reaction(
+          (_) => [
+                store.error.value,
+                store.nodeService.operable,
+                store.nodeService.connected,
+              ], (arr) {
+        setState(() {
+          error = arr[0] as ErrorState;
+          operable = arr[1] as bool;
+          connected = arr[2] as bool;
+        });
       });
-    });
+    }
   }
 
   @override
@@ -57,36 +65,37 @@ class ScaffoldBodyWrapperWidgetState extends State<ScaffoldBodyWrapperWidget> {
     if (operable && !hasError) {
       return builder(context);
     }
-    final widgets = <Widget>[];
-    if (!operable) {
-      widgets.add(Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 50),
-        color: StegosColors.accentColor,
-        child: Text(
-          !connected ? 'Stegos node is not connected' : 'Stegos node synchronizing...',
-          textAlign: TextAlign.center,
-          style: TextStyle(fontWeight: FontWeight.w500, fontSize: 9),
-        ),
-      ));
-    }
-    if (hasError) {
-      widgets.add(Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 50),
-        color: StegosColors.errorColor,
-        child: Text(
-          error.message,
-          textAlign: TextAlign.center,
-          style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
-        ),
-      ));
-    }
-    widgets.add(Expanded(child: builder(context)));
     return SafeArea(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
-        children: widgets,
+        children: [
+          //
+          if (!operable)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 50),
+              color: StegosColors.accentColor,
+              child: Text(
+                !connected ? 'Stegos node is not connected' : 'Stegos node synchronizing...',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontWeight: FontWeight.w500, fontSize: 9),
+              ),
+            ),
+          //
+          if (hasError)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 50),
+              color: StegosColors.errorColor,
+              child: Text(
+                error.message,
+                textAlign: TextAlign.center,
+                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+              ),
+            ),
+          //
+          Expanded(child: builder(context))
+        ],
       ),
     );
   }

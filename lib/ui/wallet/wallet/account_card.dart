@@ -5,7 +5,7 @@ import 'package:stegos_wallet/services/service_node.dart';
 import 'package:stegos_wallet/ui/themes.dart';
 
 class AccountCard extends StatefulWidget {
-  AccountCard({@required ValueKey<AccountStore> key, this.collapsed = false}) : super(key: key);
+  AccountCard({@required ValueKey<AccountStore> key, @required this.collapsed}) : super(key: key);
   final bool collapsed;
 
   AccountStore get account => (key as ValueKey<AccountStore>).value;
