@@ -105,12 +105,18 @@ mixin StegosThemes {
   static final _baseAccentTextTheme = _defaults.accentTextTheme;
 
   static final baseTheme = _defaults.copyWith(
-      textTheme: _baseTextTheme,
-      primaryTextTheme: _basePrimaryTextTheme,
-      accentTextTheme: _baseAccentTextTheme,
-      buttonTheme: _defaults.buttonTheme.copyWith(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(2.0)),
-      ));
+    textTheme: _baseTextTheme,
+    primaryTextTheme: _basePrimaryTextTheme,
+    accentTextTheme: _baseAccentTextTheme,
+    buttonTheme: _defaults.buttonTheme.copyWith(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(2.0)),
+    ),
+    appBarTheme: const AppBarTheme(
+      color: Color(0xff2b2e3b),
+      textTheme: TextTheme(body1: TextStyle(fontSize: 20)),
+      elevation: 0,
+    ),
+  );
 
   static final splashTheme = ThemeData.dark().copyWith(
       backgroundColor: StegosColors.splashBackground, canvasColor: StegosColors.splashBackground);
@@ -131,15 +137,6 @@ mixin StegosThemes {
       hoverColor: StegosColors.primaryColor,
       splashColor: const Color(0xffe26e04),
     ),
-    inputDecorationTheme: InputDecorationTheme(
-      prefixStyle: defaultInputTextStyle.copyWith(color: Colors.transparent),
-      contentPadding: const EdgeInsets.only(left: 40.0, right: 13.0, top: 6.0, bottom: 6.0),
-    ),
-    appBarTheme: const AppBarTheme(
-      color: Color(0xff2b2e3b),
-      textTheme: TextTheme(body1: TextStyle(fontSize: 20)),
-      elevation: 0,
-    ),
   );
 
   static final accountsTheme = baseTheme.copyWith(
@@ -148,12 +145,10 @@ mixin StegosThemes {
       buttonTheme: ButtonThemeData(
           buttonColor: Color(0xff15151f),
           colorScheme: ColorScheme.fromSwatch(
-            primaryColorDark: Color(0xff15151f),
-            accentColor: Color(0xff15151f),
-            backgroundColor: Color(0xff15151f),
-            brightness: Brightness.dark
-
-          )));
+              primaryColorDark: Color(0xff15151f),
+              accentColor: Color(0xff15151f),
+              backgroundColor: Color(0xff15151f),
+              brightness: Brightness.dark)));
 
   static final walletTheme = baseTheme.copyWith(
     tabBarTheme: const TabBarTheme(
@@ -165,11 +160,6 @@ mixin StegosThemes {
           TextStyle(color: StegosColors.primaryColor, fontSize: 10, fontWeight: FontWeight.w300),
       unselectedLabelStyle: TextStyle(
           color: StegosColors.primaryColorDark, fontSize: 10, fontWeight: FontWeight.w300),
-    ),
-    appBarTheme: const AppBarTheme(
-      color: Color(0xff2b2e3b),
-      textTheme: TextTheme(body1: TextStyle(fontSize: 20)),
-      elevation: 0,
     ),
   );
 
@@ -194,13 +184,8 @@ mixin StegosThemes {
       highlightColor: StegosColors.primaryColor,
       hoverColor: StegosColors.primaryColor,
       splashColor: const Color(0xffe26e04),
-      ),
-    appBarTheme: const AppBarTheme(
-      color: Color(0xff2b2e3b),
-      textTheme: TextTheme(body1: TextStyle(fontSize: 20)),
-      elevation: 0,
-      ),
-    );
+    ),
+  );
 
   static final passwordTheme = baseTheme.copyWith(
     buttonTheme: _defaults.buttonTheme.copyWith(
@@ -221,11 +206,6 @@ mixin StegosThemes {
     inputDecorationTheme: InputDecorationTheme(
       prefixStyle: defaultInputTextStyle.copyWith(color: Colors.transparent),
       contentPadding: const EdgeInsets.symmetric(horizontal: 13.0, vertical: 6.0),
-    ),
-    appBarTheme: const AppBarTheme(
-      color: Color(0xff2b2e3b),
-      textTheme: TextTheme(body1: TextStyle(fontSize: 20)),
-      elevation: 0,
     ),
   );
 }
