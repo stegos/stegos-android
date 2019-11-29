@@ -1,5 +1,10 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
+import 'package:stegos_wallet/ui/themes.dart';
+import 'package:stegos_wallet/widgets/widget_app_bar.dart';
 
 class Transaction {
   Transaction({this.amount = 0, this.created, this.certificateURL});
@@ -12,13 +17,12 @@ class Transaction {
 class AccountScreen extends StatefulWidget {
   AccountScreen({Key key}) : super(key: key);
 
-  final title = 'Account 1';
-
   @override
   AccountScreenState createState() => AccountScreenState();
 }
 
 class AccountScreenState extends State<AccountScreen> {
+  static const _iconBackImage = AssetImage('assets/images/arrow_back.png');
   static final txTowDateFormatter = DateFormat('yyyy-MM-dd');
 
   final EdgeInsets defaultPadding = const EdgeInsets.all(16.0);
@@ -82,90 +86,120 @@ class AccountScreenState extends State<AccountScreen> {
   }
 
   @override
-  Widget build(BuildContext context) => Column(
-        children: <Widget>[
-          Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            Container(
-                padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
-                child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 30),
-                    child: Column(
-                      children: <Widget>[
-                        const Image(
-                          image: AssetImage('assets/images/qr.png'),
-                          width: 38,
-                          height: 38,
-                        ),
-                        const SizedBox(height: 18),
-                        Text('Balance', style: TextStyle(fontSize: 16)),
-                        const SizedBox(height: 11),
-                        Text('0 STG', style: TextStyle(fontSize: 20)),
-                        const SizedBox(height: 37),
-                        Container(
-                            height: 40,
-                            decoration: BoxDecoration(
-                                border: Border.all(color: const Color(0xffeaeaea)),
-                                borderRadius: BorderRadius.circular(20)),
-                            child: Center(
-                                child: SelectableText('0xf7da9EFFF07539840CF329B71De910ecc7447e41',
-                                    style: TextStyle(fontSize: 10)))),
-                        Container(
-                          height: 100,
-                          padding: const EdgeInsets.only(top: 30),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: <Widget>[
-                              Expanded(
-                                child: FlatButton(
-                                  onPressed: () {
-                                    print('send');
-                                  },
-                                  color: const Color(0xffececec),
-                                  child: Text(
-                                    'Send',
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 16,
-                                        color: const Color(0xff656565)),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ),
+  Widget build(BuildContext context) => Theme(
+      data: StegosThemes.backupTheme,
+      child: Scaffold(
+        appBar: AppBarWidget(
+          centerTitle: false,
+          backgroundColor: Theme.of(context).colorScheme.primary,
+          leading: IconButton(
+            icon: const SizedBox(
+              width: 24,
+              height: 24,
+              child: Image(image: _iconBackImage),
+            ),
+            onPressed: () => Navigator.pop(context, false),
+          ),
+          title: const Text('Account 1'),
+        ),
+        body: Column(
+          children: <Widget>[
+            Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+              Container(
+                  child: Container(
+                      padding: const EdgeInsets.only(top: 30),
+                      color: StegosColors.splashBackground,
+                      child: Column(
+                        children: <Widget>[
+                          const Text('Balance', style: TextStyle(fontSize: 14)),
+                          const SizedBox(height: 7),
+                          const Text('0 STG',
+                              style: TextStyle(
+                                  fontSize: 32,
+                                  fontWeight: FontWeight.w500,
+                                  color: StegosColors.primaryColor)),
+                          const SizedBox(height: 26),
+                          Container(
+                              height: 40,
+                              margin:
+                                  const EdgeInsets.symmetric(horizontal: 20).copyWith(bottom: 67),
+                              decoration: BoxDecoration(
+                                border:
+                                    Border(bottom: BorderSide(color: StegosColors.white, width: 1)),
                               ),
-                              const SizedBox(width: 13),
-                              Expanded(
-                                child: FlatButton(
-                                  onPressed: () {
-                                    print('create red packet');
-                                  },
-                                  color: const Color(0xffececec),
-                                  child: Text(
-                                    'Create Red Packet',
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 16,
-                                        color: const Color(0xff656565)),
-                                    textAlign: TextAlign.center,
-                                  ),
+                              child: const Center(
+                                  child: SelectableText(
+                                      '0xf7da9EFFF07539840CF329B71De910ecc7447e41',
+                                      style: TextStyle(fontSize: 10)))),
+                          Container(
+                            height: 165,
+                            padding: const EdgeInsets.symmetric(vertical: 30),
+                            color: StegosColors.backgroundColor,
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                              children: <Widget>[
+                                Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: <Widget>[
+                                    SizedBox(
+                                      width: 65,
+                                      height: 65,
+                                      child: RaisedButton(
+                                        padding: const EdgeInsets.all(10),
+                                        onPressed: () {},
+                                        color: StegosColors.splashBackground,
+                                        child: SvgPicture.asset('assets/images/send.svg'),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 12),
+                                    const Text(
+                                      'Send',
+                                      style: TextStyle(fontSize: 12),
+                                    )
+                                  ],
                                 ),
-                              )
-                            ],
-                          ),
-                        )
-                      ],
-                    ))),
-            Container(
+                                Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: <Widget>[
+                                    SizedBox(
+                                      width: 65,
+                                      height: 65,
+                                      child: RaisedButton(
+                                        padding: const EdgeInsets.all(10),
+                                        onPressed: () {},
+                                        color: StegosColors.splashBackground,
+                                        child: SvgPicture.asset('assets/images/red_packet.svg'),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 12),
+                                    Container(
+                                      width: 71,
+                                      child: const Text(
+                                        'Generate Red Packet',
+                                        style: TextStyle(fontSize: 12),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    )
+                                  ],
+                                ),
+                              ],
+                            ),
+                          )
+                        ],
+                      ))),
+              Container(
                 padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
-                decoration: BoxDecoration(
-                    border: Border(bottom: BorderSide(color: const Color(0xff979797)))),
-                child: Text(
-                  'Transactions',
-                  style: TextStyle(
-                      fontWeight: FontWeight.bold, fontSize: 18, color: const Color(0xff656565)),
-                ))
-          ]),
-          Expanded(
-            child: _buildTransactionsList(),
-          )
-        ],
-      );
+                decoration: const BoxDecoration(
+                    border: Border(bottom: BorderSide(color: Color(0xff979797)))),
+              )
+            ]),
+            Expanded(
+              child: _buildTransactionsList(),
+            )
+          ],
+        ),
+      ));
 }

@@ -9,6 +9,7 @@ import 'package:stegos_wallet/ui/pinprotect/screen_pin_protect.dart';
 import 'package:stegos_wallet/ui/recover/screen_recover.dart';
 import 'package:stegos_wallet/ui/settings/screen_settings.dart';
 import 'package:stegos_wallet/ui/splash/screen_splash.dart';
+import 'package:stegos_wallet/ui/wallet/account/screen_account.dart';
 import 'package:stegos_wallet/ui/wallet/screen_wallet.dart';
 import 'package:stegos_wallet/ui/welcome/screen_welcome.dart';
 
@@ -38,6 +39,7 @@ class _InitialRouteScreenState extends State<_InitialRouteScreen> {
         final ss = env.securityService;
         final store = env.store;
 
+        return AccountScreen();
         switch (store.activated.status) {
           case FutureStatus.pending:
             _splashStart = DateTime.now().millisecondsSinceEpoch;
@@ -82,6 +84,7 @@ class _InitialRouteScreenState extends State<_InitialRouteScreen> {
 mixin Routes {
   static const root = '/';
   static const accounts = 'accounts';
+  static const account = 'account';
   static const pinprotect = 'pinprotect';
   static const recover = 'recover';
   static const splash = 'splash';
@@ -104,6 +107,7 @@ mixin Routes {
     return routeFactoryFn = (RouteSettings settings) {
       final name = settings.name;
       env.store.resetError();
+
       switch (name) {
         // Remember selected screen, todo: review
         case accounts:
@@ -130,6 +134,8 @@ mixin Routes {
           }
         case welcome:
           return MaterialPageRoute(builder: (BuildContext context) => WelcomeScreen());
+        case account:
+          return MaterialPageRoute(builder: (BuildContext context) => AccountScreen());
         case wallet:
           return MaterialPageRoute(builder: (BuildContext context) => WalletScreen());
         case recover:
