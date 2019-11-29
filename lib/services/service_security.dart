@@ -35,9 +35,9 @@ abstract class _SecurityService with Store, Loggable<SecurityService> {
 
   /// Cached app password / pin pair
   @observable
-  Pair<String, String> _cachedPwPin;
+  Pair<String, String> _cachedPwp;
 
-  bool get needAppUnlock => !(_cachedPwPin != null &&
+  bool get needAppUnlock => !(_cachedPwp != null &&
       DateTime.now().millisecondsSinceEpoch - (store.settings['lastAppUnlockTs'] as int ?? 0) <
           env.configMaxAppUnlockedPeriod);
 
@@ -45,21 +45,21 @@ abstract class _SecurityService with Store, Loggable<SecurityService> {
 
   Future<Pair<String, String>> acquirePasswordForApp({bool forceUnlock = false}) async {
     if (!hasPinProtectedPassword) {
-      final pwpin = await appShowDialog<Pair<String, String>>(
+      final pwp = await appShowDialog<Pair<String, String>>(
           builder: (context) => const PinProtectScreen(unlock: false));
       runInAction(() {
-        _cachedPwPin = pwpin;
+        _cachedPwp = pwp;
       });
-      return pwpin;
+      return pwp;
     } else if (forceUnlock || needAppUnlock) {
-      final pwpin = await appShowDialog<Pair<String, String>>(
+      final pwp = await appShowDialog<Pair<String, String>>(
           builder: (context) => const PinProtectScreen(unlock: true));
       runInAction(() {
-        _cachedPwPin = pwpin;
+        _cachedPwp = pwp;
       });
-      return _cachedPwPin;
+      return _cachedPwp;
     } else {
-      return _cachedPwPin;
+      return _cachedPwp;
     }
   }
 
@@ -82,6 +82,10 @@ abstract class _SecurityService with Store, Loggable<SecurityService> {
           'password': pp.first,
           'iv': pp.second,
           'lastAppUnlockTs': DateTime.now().millisecondsSinceEpoch
+        }).then((_) {
+          runInAction(() {
+            _cachedPwp = Pair(password, pin);
+          });
         });
         return password;
       });
@@ -104,11 +108,11 @@ abstract class _SecurityService with Store, Loggable<SecurityService> {
   Future<String> recoverAppPassword(String pin) async {
     final password = store.settings['password'] as String;
     final iv = store.settings['iv'] as String;
-    final pwpin = recoverPinProtectedPassword(pin, password, iv);
+    final pwp = recoverPinProtectedPassword(pin, password, iv);
     runInAction(() {
-      _cachedPwPin = pwpin;
+      _cachedPwp = pwp;
     });
-    return _touchAppUnlockedPeriod().then((_) => pwpin.first);
+    return _touchAppUnlockedPeriod().then((_) => pwp.first);
   }
 
   Future<void> _touchAppUnlockedPeriod({int touchTs}) =>

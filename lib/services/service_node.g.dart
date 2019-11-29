@@ -255,6 +255,12 @@ mixin _$NodeService on _NodeService, Store {
   @override
   bool get operable =>
       (_$operableComputed ??= Computed<bool>(() => super.operable)).value;
+  Computed<String> _$_accountsCollectonComputed;
+
+  @override
+  String get _accountsCollecton => (_$_accountsCollectonComputed ??=
+          Computed<String>(() => super._accountsCollecton))
+      .value;
 
   final _$synchronizedAtom = Atom(name: '_NodeService.synchronized');
 
@@ -271,5 +277,22 @@ mixin _$NodeService on _NodeService, Store {
       super.synchronized = value;
       _$synchronizedAtom.reportChanged();
     }, _$synchronizedAtom, name: '${_$synchronizedAtom.name}_set');
+  }
+
+  final _$networkAtom = Atom(name: '_NodeService.network');
+
+  @override
+  String get network {
+    _$networkAtom.context.enforceReadPolicy(_$networkAtom);
+    _$networkAtom.reportObserved();
+    return super.network;
+  }
+
+  @override
+  set network(String value) {
+    _$networkAtom.context.conditionallyRunInAction(() {
+      super.network = value;
+      _$networkAtom.reportChanged();
+    }, _$networkAtom, name: '${_$networkAtom.name}_set');
   }
 }

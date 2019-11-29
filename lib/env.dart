@@ -38,6 +38,8 @@ abstract class Env<W extends Widget> {
     return widget;
   }
 
+  void setError(String error);
+
   @mustCallSuper
   @protected
   Future<void> initLogging() async {
