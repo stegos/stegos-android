@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stegos_wallet/ui/routes.dart';
 import 'package:stegos_wallet/ui/wallet/wallet/screen_accounts.dart';
 import 'package:stegos_wallet/widgets/widget_app_bar.dart';
 
@@ -23,6 +24,8 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
   final contactsIcon = 'assets/images/contacts.svg';
 
   final menu = SvgPicture.asset('assets/images/menu.svg');
+
+  final GlobalKey<ScaffoldState> _drawerKey = GlobalKey();
 
   int selectedItem = 0;
   TabController _tabController;
@@ -47,13 +50,32 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
         child: DefaultTabController(
           length: 4,
           child: Scaffold(
+            key: _drawerKey,
             appBar: AppBarWidget(
               centerTitle: false,
               leading: IconButton(
                 icon: menu,
-                onPressed: () => {print('Show menu')},
+                onPressed: () => {_drawerKey.currentState.openDrawer()},
               ),
               title: const Text('Stegos Wallet'),
+            ),
+            drawer: Drawer(
+              child: ListView(
+                // Important: Remove any padding from the ListView.
+                padding: EdgeInsets.zero,
+                children: <Widget>[
+                  DrawerHeader(
+                    child: const Text('Stegos'),
+                    decoration: BoxDecoration(
+                      color: StegosColors.accentColor,
+                    ),
+                  ),
+                  ListTile(
+                    title: const Text('Develop'),
+                    onTap: () { Navigator.pushNamed(context, Routes.devMenu);},
+                  ),
+                ],
+              ),
             ),
             bottomNavigationBar: Container(
               color: StegosColors.splashBackground,
