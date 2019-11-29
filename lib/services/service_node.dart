@@ -167,6 +167,22 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
   @observable
   String network = '';
 
+  @computed
+  String get networkName {
+    switch (network) {
+      case 'stg':
+        return 'MainNet';
+      case 'stt':
+        return 'TestNet';
+      case 'str':
+        return 'DevNet';
+      case 'dev':
+        return 'DevTests';
+      default:
+        return 'Unknown';
+    }
+  }
+
   // ignore: cancel_subscriptions
   StreamSubscription<StegosNodeMessage> _nodeClientSubscription;
 
@@ -305,7 +321,7 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
       status = await _unsealAccountRaw(acc, '');
       if (status.unsealed) {
         // If so try to change empty password
-        log.warning('Trying to change default password for account: $id');
+        log.warning('Changing default password for account: $id');
         await client.sendAndAwait(
             {'type': 'change_password', 'account_id': '$id', 'new_password': pwp.first});
       } else {
@@ -321,8 +337,7 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
                       return Pair(null, 'Invalid password provided');
                     }
                     final pwp = await env.securityService.acquirePasswordForApp();
-                    final pin = pwp.second;
-                    final pp = env.securityService.setupPinProtectedPassword(password, pin);
+                    final pp = env.securityService.setupPinProtectedPassword(password, pwp.second);
                     acc._password = pp.first;
                     acc._iv = pp.second;
                     await env.useDb((db) => db.patchOrPut(
@@ -332,7 +347,7 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
                 ));
         if (pw == null) {
           // User cannot unlock this account
-          throw Exception('Failed to unlock account: ${acc.humanName}');
+          throw Exception('Failed to unlock account: ${acc.humanName} skipping it');
         }
       }
     }
