@@ -24,6 +24,8 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
 
   final menu = SvgPicture.asset('assets/images/menu.svg');
 
+  final GlobalKey<ScaffoldState> _drawerKey = GlobalKey();
+
   int selectedItem = 0;
   TabController _tabController;
 
@@ -47,13 +49,42 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
         child: DefaultTabController(
           length: 4,
           child: Scaffold(
+            key: _drawerKey,
             appBar: AppBarWidget(
               centerTitle: false,
               leading: IconButton(
                 icon: menu,
-                onPressed: () => {print('Show menu')},
+                onPressed: () => {_drawerKey.currentState.openDrawer()},
               ),
               title: const Text('Stegos Wallet'),
+            ),
+            drawer: Drawer(
+              child: ListView(
+                // Important: Remove any padding from the ListView.
+                padding: EdgeInsets.zero,
+                children: <Widget>[
+                  DrawerHeader(
+                    child: Text('Drawer Header'),
+                    decoration: BoxDecoration(
+                      color: StegosColors.accentColor,
+                    ),
+                  ),
+                  ListTile(
+                    title: Text('Item 1'),
+                    onTap: () {
+                      // Update the state of the app.
+                      // ...
+                    },
+                  ),
+                  ListTile(
+                    title: Text('Item 2'),
+                    onTap: () {
+                      // Update the state of the app.
+                      // ...
+                    },
+                  ),
+                ],
+              ),
             ),
             bottomNavigationBar: Container(
               color: StegosColors.splashBackground,
