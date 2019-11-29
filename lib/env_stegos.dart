@@ -11,6 +11,11 @@ import 'package:stegos_wallet/stores/store_stegos.dart';
 import 'package:stegos_wallet/ui/app.dart';
 import 'package:stegos_wallet/widgets/widget_lifecycle.dart';
 
+class StegosUserException implements Exception {
+  StegosUserException(this.message);
+  final String message;
+}
+
 /// Stegos wallet app environment.
 ///
 class StegosEnv extends Env<Widget> {
@@ -85,6 +90,15 @@ class StegosEnv extends Env<Widget> {
 
   /// Get broadcast stream of stegos node messages
   Stream<StegosNodeMessage> get nodeStream => nodeClient.stream;
+
+  @override
+  void setError(String error) {
+    if (_store != null) {
+      _store.setError(error);
+    } else {
+      log.severe(error);
+    }
+  }
 
   /// Bring environment to operational state
   Future<void> activate() async {

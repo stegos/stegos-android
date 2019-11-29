@@ -11,10 +11,15 @@ void mainEntry(Future<StegosEnv> Function() createEnv) {
   Log.initialize();
   final log = Log('mainEntry');
   Logger.root.level = Level.ALL;
+  StegosEnv env;
   unawaited(runZoned<Future<void>>(() async {
-    final env = await createEnv();
+    env = await createEnv();
     runApp(await env.open());
   }, onError: (err, StackTrace st) async {
-    log.severe('Uncaught exception', err, st);
+    if (env != null && err is StegosUserException) {
+      env.setError(err.message);
+    } else {
+      log.severe('Uncaught exception', err, st);
+    }
   }));
 }

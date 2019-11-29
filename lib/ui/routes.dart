@@ -7,6 +7,7 @@ import 'package:stegos_wallet/env_stegos.dart';
 import 'package:stegos_wallet/ui/dev_menu/screen_dev_menu.dart';
 import 'package:stegos_wallet/ui/pinprotect/screen_pin_protect.dart';
 import 'package:stegos_wallet/ui/recover/screen_recover.dart';
+import 'package:stegos_wallet/ui/settings/screen_settings.dart';
 import 'package:stegos_wallet/ui/splash/screen_splash.dart';
 import 'package:stegos_wallet/ui/wallet/screen_wallet.dart';
 import 'package:stegos_wallet/ui/welcome/screen_welcome.dart';
@@ -87,6 +88,7 @@ mixin Routes {
   static const unlock = 'unlock';
   static const wallet = 'wallet';
   static const welcome = 'welcome';
+  static const settings = 'settings';
   static const devMenu = 'devMenu';
 
   static RouteFactory createRouteFactory(StegosEnv env, bool showSplash) {
@@ -137,7 +139,9 @@ mixin Routes {
               maintainState: false,
               builder: (BuildContext context) =>
                   const SplashScreen(nextRoute: RouteSettings(name: welcome)));
-        case devMenu:
+        case Routes.settings:
+          return MaterialPageRoute(builder: (BuildContext context) => SettingsScreen());
+        case Routes.devMenu:
           return MaterialPageRoute(builder: (BuildContext context) => DevMenuScreen());
         default:
           return MaterialPageRoute(

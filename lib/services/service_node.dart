@@ -9,6 +9,9 @@ import 'package:stegos_wallet/log/loggable.dart';
 import 'package:stegos_wallet/services/service_node_client.dart';
 import 'package:stegos_wallet/stores/store_common.dart';
 import 'package:stegos_wallet/stores/store_stegos.dart';
+import 'package:stegos_wallet/ui/password/screen_password.dart';
+import 'package:stegos_wallet/utils/cont.dart';
+import 'package:stegos_wallet/utils/dialogs.dart';
 import 'package:stegos_wallet/utils/extensions_db.dart';
 
 part 'service_node.g.dart';
@@ -35,7 +38,7 @@ abstract class _AccountStore with Store {
   String networkPkey;
 
   @computed
-  String get humanName => name ?? 'Account #${name}';
+  String get humanName => name ?? '#${id}';
 
   @observable
   String name;
@@ -142,39 +145,53 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
 
   StegosEnv get env => parent.env;
 
+  /// Is app is connected to network
   @computed
   bool get connected => client.connected;
 
+  /// Is Segos network node operable:
+  ///  - We can send transactions
+  ///  - We can acquire account baalnces
   @computed
   bool get operable => client.connected && synchronized;
 
+  /// Is Stegos network node synchronized
   @observable
   bool synchronized = false;
 
-  // ignore: cancel_subscriptions
-  StreamSubscription<StegosNodeMessage> _clientSubscription;
+  /// Stegos network id:
+  /// - stg: mainNet
+  /// - stt: testNet
+  /// - str: devNet
+  /// - dev: dev tests
+  @observable
+  String network = '';
 
-  final disposers = <ReactionDisposer>[];
+  // ignore: cancel_subscriptions
+  StreamSubscription<StegosNodeMessage> _nodeClientSubscription;
+
+  @computed
+  String get _accountsCollecton => 'accounts_$network';
+
+  final _disposers = <ReactionDisposer>[];
 
   @override
   Future<void> activate() async {
-    disposers.add(reaction((_) => client.connected, _syncNodeStatus));
-    disposers.add(
+    _disposers.add(reaction((_) => client.connected, _syncNodeStatus));
+    _disposers.add(
         reaction((_) => client.connected && !env.securityService.needAppUnlock, (bool connected) {
-      if (connected) {
-        _syncAccounts();
-      }
+      if (connected) _syncAccounts();
     }));
-    _clientSubscription = client.stream.listen(_onNodeMessage);
+    _nodeClientSubscription = client.stream.listen(_onNodeMessage);
   }
 
   @override
   Future<void> disposeAsync() async {
-    disposers.forEach((d) => d());
-    disposers.length = 0;
-    if (_clientSubscription != null) {
-      final subscription = _clientSubscription;
-      _clientSubscription = null;
+    _disposers.forEach((d) => d());
+    _disposers.length = 0;
+    if (_nodeClientSubscription != null) {
+      final subscription = _nodeClientSubscription;
+      _nodeClientSubscription = null;
       unawaited(subscription.cancel());
     }
   }
@@ -189,7 +206,7 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
     }
     return env.useDb((db) {
       acc._updateFromBalanceMessage(msg);
-      return db.patchOrPut('accounts', acc, acc.id);
+      return db.patchOrPut(_accountsCollecton, acc, acc.id);
     });
   }
 
@@ -226,7 +243,7 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
       final msg = await client.sendAndAwait({'type': 'balance_info', 'account_id': '$id'});
       await env.useDb((db) {
         acc._updateFromBalanceMessage(msg);
-        return db.patchOrPut('accounts', acc, id);
+        return db.patchOrPut(_accountsCollecton, acc, id);
       });
     } finally {
       await _sealAccount(id, force: forceSealing);
@@ -245,7 +262,14 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
     if (!force && acc.sealed) {
       return Future.value(acc);
     }
-    return client.sendAndAwait({'type': 'seal', 'account_id': '$id'}).then((_) {
+    return client.sendAndAwait({'type': 'seal', 'account_id': '$id'}).catchError((err) {
+      if (err is StegosNodeErrorMessage && err.accountIsSealed) {
+        // Account is sealed already
+        return Future<StegosNodeMessage>.value();
+      } else {
+        return Future<StegosNodeMessage>.error(err);
+      }
+    }).then((_) {
       runInAction(() {
         acc.sealed = true;
       });
@@ -261,22 +285,55 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
     if (!force && !acc.sealed) {
       return acc;
     }
-    final pwpin = await env.securityService.acquirePasswordForApp();
-    var status = await _unsealAccountRaw(acc, pwpin.first);
+    _UnsealAccountStatus status;
+    final pwp = await env.securityService.acquirePasswordForApp();
+    if (acc._password != null && acc._iv != null) {
+      // We have own pin protected account password
+      final apwp =
+          env.securityService.recoverPinProtectedPassword(pwp.second, acc._password, acc._iv);
+      status = await _unsealAccountRaw(acc, apwp.first);
+      if (status.unsealed) {
+        return acc;
+      }
+    }
+    status = await _unsealAccountRaw(acc, pwp.first);
     if (status.unsealed) {
       return acc;
     }
     if (status.invalidPassword) {
-      // Default empty password is used?
+      // May be empty password is used?
       status = await _unsealAccountRaw(acc, '');
       if (status.unsealed) {
-        // If so try to change password
+        // If so try to change empty password
         log.warning('Trying to change default password for account: $id');
         await client.sendAndAwait(
-            {'type': 'change_password', 'account_id': '$id', 'new_password': pwpin.first});
+            {'type': 'change_password', 'account_id': '$id', 'new_password': pwp.first});
       } else {
-        log.warning('It seems account has different password');
-        // todo: ask user for password!!
+        final pw = await appShowDialog<String>(
+            builder: (context) => PasswordScreen(
+                  title: 'Unlock account ${acc.humanName}',
+                  caption: 'It seems that account is locked by unknown password.',
+                  titleStatus: 'Please provide account password to unlock',
+                  titleSubmitButton: 'UNLOCK',
+                  unlocker: (password) async {
+                    status = await _unsealAccountRaw(acc, password);
+                    if (status.invalidPassword) {
+                      return Pair(null, 'Invalid password provided');
+                    }
+                    final pwp = await env.securityService.acquirePasswordForApp();
+                    final pin = pwp.second;
+                    final pp = env.securityService.setupPinProtectedPassword(password, pin);
+                    acc._password = pp.first;
+                    acc._iv = pp.second;
+                    await env.useDb((db) => db.patchOrPut(
+                        _accountsCollecton, {'password': acc._password, 'iv': acc._iv}, id));
+                    return Pair(password, null);
+                  },
+                ));
+        if (pw == null) {
+          // User cannot unlock this account
+          throw Exception('Failed to unlock account: ${acc.humanName}');
+        }
       }
     }
     return acc;
@@ -318,11 +375,34 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
     return acc;
   }
 
-  Future<void> _syncAccounts() async {
-    final msg = await client.sendAndAwait({'type': 'list_accounts'});
-    final nodeAccounts = msg.json['accounts'] as Map<String, dynamic> ?? {};
-    final ids = nodeAccounts.keys.map(int.parse).toList();
+  Future<Map<String, dynamic>> _listRawAccounts() => client.sendAndAwait(
+      {'type': 'list_accounts'}).then((msg) => msg.json['accounts'] as Map<String, dynamic> ?? {});
 
+  Future<Map<String, dynamic>> _detectNetworkAndSetupInitialAccounts() async {
+    var nodeAccounts = await _listRawAccounts();
+    if (nodeAccounts.isEmpty) {
+      final pwp = await env.securityService.acquirePasswordForApp();
+      await client.sendAndAwait({'type': 'create_account', 'password': pwp.first});
+      nodeAccounts = await _listRawAccounts();
+      if (nodeAccounts.isEmpty) {
+        throw StegosUserException('Unable to create an initial account and determine network type');
+      }
+    }
+    final pkey = nodeAccounts.values.first['account_pkey'] as String;
+    if (pkey.length < 3) {
+      // should never happen
+      throw StegosUserException('Invalid account data');
+    }
+    runInAction(() {
+      network = pkey.substring(0, 3);
+    });
+    log.info('Using Stegos network: ${network}');
+    return nodeAccounts;
+  }
+
+  Future<void> _syncAccounts() async {
+    final nodeAccounts = await _detectNetworkAndSetupInitialAccounts();
+    final ids = nodeAccounts.keys.map(int.parse).toList();
     // Cleanup not matched accounts
     runInAction(() {
       accounts.removeWhere((k, v) => !ids.contains(k));
@@ -331,7 +411,8 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
       return Future.value();
     }
     return env.useDb((db) async {
-      await for (final doc in db.createQuery('@accounts/[id in :?]').setJson(0, ids).execute()) {
+      await for (final doc
+          in db.createQuery('/[id in :?]', _accountsCollecton).setJson(0, ids).execute()) {
         final id = doc.object['id'] as int;
         final acc = accounts[id];
         if (log.isFine) {
