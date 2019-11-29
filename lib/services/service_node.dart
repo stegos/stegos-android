@@ -38,7 +38,7 @@ abstract class _AccountStore with Store {
   String networkPkey;
 
   @computed
-  String get humanName => name ?? 'Account #${id}';
+  String get humanName => name ?? '#${id}';
 
   @observable
   String name;
@@ -285,8 +285,18 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
     if (!force && !acc.sealed) {
       return acc;
     }
+    _UnsealAccountStatus status;
     final pwp = await env.securityService.acquirePasswordForApp();
-    var status = await _unsealAccountRaw(acc, pwp.first);
+    if (acc._password != null && acc._iv != null) {
+      // We have own pin protected account password
+      final apwp =
+          env.securityService.recoverPinProtectedPassword(pwp.second, acc._password, acc._iv);
+      status = await _unsealAccountRaw(acc, apwp.first);
+      if (status.unsealed) {
+        return acc;
+      }
+    }
+    status = await _unsealAccountRaw(acc, pwp.first);
     if (status.unsealed) {
       return acc;
     }
@@ -299,22 +309,30 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
         await client.sendAndAwait(
             {'type': 'change_password', 'account_id': '$id', 'new_password': pwp.first});
       } else {
-        final accName = acc.humanName;
-        final msg = 'It seems that account: ${accName} is locked by unknown password.';
-        log.warning(msg);
         final pw = await appShowDialog<String>(
             builder: (context) => PasswordScreen(
-                  caption: msg,
+                  title: 'Unlock account ${acc.humanName}',
+                  caption: 'It seems that account is locked by unknown password.',
                   titleStatus: 'Please provide account password to unlock',
                   titleSubmitButton: 'UNLOCK',
-                  unlocker: (String upw) async {
-                    // todo:
-                    return Pair(null, 'Incorrect password');
+                  unlocker: (password) async {
+                    status = await _unsealAccountRaw(acc, password);
+                    if (status.invalidPassword) {
+                      return Pair(null, 'Invalid password provided');
+                    }
+                    final pwp = await env.securityService.acquirePasswordForApp();
+                    final pin = pwp.second;
+                    final pp = env.securityService.setupPinProtectedPassword(password, pin);
+                    acc._password = pp.first;
+                    acc._iv = pp.second;
+                    await env.useDb((db) => db.patchOrPut(
+                        _accountsCollecton, {'password': acc._password, 'iv': acc._iv}, id));
+                    return Pair(password, null);
                   },
                 ));
         if (pw == null) {
           // User cannot unlock this account
-          throw Exception('Failed to unlock account: ${accName}');
+          throw Exception('Failed to unlock account: ${acc.humanName}');
         }
       }
     }

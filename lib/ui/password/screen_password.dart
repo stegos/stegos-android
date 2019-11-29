@@ -44,7 +44,7 @@ class _PasswordScreenState extends State<PasswordScreen> {
         data: StegosThemes.passwordTheme,
         child: Scaffold(
           appBar: AppBarWidget(
-            centerTitle: false,
+            centerTitle: true,
             backgroundColor: Theme.of(context).colorScheme.primary,
             leading: IconButton(
               icon: const SizedBox(
