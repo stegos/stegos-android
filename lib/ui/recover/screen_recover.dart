@@ -66,7 +66,7 @@ class _RecoverScreenState extends State<RecoverScreen> {
       builder: (_) => RaisedButton(
             elevation: 8,
             disabledElevation: 8,
-            onPressed: _store.valid ? _onRestore : null,
+            onPressed: _store.valid ? _onRecover : null,
             child: const Text('VERIFY'),
           ));
 
@@ -102,7 +102,7 @@ class _RecoverScreenState extends State<RecoverScreen> {
         ],
       );
 
-  void _onRestore() {
+  void _onRecover() {
     // todo:
     print('On restore');
   }

@@ -207,6 +207,19 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
     }
   }
 
+  Future<void> recoverAccount(List<String> recoveryPhrase) {
+    recoveryPhrase = recoveryPhrase.map((r) => r.trim()).where((r) => r.isNotEmpty).toList();
+    if (recoveryPhrase.length != 24) {
+      return Future.error('Invalid recovery phrase');
+    }
+    if (!connected || !synchronized) {
+      return Future.error('Node is not connected or synchronized');
+    }
+    return client
+        .sendAndAwait({'type': 'recover_account', 'recovery': recoveryPhrase.join(' ')}).then(
+            (_) => _syncAccounts());
+  }
+
   Future<void> swapAccounts(int fromIndex, int toIndex) {
     if (log.isFine) {
       log.fine('Swap accounts from=$fromIndex to=$toIndex');
