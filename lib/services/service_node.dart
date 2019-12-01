@@ -212,7 +212,10 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
       log.fine('Swap accounts from=$fromIndex to=$toIndex');
     }
     final alist = accountsList;
-    if (fromIndex == toIndex || fromIndex >= alist.length || toIndex >= alist.length) {
+    if (fromIndex == toIndex) {
+      return Future.value();
+    }
+    if (fromIndex >= alist.length || toIndex >= alist.length) {
       log.warning('reorderAccounts: invalid arguments: ${fromIndex}, ${toIndex}');
       return Future.value();
     }

@@ -43,11 +43,22 @@ class _DevMenuScreenState extends State<DevMenuScreen> {
                         title: const Text('Node address'),
                         subtitle: Text(store.nodeWsEndpoint),
                         onTap: () async {
-                          var addr = await appShowSimpleAskTextDialog(
-                              title: 'Node address', intialValue: store.nodeWsEndpoint);
+                          var addr = (await appShowSimpleAskTextDialog(
+                                  title: 'Node address', intialValue: store.nodeWsEndpoint))
+                              ?.trim();
                           if (addr != null) {
                             if (!addr.startsWith('ws://')) addr = 'ws://${addr}';
-                            unawaited(store.mergeSingle('wsEndpoint', addr.trim()));
+                            unawaited(store.mergeSingle('wsEndpoint', addr));
+                          }
+                        }),
+                    ListTile(
+                        title: const Text('Node API Token'),
+                        onTap: () async {
+                          final token = (await appShowSimpleAskTextDialog(
+                                  title: 'API Token', intialValue: store.nodeWsEndpointApiToken))
+                              ?.trim();
+                          if (token != null && token.length == 24) {
+                            unawaited(store.mergeSingle('wsApiToken', token));
                           }
                         })
                   ],
