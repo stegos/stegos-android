@@ -14,6 +14,18 @@ mixin _$StegosStore on _StegosStore, Store {
   @override
   bool get needWelcome =>
       (_$needWelcomeComputed ??= Computed<bool>(() => super.needWelcome)).value;
+  Computed<String> _$nodeWsEndpointComputed;
+
+  @override
+  String get nodeWsEndpoint => (_$nodeWsEndpointComputed ??=
+          Computed<String>(() => super.nodeWsEndpoint))
+      .value;
+  Computed<String> _$nodeWsEndpointApiTokenComputed;
+
+  @override
+  String get nodeWsEndpointApiToken => (_$nodeWsEndpointApiTokenComputed ??=
+          Computed<String>(() => super.nodeWsEndpointApiToken))
+      .value;
 
   final _$activateAsyncAction = AsyncAction('activate');
 

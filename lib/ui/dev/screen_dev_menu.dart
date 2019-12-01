@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:pedantic/pedantic.dart';
+import 'package:provider/provider.dart';
+import 'package:stegos_wallet/stores/store_stegos.dart';
 import 'package:stegos_wallet/ui/themes.dart';
+import 'package:stegos_wallet/utils/dialogs.dart';
 import 'package:stegos_wallet/widgets/widget_app_bar.dart';
 import 'package:stegos_wallet/widgets/widget_scaffold_body_wrapper.dart';
 
@@ -27,51 +31,28 @@ class _DevMenuScreenState extends State<DevMenuScreen> {
               ),
               onPressed: () => Navigator.pop(context, false),
             ),
-            title: const Text('Develop'),
+            title: const Text('Development'),
           ),
           body: ScaffoldBodyWrapperWidget(
-              builder: (context) => ListView(
-                    children: <Widget>[
-                      ListTile(
-                        onTap: _showAddressDialog,
-                        title: Text('Node address:'),
-                        subtitle: Text('ws://10.0.2.2:2135'),
-                      )
-                    ],
-                  )),
+              wrapInObserver: true,
+              builder: (context) {
+                final store = Provider.of<StegosStore>(context);
+                return ListView(
+                  children: <Widget>[
+                    ListTile(
+                        title: const Text('Node address'),
+                        subtitle: Text(store.nodeWsEndpoint),
+                        onTap: () async {
+                          var addr = await appShowSimpleAskTextDialog(
+                              title: 'Node address', intialValue: store.nodeWsEndpoint);
+                          if (addr != null) {
+                            if (!addr.startsWith('ws://')) addr = 'ws://${addr}';
+                            unawaited(store.mergeSingle('wsEndpoint', addr.trim()));
+                          }
+                        })
+                  ],
+                );
+              }),
         ),
       );
-
-  void _showAddressDialog() {
-    showDialog(
-        context: context,
-        builder: (context) {
-          var address = '';
-          return AlertDialog(
-            title: const Text('Node address'),
-            content: TextField(
-              onChanged: (text) {
-                address = text;
-              },
-            ),
-            actions: <Widget>[
-              FlatButton(
-                  onPressed: () {
-                    print('cancel dialog');
-                    _dismissDialog();
-                  },
-                  child: const Text('CANCEL')),
-              FlatButton(
-                onPressed: () {
-                  print('create account $address');
-                  _dismissDialog();
-                },
-                child: const Text('SAVE'),
-              )
-            ],
-          );
-        });
-  }
-
-  void _dismissDialog() => Navigator.pop(context);
 }

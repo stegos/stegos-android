@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:mobx/mobx.dart';
 import 'package:provider/provider.dart';
 import 'package:stegos_wallet/stores/store_stegos.dart';
 import 'package:stegos_wallet/ui/themes.dart';
 
 class ScaffoldBodyWrapperWidget extends StatefulWidget {
-  const ScaffoldBodyWrapperWidget({Key key, this.builder}) : super(key: key);
+  const ScaffoldBodyWrapperWidget({Key key, this.builder, this.wrapInObserver = false})
+      : super(key: key);
   final WidgetBuilder builder;
+  final bool wrapInObserver;
   @override
   State<StatefulWidget> createState() => ScaffoldBodyWrapperWidgetState();
 }
@@ -63,7 +66,11 @@ class ScaffoldBodyWrapperWidgetState extends State<ScaffoldBodyWrapperWidget> {
   Widget build(BuildContext context) {
     final builder = widget.builder;
     if (operable && !hasError) {
-      return builder(context);
+      if (widget.wrapInObserver) {
+        return Observer(builder: builder);
+      } else {
+        return builder(context);
+      }
     }
     return SafeArea(
       child: Column(
@@ -94,7 +101,7 @@ class ScaffoldBodyWrapperWidgetState extends State<ScaffoldBodyWrapperWidget> {
               ),
             ),
           //
-          Expanded(child: builder(context))
+          Expanded(child: widget.wrapInObserver ? Observer(builder: builder) : builder(context))
         ],
       ),
     );

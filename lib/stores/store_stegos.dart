@@ -32,9 +32,12 @@ abstract class _StegosStore extends MainStoreSupport with Store, Loggable<Stegos
   @computed
   bool get needWelcome => settings['needWelcome'] as bool ?? true;
 
+  @computed
   String get nodeWsEndpoint => settings['wsEndpoint'] as String ?? env.configNodeWsEndpoint;
 
-  String get nodeWsEndpointApiToken => settings['wsApiToken'] as String ?? env.configNodeWsEndpointApiToken;
+  @computed
+  String get nodeWsEndpointApiToken =>
+      settings['wsApiToken'] as String ?? env.configNodeWsEndpointApiToken;
 
   /// Last known active route
   final lastRoute = Observable<RouteSettings>(null);

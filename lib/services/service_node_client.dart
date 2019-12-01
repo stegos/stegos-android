@@ -262,9 +262,10 @@ abstract class _StegosNodeClient with Store, Loggable<StegosNodeClient> {
 
   void _init() {
     _disposers.forEach((d) => d());
+    _disposers.length = 0;
     _disposers
         .add(reaction((_) => env.store.nodeWsEndpoint + env.store.nodeWsEndpointApiToken, (_) {
-      log.warning('Reconnecting due to change of endpont ot api token');
+      log.warning('Reconnecting due to change of endpont address or api token');
       unawaited(_connect(ensureOpened: false));
     }));
   }
@@ -282,7 +283,7 @@ abstract class _StegosNodeClient with Store, Loggable<StegosNodeClient> {
     await close(dispose: false).catchError((err, StackTrace st) {
       log.warning('', err, st);
     });
-    return WebSocket.connect(env.configNodeWsEndpoint).then((ws) {
+    return WebSocket.connect(env.store.nodeWsEndpoint).then((ws) {
       _ws = ws;
       _reconnecting = false;
       runInAction(() {
@@ -318,7 +319,7 @@ abstract class _StegosNodeClient with Store, Loggable<StegosNodeClient> {
   /// connected to stegos node.
   String _messageEncrypt(String payload) {
     // aes-128-ctr
-    final aes = StegosAesCrypt(env.configNodeWsEndpointApiToken, 'ctr');
+    final aes = StegosAesCrypt(env.store.nodeWsEndpointApiToken, 'ctr');
     final iv = const StegosCryptKey().genDartRaw(16);
     final encrypted = aes.encrypt(const Utf8Encoder().convert(payload), iv);
     return base64Encode(iv + encrypted);
@@ -333,7 +334,7 @@ abstract class _StegosNodeClient with Store, Loggable<StegosNodeClient> {
     }
     final iv = bytes.sublist(0, 16);
     final encrypted = bytes.sublist(16);
-    final aes = StegosAesCrypt(env.configNodeWsEndpointApiToken, 'ctr');
+    final aes = StegosAesCrypt(env.store.nodeWsEndpointApiToken, 'ctr');
     final payload = aes.decrypt(encrypted, iv);
     return const Utf8Decoder().convert(payload);
   }
