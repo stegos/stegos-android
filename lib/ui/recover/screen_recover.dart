@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:mobx/mobx.dart';
 import 'package:provider/provider.dart';
 import 'package:stegos_wallet/env_stegos.dart';
 import 'package:stegos_wallet/ui/app.dart';
@@ -34,7 +35,7 @@ class _RecoverScreenState extends State<RecoverScreen> {
               ),
               onPressed: () => Navigator.pop(context, false),
             ),
-            title: const Text('Account back up'),
+            title: const Text('Recover Stegos account'),
           ),
           body: ScaffoldBodyWrapperWidget(
               builder: (context) => Column(
@@ -60,19 +61,21 @@ class _RecoverScreenState extends State<RecoverScreen> {
                       Expanded(
                         child: SingleChildScrollView(child: _buildForm()),
                       ),
-                      SizedBox(width: double.infinity, height: 50, child: _buildRestoreButton())
+                      SizedBox(width: double.infinity, height: 50, child: _buildRecoverButton())
                     ],
                   )),
         ),
       );
 
-  Widget _buildRestoreButton() => Observer(builder: (context) {
+  Widget _buildRecoverButton() => Observer(builder: (context) {
         final env = Provider.of<StegosEnv>(context);
         return RaisedButton(
           elevation: 8,
           disabledElevation: 8,
-          onPressed: _store.valid && env.nodeService.operable ? () => _onRecover(env) : null,
-          child: const Text('RECOVER'),
+          onPressed: () => !_store.recovering && _store.valid && env.nodeService.operable
+              ? () => _onRecover(env)
+              : null,
+          child: _store.recovering ? const Text('RECOVERING...') : const Text('RECOVER'),
         );
       });
 
@@ -108,9 +111,23 @@ class _RecoverScreenState extends State<RecoverScreen> {
         ],
       );
 
-  void _onRecover(StegosEnv env) {
-    env.nodeService.recoverAccount(_store.keys).then((_) {
-      StegosApp.navigatorKey.currentState.pushReplacementNamed(Routes.accounts);
+  void _onRecover(StegosEnv env) async {
+    final keys = _store.keys;
+    runInAction(() {
+      _store.recovering = true;
     });
+    try {
+      await env.nodeService.recoverAccount(keys).then((_) {
+        StegosApp.navigatorKey.currentState.pushReplacementNamed(Routes.wallet);
+      }).catchError((err) {
+        if (err is StegosUserException) {
+          env.setError(err.message);
+        }
+      });
+    } finally {
+      runInAction(() {
+        _store.recovering = false;
+      });
+    }
   }
 }

@@ -207,7 +207,7 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
     }
   }
 
-  Future<void> recoverAccount(List<String> recoveryPhrase) {
+  Future<void> recoverAccount(List<String> recoveryPhrase) async {
     recoveryPhrase = recoveryPhrase.map((r) => r.trim()).where((r) => r.isNotEmpty).toList();
     if (recoveryPhrase.length != 24) {
       return Future.error('Invalid recovery phrase');
@@ -215,10 +215,14 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
     if (!connected || !synchronized) {
       return Future.error('Node is not connected or synchronized');
     }
-    //todo: password here
-    return client
-        .sendAndAwait({'type': 'recover_account', 'recovery': recoveryPhrase.join(' ')}).then(
-            (_) => _syncAccounts());
+    final pwp = await env.securityService.acquirePasswordForApp();
+    return client.sendAndAwait({
+      'type': 'recover_account',
+      'recovery': recoveryPhrase.join(' '),
+      'password': pwp.first
+    }).then((_) {
+      unawaited(_syncAccounts());
+    });
   }
 
   Future<void> swapAccounts(int fromIndex, int toIndex) {

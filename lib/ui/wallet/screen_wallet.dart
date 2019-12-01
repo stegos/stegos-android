@@ -61,7 +61,7 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
                     child: const Text('Stegos'),
                   ),
                   ListTile(
-                    title: const Text('Develop'),
+                    title: const Text('Development'),
                     onTap: () {
                       Navigator.pushNamed(context, Routes.devmenu);
                     },

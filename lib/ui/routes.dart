@@ -58,7 +58,7 @@ class _InitialRouteScreenState extends State<_InitialRouteScreen> {
           } else if (store.needWelcome) {
             return const RouteSettings(name: Routes.welcome);
           } else {
-            return const RouteSettings(name: Routes.accounts);
+            return const RouteSettings(name: Routes.wallet);
           }
         });
 
@@ -81,7 +81,6 @@ class _InitialRouteScreenState extends State<_InitialRouteScreen> {
 
 mixin Routes {
   static const root = '/';
-  static const accounts = 'accounts';
   static const devmenu = 'devmenu';
   static const pinprotect = 'pinprotect';
   static const recover = 'recover';
@@ -106,9 +105,9 @@ mixin Routes {
       env.store.resetError();
       switch (name) {
         // Remember selected screen, todo: review
-        case accounts:
-          unawaited(env.store.persistNextRoute(settings));
-          break;
+        // case accounts:
+        //   unawaited(env.store.persistNextRoute(settings));
+        //   break;
       }
       switch (name) {
         case root:

@@ -15,6 +15,23 @@ mixin _$RecoverScreenStore on _RecoverScreenStore, Store {
   bool get valid =>
       (_$validComputed ??= Computed<bool>(() => super.valid)).value;
 
+  final _$recoveringAtom = Atom(name: '_RecoverScreenStore.recovering');
+
+  @override
+  bool get recovering {
+    _$recoveringAtom.context.enforceReadPolicy(_$recoveringAtom);
+    _$recoveringAtom.reportObserved();
+    return super.recovering;
+  }
+
+  @override
+  set recovering(bool value) {
+    _$recoveringAtom.context.conditionallyRunInAction(() {
+      super.recovering = value;
+      _$recoveringAtom.reportChanged();
+    }, _$recoveringAtom, name: '${_$recoveringAtom.name}_set');
+  }
+
   final _$_RecoverScreenStoreActionController =
       ActionController(name: '_RecoverScreenStore');
 

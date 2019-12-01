@@ -18,4 +18,7 @@ abstract class _RecoverScreenStore with Store {
 
   @computed
   bool get valid => keys.firstWhere((v) => v.isEmpty, orElse: () => null) == null;
+
+  @observable
+  bool recovering = false;
 }
