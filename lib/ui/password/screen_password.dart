@@ -112,7 +112,6 @@ class _PasswordScreenState extends State<PasswordScreen> {
     }
   }
 
-  // todo:
   void _onCancel() {
     StegosApp.navigatorKey.currentState.pop();
   }

@@ -2,6 +2,36 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:stegos_wallet/ui/app.dart';
 
+Future<String> appShowSimpleAskTextDialog(
+        {@required String title,
+        String intialValue = '',
+        String titleCancelButton = 'CANCEL',
+        String titleOkayButton = 'OK'}) =>
+    appShowDialog(builder: (context) {
+      final ctl = TextEditingController(text: intialValue);
+      return AlertDialog(
+        title: Text(title),
+        content: TextField(
+          autofocus: true,
+          controller: ctl,
+        ),
+        actions: <Widget>[
+          FlatButton(
+            onPressed: () {
+              StegosApp.navigatorKey.currentState.pop(null);
+            },
+            child: Text(titleCancelButton),
+          ),
+          FlatButton(
+            onPressed: () {
+              StegosApp.navigatorKey.currentState.pop(ctl.text);
+            },
+            child: Text(titleOkayButton),
+          )
+        ],
+      );
+    });
+
 Future<T> appShowDialog<T>(
     {@required WidgetBuilder builder, BuildContext context, bool barrierDismissible = true}) {
   context ??= StegosApp.navigatorKey.currentContext;

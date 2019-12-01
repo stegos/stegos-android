@@ -220,6 +220,23 @@ mixin _$AccountStore on _AccountStore, Store {
         name: '${_$balancePaymentAvailableAtom.name}_set');
   }
 
+  final _$ordinalAtom = Atom(name: '_AccountStore.ordinal');
+
+  @override
+  int get ordinal {
+    _$ordinalAtom.context.enforceReadPolicy(_$ordinalAtom);
+    _$ordinalAtom.reportObserved();
+    return super.ordinal;
+  }
+
+  @override
+  set ordinal(int value) {
+    _$ordinalAtom.context.conditionallyRunInAction(() {
+      super.ordinal = value;
+      _$ordinalAtom.reportChanged();
+    }, _$ordinalAtom, name: '${_$ordinalAtom.name}_set');
+  }
+
   final _$_AccountStoreActionController =
       ActionController(name: '_AccountStore');
 
@@ -245,6 +262,18 @@ mixin _$AccountStore on _AccountStore, Store {
 }
 
 mixin _$NodeService on _NodeService, Store {
+  Computed<List<AccountStore>> _$accountsListComputed;
+
+  @override
+  List<AccountStore> get accountsList => (_$accountsListComputed ??=
+          Computed<List<AccountStore>>(() => super.accountsList))
+      .value;
+  Computed<int> _$totalBalanceComputed;
+
+  @override
+  int get totalBalance =>
+      (_$totalBalanceComputed ??= Computed<int>(() => super.totalBalance))
+          .value;
   Computed<bool> _$connectedComputed;
 
   @override

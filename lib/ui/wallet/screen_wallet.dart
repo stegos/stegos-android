@@ -2,10 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stegos_wallet/ui/routes.dart';
+import 'package:stegos_wallet/ui/themes.dart';
 import 'package:stegos_wallet/ui/wallet/wallet/screen_accounts.dart';
 import 'package:stegos_wallet/widgets/widget_app_bar.dart';
-
-import '../themes.dart';
 
 /// Main wallet screen with integrated TabBar.
 ///
@@ -15,16 +14,6 @@ class WalletScreen extends StatefulWidget {
 }
 
 class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderStateMixin {
-  final walletIcon = 'assets/images/wallet.svg';
-
-  final qrReaderIcon = 'assets/images/qr_reader.svg';
-
-  final chatIcon = 'assets/images/chat.svg';
-
-  final contactsIcon = 'assets/images/contacts.svg';
-
-  final menu = SvgPicture.asset('assets/images/menu.svg');
-
   final GlobalKey<ScaffoldState> _drawerKey = GlobalKey();
 
   int selectedItem = 0;
@@ -45,7 +34,8 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
   }
 
   @override
-  Widget build(BuildContext context) => Theme(
+  Widget build(BuildContext context) {
+    return Theme(
         data: StegosThemes.walletTheme,
         child: DefaultTabController(
           length: 4,
@@ -54,7 +44,7 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
             appBar: AppBarWidget(
               centerTitle: false,
               leading: IconButton(
-                icon: menu,
+                icon: SvgPicture.asset('assets/images/menu.svg'),
                 onPressed: () => {_drawerKey.currentState.openDrawer()},
               ),
               title: const Text('Stegos Wallet'),
@@ -65,14 +55,16 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
                 padding: EdgeInsets.zero,
                 children: <Widget>[
                   DrawerHeader(
-                    child: const Text('Stegos'),
                     decoration: BoxDecoration(
                       color: StegosColors.accentColor,
                     ),
+                    child: const Text('Stegos'),
                   ),
                   ListTile(
                     title: const Text('Develop'),
-                    onTap: () { Navigator.pushNamed(context, Routes.devMenu);},
+                    onTap: () {
+                      Navigator.pushNamed(context, Routes.devmenu);
+                    },
                   ),
                 ],
               ),
@@ -83,19 +75,19 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
                 controller: _tabController,
                 tabs: [
                   Tab(
-                    icon: _buildTabIcon(walletIcon, selectedItem == 0),
+                    icon: _buildTabIcon('assets/images/wallet.svg', selectedItem == 0),
                     text: 'Wallet',
                   ),
                   Tab(
-                    icon: _buildTabIcon(qrReaderIcon, selectedItem == 1),
+                    icon: _buildTabIcon('assets/images/qr_reader.svg', selectedItem == 1),
                     text: 'QR Reader',
                   ),
                   Tab(
-                    icon: _buildTabIcon(chatIcon, selectedItem == 2),
+                    icon: _buildTabIcon('assets/images/chat.svg', selectedItem == 2),
                     text: 'Chat',
                   ),
                   Tab(
-                    icon: _buildTabIcon(contactsIcon, selectedItem == 3),
+                    icon: _buildTabIcon('assets/images/contacts.svg', selectedItem == 3),
                     text: 'Contacts',
                   ),
                 ],
@@ -118,4 +110,5 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
           ),
         ),
       );
+  }
 }

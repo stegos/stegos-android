@@ -5,6 +5,7 @@ import 'package:pedantic/pedantic.dart';
 import 'package:provider/provider.dart';
 import 'package:stegos_wallet/env.dart';
 import 'package:stegos_wallet/log/loggable.dart';
+import 'package:stegos_wallet/services/service_node.dart';
 import 'package:stegos_wallet/services/service_node_client.dart';
 import 'package:stegos_wallet/services/service_security.dart';
 import 'package:stegos_wallet/stores/store_stegos.dart';
@@ -66,6 +67,8 @@ class StegosEnv extends Env<Widget> {
 
   /// Shared security service
   SecurityService securityService;
+
+  NodeService get nodeService => _store.nodeService;
 
   /// Use database in given [fn] function.
   /// This method don't leave database in open state

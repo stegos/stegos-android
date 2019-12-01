@@ -88,7 +88,9 @@ abstract class _StegosNodeClient with Store, Loggable<StegosNodeClient> {
   _StegosNodeClient(this.env)
       : _minWait = env.configNodeWsEndpointMinReconnectTimeoutMs,
         _maxWait = env.configNodeWsEndpointMaxReconnectTimeoutMs,
-        _nextWait = env.configNodeWsEndpointMinReconnectTimeoutMs;
+        _nextWait = env.configNodeWsEndpointMinReconnectTimeoutMs {
+    _init();
+  }
 
   /// Env ref
   final StegosEnv env;
@@ -115,6 +117,8 @@ abstract class _StegosNodeClient with Store, Loggable<StegosNodeClient> {
   var _controller = StreamController<StegosNodeMessage>.broadcast();
 
   WebSocket _ws;
+
+  final _disposers = <ReactionDisposer>[];
 
   /// ignore: cancel_subscriptions
   StreamSubscription _subscription;
@@ -158,6 +162,8 @@ abstract class _StegosNodeClient with Store, Loggable<StegosNodeClient> {
       return;
     }
     if (dispose) {
+      _disposers.forEach((d) => d());
+      _disposers.length = 0;
       await _controller.close();
     }
     if (_subscription != null) {
@@ -254,19 +260,30 @@ abstract class _StegosNodeClient with Store, Loggable<StegosNodeClient> {
     return Future.delayed(Duration(milliseconds: _nextWait), _connect);
   }
 
+  void _init() {
+    _disposers.forEach((d) => d());
+    _disposers.length = 0;
+    _disposers
+        .add(reaction((_) => env.store.nodeWsEndpoint + env.store.nodeWsEndpointApiToken, (_) {
+      log.warning('Reconnecting due to change of endpont address or api token');
+      unawaited(_connect(ensureOpened: false));
+    }));
+  }
+
   Future<void> _connect({bool ensureOpened = false}) async {
     if (ensureOpened && (_reconnecting || connected)) {
       return Future.value();
     }
     log.info('Connecting...');
     if (_disposed) {
+      _init();
       _controller = StreamController<StegosNodeMessage>.broadcast();
     }
     _reconnecting = true;
     await close(dispose: false).catchError((err, StackTrace st) {
       log.warning('', err, st);
     });
-    return WebSocket.connect(env.configNodeWsEndpoint).then((ws) {
+    return WebSocket.connect(env.store.nodeWsEndpoint).then((ws) {
       _ws = ws;
       _reconnecting = false;
       runInAction(() {
@@ -302,7 +319,7 @@ abstract class _StegosNodeClient with Store, Loggable<StegosNodeClient> {
   /// connected to stegos node.
   String _messageEncrypt(String payload) {
     // aes-128-ctr
-    final aes = StegosAesCrypt(env.configNodeWsEndpointApiToken, 'ctr');
+    final aes = StegosAesCrypt(env.store.nodeWsEndpointApiToken, 'ctr');
     final iv = const StegosCryptKey().genDartRaw(16);
     final encrypted = aes.encrypt(const Utf8Encoder().convert(payload), iv);
     return base64Encode(iv + encrypted);
@@ -317,7 +334,7 @@ abstract class _StegosNodeClient with Store, Loggable<StegosNodeClient> {
     }
     final iv = bytes.sublist(0, 16);
     final encrypted = bytes.sublist(16);
-    final aes = StegosAesCrypt(env.configNodeWsEndpointApiToken, 'ctr');
+    final aes = StegosAesCrypt(env.store.nodeWsEndpointApiToken, 'ctr');
     final payload = aes.decrypt(encrypted, iv);
     return const Utf8Decoder().convert(payload);
   }
