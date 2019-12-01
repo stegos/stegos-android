@@ -88,7 +88,9 @@ abstract class _StegosNodeClient with Store, Loggable<StegosNodeClient> {
   _StegosNodeClient(this.env)
       : _minWait = env.configNodeWsEndpointMinReconnectTimeoutMs,
         _maxWait = env.configNodeWsEndpointMaxReconnectTimeoutMs,
-        _nextWait = env.configNodeWsEndpointMinReconnectTimeoutMs;
+        _nextWait = env.configNodeWsEndpointMinReconnectTimeoutMs {
+    _init();
+  }
 
   /// Env ref
   final StegosEnv env;
@@ -115,6 +117,8 @@ abstract class _StegosNodeClient with Store, Loggable<StegosNodeClient> {
   var _controller = StreamController<StegosNodeMessage>.broadcast();
 
   WebSocket _ws;
+
+  final _disposers = <ReactionDisposer>[];
 
   /// ignore: cancel_subscriptions
   StreamSubscription _subscription;
@@ -158,6 +162,8 @@ abstract class _StegosNodeClient with Store, Loggable<StegosNodeClient> {
       return;
     }
     if (dispose) {
+      _disposers.forEach((d) => d());
+      _disposers.length = 0;
       await _controller.close();
     }
     if (_subscription != null) {
@@ -254,12 +260,18 @@ abstract class _StegosNodeClient with Store, Loggable<StegosNodeClient> {
     return Future.delayed(Duration(milliseconds: _nextWait), _connect);
   }
 
+  void _init() {
+    reaction((_) => env.store.nodeWsEndpoint + env.store.nodeWsEndpointApiToken,
+        (_) => unawaited(_connect(ensureOpened: true)));
+  }
+
   Future<void> _connect({bool ensureOpened = false}) async {
     if (ensureOpened && (_reconnecting || connected)) {
       return Future.value();
     }
     log.info('Connecting...');
     if (_disposed) {
+      _init();
       _controller = StreamController<StegosNodeMessage>.broadcast();
     }
     _reconnecting = true;
