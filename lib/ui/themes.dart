@@ -147,11 +147,11 @@ mixin StegosThemes {
       floatingActionButtonTheme: const FloatingActionButtonThemeData(
           backgroundColor: Color(0xff15151f), foregroundColor: StegosColors.primaryColor),
       buttonTheme: ButtonThemeData(
-          buttonColor: Color(0xff15151f),
+          buttonColor: const Color(0xff15151f),
           colorScheme: ColorScheme.fromSwatch(
-              primaryColorDark: Color(0xff15151f),
-              accentColor: Color(0xff15151f),
-              backgroundColor: Color(0xff15151f),
+              primaryColorDark: const Color(0xff15151f),
+              accentColor: const Color(0xff15151f),
+              backgroundColor: const Color(0xff15151f),
               brightness: Brightness.dark)));
 
   static final walletTheme = baseTheme.copyWith(
