@@ -27,9 +27,8 @@ int _nextId() {
   }
 }
 
-class StegosNodeErrorMessage implements Exception {
-  StegosNodeErrorMessage(this.message);
-  final String message;
+class StegosNodeErrorMessage extends StegosUserException {
+  StegosNodeErrorMessage(String message) : super(message);
   @override
   String toString() => 'StegosNodeErrorMessage: ${message}';
 

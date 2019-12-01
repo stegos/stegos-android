@@ -215,6 +215,7 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
     if (!connected || !synchronized) {
       return Future.error('Node is not connected or synchronized');
     }
+    //todo: password here
     return client
         .sendAndAwait({'type': 'recover_account', 'recovery': recoveryPhrase.join(' ')}).then(
             (_) => _syncAccounts());

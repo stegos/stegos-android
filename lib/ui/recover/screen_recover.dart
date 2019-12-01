@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:provider/provider.dart';
+import 'package:stegos_wallet/env_stegos.dart';
+import 'package:stegos_wallet/ui/app.dart';
 import 'package:stegos_wallet/ui/recover/store_screen_recover.dart';
+import 'package:stegos_wallet/ui/routes.dart';
 import 'package:stegos_wallet/ui/themes.dart';
 import 'package:stegos_wallet/widgets/widget_app_bar.dart';
 import 'package:stegos_wallet/widgets/widget_scaffold_body_wrapper.dart';
@@ -62,13 +66,15 @@ class _RecoverScreenState extends State<RecoverScreen> {
         ),
       );
 
-  Widget _buildRestoreButton() => Observer(
-      builder: (_) => RaisedButton(
-            elevation: 8,
-            disabledElevation: 8,
-            onPressed: _store.valid ? _onRecover : null,
-            child: const Text('VERIFY'),
-          ));
+  Widget _buildRestoreButton() => Observer(builder: (context) {
+        final env = Provider.of<StegosEnv>(context);
+        return RaisedButton(
+          elevation: 8,
+          disabledElevation: 8,
+          onPressed: _store.valid && env.nodeService.operable ? () => _onRecover(env) : null,
+          child: const Text('RECOVER'),
+        );
+      });
 
   Widget _buildForm() => Form(
         child: Column(
@@ -102,8 +108,9 @@ class _RecoverScreenState extends State<RecoverScreen> {
         ],
       );
 
-  void _onRecover() {
-    // todo:
-    print('On restore');
+  void _onRecover(StegosEnv env) {
+    env.nodeService.recoverAccount(_store.keys).then((_) {
+      StegosApp.navigatorKey.currentState.pushReplacementNamed(Routes.accounts);
+    });
   }
 }
