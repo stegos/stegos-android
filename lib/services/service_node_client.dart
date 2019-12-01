@@ -261,8 +261,12 @@ abstract class _StegosNodeClient with Store, Loggable<StegosNodeClient> {
   }
 
   void _init() {
-    reaction((_) => env.store.nodeWsEndpoint + env.store.nodeWsEndpointApiToken,
-        (_) => unawaited(_connect(ensureOpened: true)));
+    _disposers.forEach((d) => d());
+    _disposers
+        .add(reaction((_) => env.store.nodeWsEndpoint + env.store.nodeWsEndpointApiToken, (_) {
+      log.warning('Reconnecting due to change of endpont ot api token');
+      unawaited(_connect(ensureOpened: false));
+    }));
   }
 
   Future<void> _connect({bool ensureOpened = false}) async {
