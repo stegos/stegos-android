@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stegos_wallet/ui/routes.dart';
 import 'package:stegos_wallet/ui/themes.dart';
 
 class Account {
@@ -65,7 +66,7 @@ class AccountCardState extends State<AccountCard> {
             alignment: bgAlignment,
             child: InkWell(
               borderRadius: BorderRadius.circular(3.0),
-              onTap: () {},
+              onTap: () => Navigator.pushNamed(context, Routes.account),
               child: AspectRatio(
                   aspectRatio: aspectRation,
                   child: Stack(
@@ -85,7 +86,7 @@ class AccountCardState extends State<AccountCard> {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: <Widget>[
-                              Text(widget.account.name, style: TextStyle(fontSize: 12)),
+                              Text(widget.account.name, style: const TextStyle(fontSize: 12)),
                               qrIcon,
                             ],
                           ))

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stegos_wallet/ui/routes.dart';
-import 'package:stegos_wallet/ui/wallet/account/screen_account.dart';
 import 'package:stegos_wallet/ui/wallet/wallet/screen_accounts.dart';
 import 'package:stegos_wallet/widgets/widget_app_bar.dart';
 
