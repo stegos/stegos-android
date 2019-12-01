@@ -17,8 +17,8 @@ class RecoverScreen extends StatefulWidget {
 }
 
 class _RecoverScreenState extends State<RecoverScreen> {
-  final _store = RecoverScreenStore(24);
   static const _iconBackImage = AssetImage('assets/images/arrow_back.png');
+  final _store = RecoverScreenStore(24);
 
   @override
   Widget build(BuildContext context) => Theme(
@@ -33,7 +33,7 @@ class _RecoverScreenState extends State<RecoverScreen> {
                 height: 24,
                 child: Image(image: _iconBackImage),
               ),
-              onPressed: () => Navigator.pop(context, false),
+              onPressed: () => Navigator.pop(context),
             ),
             title: const Text('Recover Stegos account'),
           ),
@@ -72,7 +72,7 @@ class _RecoverScreenState extends State<RecoverScreen> {
         return RaisedButton(
           elevation: 8,
           disabledElevation: 8,
-          onPressed: () => !_store.recovering && _store.valid && env.nodeService.operable
+          onPressed: (!_store.recovering && _store.valid && env.nodeService.operable)
               ? () => _onRecover(env)
               : null,
           child: _store.recovering ? const Text('RECOVERING...') : const Text('RECOVER'),
@@ -93,23 +93,27 @@ class _RecoverScreenState extends State<RecoverScreen> {
         ),
       );
 
-  Widget _buildTextEntry(int idx, String text) => Stack(
-        alignment: Alignment.centerLeft,
-        children: <Widget>[
-          Builder(
-              builder: (context) => Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 13.0, vertical: 6.0),
-                    child: Text(
-                      '${idx + 1}.',
-                      style: StegosThemes.defaultInputTextStyle,
-                    ),
-                  )),
-          TextField(
-            onChanged: (val) => _store.setKey(idx, val),
-            style: StegosThemes.defaultInputTextStyle,
-          )
-        ],
-      );
+  Widget _buildTextEntry(int idx, String text) {
+    final controller = TextEditingController(text: _store.keys[idx]);
+    return Stack(
+      alignment: Alignment.centerLeft,
+      children: <Widget>[
+        Builder(
+            builder: (context) => Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 13.0, vertical: 6.0),
+                  child: Text(
+                    '${idx + 1}.',
+                    style: StegosThemes.defaultInputTextStyle,
+                  ),
+                )),
+        TextField(
+          controller: controller,
+          onChanged: (val) => _store.setKey(idx, val),
+          style: StegosThemes.defaultInputTextStyle,
+        )
+      ],
+    );
+  }
 
   void _onRecover(StegosEnv env) async {
     final keys = _store.keys;
@@ -119,11 +123,9 @@ class _RecoverScreenState extends State<RecoverScreen> {
     try {
       await env.nodeService.recoverAccount(keys).then((_) {
         StegosApp.navigatorKey.currentState.pushReplacementNamed(Routes.wallet);
-      }).catchError((err) {
-        if (err is StegosUserException) {
-          env.setError(err.message);
-        }
-      });
+      }).then((_) {
+        keys.fillRange(0, keys.length, '');
+      }).catchError(defaultErrorHandler(env));
     } finally {
       runInAction(() {
         _store.recovering = false;

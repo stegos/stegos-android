@@ -12,7 +12,7 @@ Future<String> appShowSimpleAskTextDialog(
       return AlertDialog(
         title: Text(title),
         content: TextField(
-          autofocus: true,
+          autofocus: false,
           controller: ctl,
         ),
         actions: <Widget>[

@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:mobx/mobx.dart';
 import 'package:provider/provider.dart';
+import 'package:stegos_wallet/env_stegos.dart';
 import 'package:stegos_wallet/stores/store_stegos.dart';
 import 'package:stegos_wallet/ui/themes.dart';
 
@@ -90,14 +91,20 @@ class ScaffoldBodyWrapperWidgetState extends State<ScaffoldBodyWrapperWidget> {
             ),
           //
           if (hasError)
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 50),
-              color: StegosColors.errorColor,
-              child: Text(
-                error.message,
-                textAlign: TextAlign.center,
-                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+            GestureDetector(
+              onTap: () {
+                final env = Provider.of<StegosEnv>(context);
+                env.resetError();
+              },
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 50),
+                color: StegosColors.errorColor,
+                child: Text(
+                  error.message,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+                ),
               ),
             ),
           //

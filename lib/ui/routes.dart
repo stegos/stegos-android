@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:mobx/mobx.dart';
-import 'package:pedantic/pedantic.dart';
 import 'package:stegos_wallet/env_stegos.dart';
 import 'package:stegos_wallet/ui/dev/screen_dev_menu.dart';
 import 'package:stegos_wallet/ui/pinprotect/screen_pin_protect.dart';
@@ -50,7 +49,7 @@ class _InitialRouteScreenState extends State<_InitialRouteScreen> {
             break;
         }
 
-        final initialRoute = untracked(() {
+        final initialRoute = untracked<RouteSettings>(() {
           if (!ss.hasPinProtectedPassword) {
             return const RouteSettings(name: Routes.pinprotect);
           } else if (ss.needAppUnlock) {
@@ -103,6 +102,15 @@ mixin Routes {
     return routeFactoryFn = (RouteSettings settings) {
       final name = settings.name;
       env.store.resetError();
+
+      final welcomeRoute = untracked<RouteSettings>(() {
+        if (env.store.needWelcome) {
+          return const RouteSettings(name: Routes.welcome);
+        } else {
+          return const RouteSettings(name: Routes.wallet);
+        }
+      });
+
       switch (name) {
         // Remember selected screen, todo: review
         // case accounts:
@@ -116,7 +124,7 @@ mixin Routes {
         case unlock:
           {
             final arguments = settings.arguments as Map<String, dynamic> ?? {};
-            var nextRoute = const RouteSettings(name: welcome);
+            var nextRoute = welcomeRoute;
             if (arguments['nextRoute'] is RouteSettings) {
               nextRoute = arguments['nextRoute'] as RouteSettings;
             }
@@ -128,7 +136,8 @@ mixin Routes {
                     ));
           }
         case welcome:
-          return MaterialPageRoute(builder: (BuildContext context) => WelcomeScreen());
+          return MaterialPageRoute(
+              maintainState: false, builder: (BuildContext context) => WelcomeScreen());
         case wallet:
           return MaterialPageRoute(builder: (BuildContext context) => WalletScreen());
         case recover:
@@ -136,8 +145,7 @@ mixin Routes {
         case splash:
           return MaterialPageRoute(
               maintainState: false,
-              builder: (BuildContext context) =>
-                  const SplashScreen(nextRoute: RouteSettings(name: welcome)));
+              builder: (BuildContext context) => SplashScreen(nextRoute: welcomeRoute));
         case Routes.settings:
           return MaterialPageRoute(builder: (BuildContext context) => SettingsScreen());
         case Routes.devmenu:

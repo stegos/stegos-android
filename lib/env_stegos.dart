@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:ejdb2_flutter/ejdb2_flutter.dart';
 import 'package:flutter/widgets.dart';
 import 'package:logging/logging.dart';
@@ -16,6 +18,16 @@ class StegosUserException implements Exception {
   StegosUserException(this.message);
   final String message;
 }
+
+FutureOr<T> Function(T, StackTrace) defaultErrorHandler<T>(StegosEnv env) => (err, StackTrace st) {
+      if (err is StegosUserException) {
+        env.setError(err.message);
+        // ignore: avoid_returning_null_for_future
+        return null;
+      } else {
+        return Future<T>.error(err, st);
+      }
+    };
 
 /// Stegos wallet app environment.
 ///
@@ -103,6 +115,13 @@ class StegosEnv extends Env<Widget> {
     }
   }
 
+  @override
+  void resetError() {
+    if (_store != null) {
+      _store.resetError();
+    }
+  }
+
   /// Bring environment to operational state
   Future<void> activate() async {
     await getDb();
@@ -115,7 +134,7 @@ class StegosEnv extends Env<Widget> {
   Future<Widget> openWidget() async => MultiProvider(
         providers: [
           Provider<StegosEnv>.value(value: this),
-          Provider<StegosStore>(builder: (_) => store),
+          Provider<StegosStore>(create: (_) => store),
         ],
         child: LifecycleWatcher(builder: (context, state) {
           switch (state) {

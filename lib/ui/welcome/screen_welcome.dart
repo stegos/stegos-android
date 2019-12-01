@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:mobx/mobx.dart';
+import 'package:pedantic/pedantic.dart';
+import 'package:provider/provider.dart';
+import 'package:stegos_wallet/stores/store_stegos.dart';
 import 'package:stegos_wallet/ui/routes.dart';
 import 'package:stegos_wallet/ui/themes.dart';
 import 'package:stegos_wallet/widgets/widget_scaffold_body_wrapper.dart';
@@ -11,17 +15,17 @@ class WelcomeScreen extends StatelessWidget {
         child: Scaffold(
           body: ScaffoldBodyWrapperWidget(
               builder: (context) => Container(
-                    decoration: BoxDecoration(
+                    decoration: const BoxDecoration(
                       image: DecorationImage(
-                        image: const AssetImage('assets/images/welcome_background.png'),
+                        image: AssetImage('assets/images/welcome_background.png'),
                         fit: BoxFit.cover,
                       ),
                     ),
                     padding: const EdgeInsets.symmetric(horizontal: 10),
                     child: ListView(
                       children: <Widget>[
-                        Image(
-                          image: const AssetImage('assets/images/logo.png'),
+                        const Image(
+                          image: AssetImage('assets/images/logo.png'),
                         ),
                         Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 48),
@@ -48,10 +52,12 @@ class WelcomeScreen extends StatelessWidget {
       );
 
   void _onHaveAccount(BuildContext context) {
-    Navigator.pushNamed(context, Routes.recover);
+    Navigator.pushReplacementNamed(context, Routes.recover);
   }
 
   void _onNewUser(BuildContext context) {
-    Navigator.pushNamed(context, Routes.wallet);
+    Navigator.pushReplacementNamed(context, Routes.wallet);
+    final store = Provider.of<StegosStore>(context);
+    Future.microtask(() => runInAction(() => unawaited(store.mergeSingle('needWelcome', false))));
   }
 }

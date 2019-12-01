@@ -39,6 +39,7 @@ abstract class Env<W extends Widget> {
   }
 
   void setError(String error);
+  void resetError();
 
   @mustCallSuper
   @protected
