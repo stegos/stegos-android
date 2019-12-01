@@ -291,6 +291,10 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
     unawaited(client.sendAndAwait({'type': 'status_info'}).then((msg) {
       runInAction(() {
         synchronized = msg.json['is_synchronized'] as bool ?? false;
+        if (synchronized == false) {
+          if (log.isFine) log.fine('Schedule syncNodeStatus in next 10 secs');
+          Timer(const Duration(seconds: 10), () => _syncNodeStatus(this.connected));
+        }
       });
     }));
   }
