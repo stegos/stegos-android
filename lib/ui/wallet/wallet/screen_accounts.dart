@@ -147,7 +147,7 @@ class AccountsScreenState extends State<AccountsScreen> with Loggable<AccountsSc
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text('Delete account ${account.humanName}?'),
-          content: const Text('You can make backup if want to restore it later.'),
+          content: const Text('Please make an account backup if you with to restore it later.'),
           actions: <Widget>[
             FlatButton(
               onPressed: () {
@@ -168,10 +168,7 @@ class AccountsScreenState extends State<AccountsScreen> with Loggable<AccountsSc
   }
 
   void _onDeleteAccount(AccountStore account, int index) {
-    print('${account.id}, $index');
-
-    Scaffold.of(context)
-        .removeCurrentSnackBar();
+    Scaffold.of(context).removeCurrentSnackBar();
     Scaffold.of(context).showSnackBar(SnackBar(
       content: Text('${account.humanName} was removed!'),
       duration: const Duration(seconds: 2),
@@ -184,12 +181,11 @@ class AccountsScreenState extends State<AccountsScreen> with Loggable<AccountsSc
         onReorder: (int oldIndex, int newIndex) {
           final alist = env.nodeService.accountsList;
           // These two lines are workarounds for ReorderableListView
-          // todo: review
           if (newIndex > alist.length) newIndex = alist.length;
           if (oldIndex < newIndex) newIndex--;
           unawaited(
               env.nodeService.swapAccounts(oldIndex, newIndex).catchError((err, StackTrace st) {
-            log.severe('Failed to reorder accounts: ', err, st);
+            log.warning('Failed to reorder accounts: ', err, st);
           }));
         },
         padding: EdgeInsets.only(bottom: 80, top: collapsed ? 22 : 15, left: 30, right: 30),
