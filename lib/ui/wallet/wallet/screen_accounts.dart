@@ -38,12 +38,20 @@ class AccountsScreenState extends State<AccountsScreen> with Loggable<AccountsSc
         ),
       );
 
-  Widget _buildFloatingActionButton(BuildContext context) => FloatingActionButton(
-        onPressed: () {
-          _settingModalBottomSheet(context);
-        },
-        child: Icon(Icons.add),
-      );
+  Widget _buildFloatingActionButton(BuildContext context) => Observer(builder: (context) {
+        final env = Provider.of<StegosEnv>(context);
+        if (!env.nodeService.operable) {
+          return const SizedBox.shrink();
+        }
+        return FloatingActionButton(
+          onPressed: env.nodeService.operable
+              ? () {
+                  _settingModalBottomSheet(context);
+                }
+              : null,
+          child: Icon(Icons.add),
+        );
+      });
 
   Widget _buildAccountsHeader(BuildContext context) {
     final env = Provider.of<StegosEnv>(context);
@@ -127,8 +135,7 @@ class AccountsScreenState extends State<AccountsScreen> with Loggable<AccountsSc
   Widget _buildAccountsList(BuildContext context) =>
       collapsed ? _buildCollapsedAccountsList(context) : _buildExpandedAccountsList(context);
 
-  // todo:
-  void _showMaterialDialog() {
+  void _showCreateNewAccountDialog() {
     _dismissDialog();
     showDialog(
         context: context,
@@ -142,15 +149,11 @@ class AccountsScreenState extends State<AccountsScreen> with Loggable<AccountsSc
               },
             ),
             actions: <Widget>[
-              FlatButton(
-                  onPressed: () {
-                    print('cancel dialog');
-                    _dismissDialog();
-                  },
-                  child: const Text('CANCEL')),
+              FlatButton(onPressed: _dismissDialog, child: const Text('CANCEL')),
               FlatButton(
                 onPressed: () {
-                  print('create account $accountName');
+                  final env = Provider.of<StegosEnv>(context);
+                  unawaited(env.nodeService.createNewAccount(accountName));
                   _dismissDialog();
                 },
                 child: const Text('CREATE'),
@@ -210,7 +213,7 @@ class AccountsScreenState extends State<AccountsScreen> with Loggable<AccountsSc
                             width: 65,
                             height: 65,
                             child: RaisedButton(
-                              onPressed: _showMaterialDialog,
+                              onPressed: _showCreateNewAccountDialog,
                               color: StegosColors.splashBackground,
                               child: SvgPicture.asset('assets/images/create_account.svg'),
                             ),

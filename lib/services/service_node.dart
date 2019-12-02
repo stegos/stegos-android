@@ -207,14 +207,25 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
     }
   }
 
+  Future<void> createNewAccount([String name]) async {
+    await _checkOperable();
+    final pwp = await env.securityService.acquirePasswordForApp();
+    final msg = await client.sendAndAwait({'type': 'create_account', 'password': pwp.first});
+    final accountId = msg.accountId;
+    if (accountId > 0 && name != null && name.isNotEmpty) {
+      await env.useDb(
+          (db) => db.patchOrPut(_accountsCollecton, {'id': accountId, 'name': name}, accountId));
+    }
+    unawaited(_syncAccounts());
+    return msg;
+  }
+
   Future<void> recoverAccount(List<String> recoveryPhrase) async {
     recoveryPhrase = recoveryPhrase.map((r) => r.trim()).where((r) => r.isNotEmpty).toList();
     if (recoveryPhrase.length != 24) {
       return Future.error('Invalid recovery phrase');
     }
-    if (!connected || !synchronized) {
-      return Future.error('Node is not connected or synchronized');
-    }
+    await _checkOperable();
     final pwp = await env.securityService.acquirePasswordForApp();
     return client.sendAndAwait({
       'type': 'recover_account',
@@ -292,6 +303,13 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
       acc._updateFromBalanceMessage(msg);
       return db.patchOrPut(_accountsCollecton, acc, acc.id);
     });
+  }
+
+  Future<void> _checkOperable() {
+    if (!operable) {
+      return Future.error(StegosUserException('Stegos node is not connected/synchronized'));
+    }
+    return Future.value();
   }
 
   void _onNodeMessage(StegosNodeMessage msg) {
