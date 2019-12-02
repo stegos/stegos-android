@@ -196,8 +196,7 @@ class AccountsScreenState extends State<AccountsScreen>
   Widget _buildCollapsedAccountsList() {
     final env = Provider.of<StegosEnv>(context);
     return ReorderableList(
-        onReorder: collapsed
-            ? (int oldIndex, int newIndex) {
+        onReorder: (int oldIndex, int newIndex) {
                 final alist = env.nodeService.accountsList;
                 // These two lines are workarounds for ReorderableListView
                 // todo: review
@@ -208,8 +207,7 @@ class AccountsScreenState extends State<AccountsScreen>
                     .catchError((err, StackTrace st) {
                   log.warning('Failed to reorder accounts: ', err, st);
                 }));
-              }
-            : (int oldIndex, int newIndex) {},
+              },
         padding: EdgeInsets.only(bottom: 80, top: collapsed ? 22 : 15, left: 30, right: 30),
         children: _accountsArray());
   }
@@ -218,7 +216,8 @@ class AccountsScreenState extends State<AccountsScreen>
       padding: EdgeInsets.only(bottom: 80, top: collapsed ? 22 : 15, left: 30, right: 30),
       children: _accountsArray());
 
-  Widget _buildAccountsList(BuildContext context) => _buildCollapsedAccountsList();
+  Widget _buildAccountsList(BuildContext context) =>
+      collapsed ? _buildCollapsedAccountsList() : _buildExpandedAccountsList();
 
   void _showCreateNewAccountDialog() {
     _dismissDialog();
