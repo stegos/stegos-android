@@ -52,7 +52,7 @@ class WelcomeScreen extends StatelessWidget {
       );
 
   void _onHaveAccount(BuildContext context) {
-    Navigator.pushReplacementNamed(context, Routes.recover);
+    Navigator.pushNamed(context, Routes.recover);
   }
 
   void _onNewUser(BuildContext context) {
