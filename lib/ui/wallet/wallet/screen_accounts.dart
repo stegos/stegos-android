@@ -165,7 +165,7 @@ class AccountsScreenState extends State<AccountsScreen>
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text('Delete account ${account.humanName}?'),
-          content: const Text('You can make backup if want to restore it later.'),
+          content: const Text('Please make an account backup if you with to restore it later.'),
           actions: <Widget>[
             FlatButton(
               onPressed: () {
@@ -186,7 +186,6 @@ class AccountsScreenState extends State<AccountsScreen>
   }
 
   void _onDeleteAccount(AccountStore account, int index) {
-    print('${account.id}, $index');
     Scaffold.of(context).removeCurrentSnackBar();
     Scaffold.of(context).showSnackBar(SnackBar(
       content: Text('${account.humanName} was removed!'),
@@ -207,10 +206,10 @@ class AccountsScreenState extends State<AccountsScreen>
                 unawaited(env.nodeService
                     .swapAccounts(oldIndex, newIndex)
                     .catchError((err, StackTrace st) {
-                  log.severe('Failed to reorder accounts: ', err, st);
+                  log.warning('Failed to reorder accounts: ', err, st);
                 }));
               }
-            : null,
+            : (int oldIndex, int newIndex) {},
         padding: EdgeInsets.only(bottom: 80, top: collapsed ? 22 : 15, left: 30, right: 30),
         children: _accountsArray());
   }
