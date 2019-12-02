@@ -33,7 +33,7 @@ class AccountCardState extends State<AccountCard> {
 
         return Container(
           width: MediaQuery.of(context).size.width - 60,
-          margin: EdgeInsets.symmetric(vertical: widget.collapsed ? 4 : 15),
+          padding: EdgeInsets.symmetric(vertical: widget.collapsed ? 4 : 15),
           color: StegosColors.backgroundColor,
           child: Material(
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(3.0)),

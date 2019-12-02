@@ -6,6 +6,7 @@ import 'package:pedantic/pedantic.dart';
 import 'package:provider/provider.dart';
 import 'package:stegos_wallet/env_stegos.dart';
 import 'package:stegos_wallet/log/loggable.dart';
+import 'package:stegos_wallet/services/service_node.dart';
 import 'package:stegos_wallet/ui/routes.dart';
 import 'package:stegos_wallet/ui/themes.dart';
 import 'package:stegos_wallet/ui/wallet/wallet/account_card.dart';
@@ -97,9 +98,76 @@ class AccountsScreenState extends State<AccountsScreen> with Loggable<AccountsSc
 
   List<Widget> _accountsArray() {
     final env = Provider.of<StegosEnv>(context);
+    int index = 0;
     return env.nodeService.accountsList
-        .map((acc) => AccountCard(key: ValueKey(acc), collapsed: collapsed))
+        .map((acc) => Dismissible(
+              key: ValueKey(acc.hashCode),
+              onDismissed: (DismissDirection direction) {
+                if (direction == DismissDirection.endToStart) {
+                  _onDeleteAccount(acc, index++);
+                }
+              },
+              direction: DismissDirection.endToStart,
+              confirmDismiss: (DismissDirection direction) => _confirmDeleting(acc),
+              background: Container(
+                margin: EdgeInsets.symmetric(vertical: (collapsed ? 4 : 15) + 3.0, horizontal: 3.0),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(3.0),
+                  color: StegosColors.splashBackground.withOpacity(0.5),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: <Widget>[
+                    const Text(
+                      'Delete account',
+                    ),
+                    const SizedBox(width: 10),
+                    Icon(Icons.delete_forever),
+                    const SizedBox(width: 10),
+                  ],
+                ),
+              ),
+              child: AccountCard(key: ValueKey(acc), collapsed: collapsed),
+            ))
         .toList();
+  }
+
+  Future<bool> _confirmDeleting(AccountStore account) async {
+    return showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Delete account ${account.humanName}?'),
+          content: const Text('You can make backup if want to restore it later.'),
+          actions: <Widget>[
+            FlatButton(
+              onPressed: () {
+                Navigator.of(context).pop(false);
+              },
+              child: const Text('CANCEL'),
+            ),
+            FlatButton(
+              onPressed: () {
+                Navigator.of(context).pop(true);
+              },
+              child: const Text('DELETE'),
+            )
+          ],
+        );
+      },
+    );
+  }
+
+  void _onDeleteAccount(AccountStore account, int index) {
+    print('${account.id}, $index');
+
+    Scaffold.of(context)
+        .removeCurrentSnackBar();
+    Scaffold.of(context).showSnackBar(SnackBar(
+      content: Text('${account.humanName} was removed!'),
+      duration: const Duration(seconds: 2),
+    ));
   }
 
   Widget _buildCollapsedAccountsList(BuildContext context) {
