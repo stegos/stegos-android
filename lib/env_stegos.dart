@@ -62,7 +62,7 @@ class StegosEnv extends Env<Widget> {
   int get configGeneratedPasswordsLength => 15;
 
   /// Max unlocked app period in milleseconds
-  int get configMaxAppUnlockedPeriod => 100 * 60 * 60 * 1000; // 1h fixme:
+  int get configMaxAppUnlockedPeriod => 5 * 60 * 1000; // 5min
 
   /// Maximum number of messages awaiting sending to stegos node
   int get configNodeMaxPendingMessages => 1024;

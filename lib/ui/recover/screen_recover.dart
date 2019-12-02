@@ -122,7 +122,7 @@ class _RecoverScreenState extends State<RecoverScreen> {
     });
     try {
       await env.nodeService.recoverAccount(keys).then((_) {
-        StegosApp.navigatorKey.currentState.pushReplacementNamed(Routes.wallet);
+        StegosApp.navigatorState.pushReplacementNamed(Routes.wallet);
       }).then((_) {
         keys.fillRange(0, keys.length, '');
       }).catchError(defaultErrorHandler(env));

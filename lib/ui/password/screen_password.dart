@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:pedantic/pedantic.dart';
 import 'package:stegos_wallet/ui/app.dart';
 import 'package:stegos_wallet/ui/themes.dart';
 import 'package:stegos_wallet/utils/cont.dart';
@@ -108,11 +109,11 @@ class _PasswordScreenState extends State<PasswordScreen> {
       });
     } else {
       // Pop this screen
-      StegosApp.navigatorKey.currentState.pop(result.first);
+      StegosApp.navigatorState.pop(result.first);
     }
   }
 
   void _onCancel() {
-    StegosApp.navigatorKey.currentState.pop();
+    StegosApp.navigatorState.pop();
   }
 }

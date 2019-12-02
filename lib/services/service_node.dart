@@ -211,12 +211,19 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
     await _checkOperable();
     final pwp = await env.securityService.acquirePasswordForApp();
     final msg = await client.sendAndAwait({'type': 'create_account', 'password': pwp.first});
-    final accountId = msg.accountId;
-    if (accountId > 0 && name != null && name.isNotEmpty) {
-      await env.useDb(
-          (db) => db.patchOrPut(_accountsCollecton, {'id': accountId, 'name': name}, accountId));
-    }
-    unawaited(_syncAccounts());
+    unawaited(_syncAccounts().then((_) async {
+      final accountId = msg.accountId;
+      if (accountId > 0 && name != null && name.isNotEmpty) {
+        final acc = accounts[accountId];
+        if (acc != null) {
+          await env.useDb((db) =>
+              db.patchOrPut(_accountsCollecton, {'id': accountId, 'name': name}, accountId));
+          runInAction(() {
+            acc.name = name;
+          });
+        }
+      }
+    }));
     return msg;
   }
 
@@ -255,12 +262,12 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
       for (int i = 0; i < alist.length; i++) {
         alist[i].ordinal = i;
       }
-
     });
+
     return env.useDb((db) {
       final List<Future<void>> dbPatches = [];
-      alist.forEach((a) => dbPatches.add(db.patch(_accountsCollecton, {'ordinal': a.ordinal}, a.id)));
-
+      alist.forEach(
+          (a) => dbPatches.add(db.patch(_accountsCollecton, {'ordinal': a.ordinal}, a.id)));
       return Future.wait(dbPatches);
     });
   }
@@ -422,7 +429,7 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
         final pw = await appShowDialog<String>(
             builder: (context) => PasswordScreen(
                   title: 'Unlock account ${acc.humanName}',
-                  caption: 'It seems that account is locked by unknown password.',
+                  caption: 'It seems that this account is locked by unknown password.',
                   titleStatus: 'Please provide account password to unlock',
                   titleSubmitButton: 'UNLOCK',
                   unlocker: (password) async {

@@ -18,13 +18,13 @@ Future<String> appShowSimpleAskTextDialog(
         actions: <Widget>[
           FlatButton(
             onPressed: () {
-              StegosApp.navigatorKey.currentState.pop(null);
+              StegosApp.navigatorState.pop(null);
             },
             child: Text(titleCancelButton),
           ),
           FlatButton(
             onPressed: () {
-              StegosApp.navigatorKey.currentState.pop(ctl.text);
+              StegosApp.navigatorState.pop(ctl.text);
             },
             child: Text(titleOkayButton),
           )
@@ -74,7 +74,7 @@ Future<T> appShowGeneralDialog<T>(
     RouteTransitionsBuilder transitionBuilder}) {
   assert(pageBuilder != null);
   assert(!barrierDismissible || barrierLabel != null);
-  return StegosApp.navigatorKey.currentState.push<T>(_DialogRoute<T>(
+  return StegosApp.navigatorState.push<T>(_DialogRoute<T>(
     pageBuilder: pageBuilder,
     barrierDismissible: barrierDismissible,
     barrierLabel: barrierLabel,

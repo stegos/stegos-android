@@ -11,6 +11,8 @@ class StegosApp extends StatelessWidget {
 
   static final navigatorKey = GlobalKey<NavigatorState>(debugLabel: 'StegosApp:Navigator');
 
+  static NavigatorState get navigatorState => navigatorKey.currentState;
+
   final bool showSplash;
 
   @override

@@ -8,9 +8,11 @@ import 'package:provider/provider.dart';
 import 'package:stegos_wallet/env_stegos.dart';
 import 'package:stegos_wallet/log/loggable.dart';
 import 'package:stegos_wallet/services/service_node.dart';
+import 'package:stegos_wallet/ui/app.dart';
 import 'package:stegos_wallet/ui/routes.dart';
 import 'package:stegos_wallet/ui/themes.dart';
 import 'package:stegos_wallet/ui/wallet/wallet/account_card.dart';
+import 'package:stegos_wallet/utils/dialogs.dart';
 import 'package:stegos_wallet/widgets/reorderable_list.dart';
 import 'package:stegos_wallet/widgets/widget_scaffold_body_wrapper.dart';
 
@@ -158,32 +160,29 @@ class AccountsScreenState extends State<AccountsScreen>
     }).toList();
   }
 
-  Future<bool> _confirmDeleting(AccountStore account) async {
-    return showDialog<bool>(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Delete account ${account.humanName}?'),
-          content: const Text('Please make an account backup if you with to restore it later.'),
-          actions: <Widget>[
-            FlatButton(
-              onPressed: () {
-                Navigator.of(context).pop(false);
-              },
-              child: const Text('CANCEL'),
-            ),
-            FlatButton(
-              onPressed: () {
-                Navigator.of(context).pop(true);
-              },
-              child: const Text('DELETE'),
-            )
-          ],
-        );
-      },
-    );
-  }
+  Future<bool> _confirmDeleting(AccountStore account) => appShowDialog<bool>(
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Delete account ${account.humanName}?'),
+            content: const Text('Please make an account backup if you with to restore it later.'),
+            actions: <Widget>[
+              FlatButton(
+                onPressed: () {
+                  StegosApp.navigatorState.pop(false);
+                },
+                child: const Text('CANCEL'),
+              ),
+              FlatButton(
+                onPressed: () {
+                  StegosApp.navigatorState.pop(true);
+                },
+                child: const Text('DELETE'),
+              )
+            ],
+          );
+        },
+      );
 
   void _onDeleteAccount(AccountStore account, int index) {
     Scaffold.of(context).removeCurrentSnackBar();
@@ -197,17 +196,15 @@ class AccountsScreenState extends State<AccountsScreen>
     final env = Provider.of<StegosEnv>(context);
     return ReorderableList(
         onReorder: (int oldIndex, int newIndex) {
-                final alist = env.nodeService.accountsList;
-                // These two lines are workarounds for ReorderableListView
-                // todo: review
-                if (newIndex > alist.length) newIndex = alist.length;
-                if (oldIndex < newIndex) newIndex--;
-                unawaited(env.nodeService
-                    .swapAccounts(oldIndex, newIndex)
-                    .catchError((err, StackTrace st) {
-                  log.warning('Failed to reorder accounts: ', err, st);
-                }));
-              },
+          final alist = env.nodeService.accountsList;
+          // These two lines are workarounds for ReorderableListView
+          if (newIndex > alist.length) newIndex = alist.length;
+          if (oldIndex < newIndex) newIndex--;
+          unawaited(
+              env.nodeService.swapAccounts(oldIndex, newIndex).catchError((err, StackTrace st) {
+            log.warning('Failed to reorder accounts: ', err, st);
+          }));
+        },
         padding: EdgeInsets.only(bottom: 80, top: collapsed ? 22 : 15, left: 30, right: 30),
         children: _accountsArray());
   }
@@ -221,30 +218,29 @@ class AccountsScreenState extends State<AccountsScreen>
 
   void _showCreateNewAccountDialog() {
     _dismissDialog();
-    showDialog(
-        context: context,
-        builder: (context) {
-          var accountName = '';
-          return AlertDialog(
-            title: const Text('New account'),
-            content: TextField(
-              onChanged: (text) {
-                accountName = text;
-              },
-            ),
-            actions: <Widget>[
-              FlatButton(onPressed: _dismissDialog, child: const Text('CANCEL')),
-              FlatButton(
-                onPressed: () {
-                  final env = Provider.of<StegosEnv>(context);
-                  unawaited(env.nodeService.createNewAccount(accountName));
-                  _dismissDialog();
-                },
-                child: const Text('CREATE'),
-              )
-            ],
-          );
-        });
+    appShowDialog(builder: (context) {
+      var accountName = '';
+      return AlertDialog(
+        title: const Text('New account'),
+        content: TextField(
+          onChanged: (text) {
+            accountName = text;
+          },
+        ),
+        actions: <Widget>[
+          FlatButton(onPressed: _dismissDialog, child: const Text('CANCEL')),
+          FlatButton(
+            onPressed: () {
+              final env = Provider.of<StegosEnv>(context);
+              _dismissDialog();
+              unawaited(Future(() => env.nodeService.createNewAccount(accountName))
+                  .catchError(defaultErrorHandler(env)));
+            },
+            child: const Text('CREATE'),
+          )
+        ],
+      );
+    });
   }
 
   void _dismissDialog() => Navigator.pop(context);
