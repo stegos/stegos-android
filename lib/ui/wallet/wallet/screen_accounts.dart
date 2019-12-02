@@ -54,7 +54,7 @@ class AccountsScreenState extends State<AccountsScreen> with Loggable<AccountsSc
       child: Stack(children: [
         Container(
           alignment: Alignment.bottomCenter,
-          padding: const EdgeInsets.only(bottom: 42),
+          padding: const EdgeInsets.only(bottom: 48),
           child: Container(
             width: double.infinity,
             color: StegosColors.splashBackground,
@@ -72,7 +72,7 @@ class AccountsScreenState extends State<AccountsScreen> with Loggable<AccountsSc
           ),
         ),
         Container(
-          alignment: Alignment.bottomLeft,
+          alignment: Alignment.bottomCenter,
           decoration: BoxDecoration(
               border: Border(bottom: BorderSide(color: StegosColors.primaryColorDark))),
           child: FlatButton(
@@ -81,6 +81,7 @@ class AccountsScreenState extends State<AccountsScreen> with Loggable<AccountsSc
                 collapsed = !collapsed;
               });
             },
+            shape: Border.all(color: Colors.transparent, width: 0),
             child: Row(
               children: <Widget>[
                 SvgPicture.asset('assets/images/accounts.svg'),

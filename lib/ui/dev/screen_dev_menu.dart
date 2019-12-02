@@ -64,6 +64,7 @@ class _DevMenuScreenState extends State<DevMenuScreen> {
                     SwitchListTile(
                       onChanged: (bool value) {store.mergeSingle('needWelcome', value);},
                       value: store.needWelcome,
+                      activeColor: StegosColors.primaryColor,
                       title: const Text('Show welcome screen'),
                     ),
                   ],
