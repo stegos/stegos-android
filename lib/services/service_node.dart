@@ -240,7 +240,7 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
     if (log.isFine) {
       log.fine('Swap accounts from=$fromIndex to=$toIndex');
     }
-    final alist = accountsList;
+    final alist = List<AccountStore>.from(accountsList);
     if (fromIndex == toIndex) {
       return Future.value();
     }
@@ -248,17 +248,21 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
       log.warning('reorderAccounts: invalid arguments: ${fromIndex}, ${toIndex}');
       return Future.value();
     }
-    final from = alist[fromIndex];
-    final to = alist[toIndex];
+
     runInAction(() {
-      final tmp = from.ordinal;
-      from.ordinal = to.ordinal;
-      to.ordinal = tmp;
+      final AccountStore account = alist.removeAt(fromIndex);
+      alist.insert(toIndex, account);
+      for (int i = 0; i < alist.length; i++) {
+        alist[i].ordinal = i;
+      }
+
     });
-    return env.useDb((db) => Future.wait([
-          db.patch(_accountsCollecton, {'ordinal': to.ordinal}, to.id),
-          db.patch(_accountsCollecton, {'ordinal': from.ordinal}, from.id),
-        ]));
+    return env.useDb((db) {
+      final List<Future<void>> dbPatches = [];
+      alist.forEach((a) => dbPatches.add(db.patch(_accountsCollecton, {'ordinal': a.ordinal}, a.id)));
+
+      return Future.wait(dbPatches);
+    });
   }
 
   @computed

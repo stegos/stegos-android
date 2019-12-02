@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:pedantic/pedantic.dart';
@@ -20,7 +21,14 @@ class AccountsScreen extends StatefulWidget {
   AccountsScreenState createState() => AccountsScreenState();
 }
 
-class AccountsScreenState extends State<AccountsScreen> with Loggable<AccountsScreenState> {
+class AccountsScreenState extends State<AccountsScreen>
+    with Loggable<AccountsScreenState>, TickerProviderStateMixin {
+  AccountsScreenState() {
+    animationController =
+        AnimationController(duration: const Duration(milliseconds: 700), vsync: this);
+  }
+
+  AnimationController animationController;
   bool collapsed = false;
 
   @override
@@ -107,17 +115,26 @@ class AccountsScreenState extends State<AccountsScreen> with Loggable<AccountsSc
   List<Widget> _accountsArray() {
     final env = Provider.of<StegosEnv>(context);
     int index = 0;
-    return env.nodeService.accountsList
-        .map((acc) => Dismissible(
-              key: ValueKey(acc.hashCode),
-              onDismissed: (DismissDirection direction) {
-                if (direction == DismissDirection.endToStart) {
-                  _onDeleteAccount(acc, index++);
-                }
-              },
-              direction: DismissDirection.endToStart,
-              confirmDismiss: (DismissDirection direction) => _confirmDeleting(acc),
-              background: Container(
+    return env.nodeService.accountsList.map((acc) {
+      final ValueKey<AccountStore> key = ValueKey(acc);
+      return Listener(
+          key: key,
+          onPointerMove: (PointerMoveEvent event) {
+            final double size = MediaQuery.of(context).size.width - 60;
+            animationController.value = 1 - (event.position.dx / size);
+          },
+          child: Dismissible(
+            key: key,
+            onDismissed: (DismissDirection direction) {
+              if (direction == DismissDirection.endToStart) {
+                _onDeleteAccount(acc, index++);
+              }
+            },
+            direction: DismissDirection.endToStart,
+            confirmDismiss: (DismissDirection direction) => _confirmDeleting(acc),
+            background: FadeTransition(
+              opacity: animationController,
+              child: Container(
                 margin: EdgeInsets.symmetric(vertical: (collapsed ? 4 : 15) + 3.0, horizontal: 3.0),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(3.0),
@@ -127,17 +144,18 @@ class AccountsScreenState extends State<AccountsScreen> with Loggable<AccountsSc
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: <Widget>[
                     const Text(
-                      'Delete account',
+                      'Delete',
                     ),
                     const SizedBox(width: 10),
                     Icon(Icons.delete_forever),
-                    const SizedBox(width: 10),
+                    const SizedBox(width: 25),
                   ],
                 ),
               ),
-              child: AccountCard(key: ValueKey(acc), collapsed: collapsed),
-            ))
-        .toList();
+            ),
+            child: AccountCard(key: key, collapsed: collapsed),
+          ));
+    }).toList();
   }
 
   Future<bool> _confirmDeleting(AccountStore account) async {
@@ -175,29 +193,31 @@ class AccountsScreenState extends State<AccountsScreen> with Loggable<AccountsSc
     ));
   }
 
-  Widget _buildCollapsedAccountsList(BuildContext context) {
+  Widget _buildCollapsedAccountsList() {
     final env = Provider.of<StegosEnv>(context);
     return ReorderableList(
         onReorder: (int oldIndex, int newIndex) {
-          final alist = env.nodeService.accountsList;
-          // These two lines are workarounds for ReorderableListView
-          if (newIndex > alist.length) newIndex = alist.length;
-          if (oldIndex < newIndex) newIndex--;
-          unawaited(
-              env.nodeService.swapAccounts(oldIndex, newIndex).catchError((err, StackTrace st) {
-            log.warning('Failed to reorder accounts: ', err, st);
-          }));
-        },
+                final alist = env.nodeService.accountsList;
+                // These two lines are workarounds for ReorderableListView
+                // todo: review
+                if (newIndex > alist.length) newIndex = alist.length;
+                if (oldIndex < newIndex) newIndex--;
+                unawaited(env.nodeService
+                    .swapAccounts(oldIndex, newIndex)
+                    .catchError((err, StackTrace st) {
+                  log.warning('Failed to reorder accounts: ', err, st);
+                }));
+              },
         padding: EdgeInsets.only(bottom: 80, top: collapsed ? 22 : 15, left: 30, right: 30),
         children: _accountsArray());
   }
 
-  Widget _buildExpandedAccountsList(BuildContext context) => ListView(
+  Widget _buildExpandedAccountsList() => ListView(
       padding: EdgeInsets.only(bottom: 80, top: collapsed ? 22 : 15, left: 30, right: 30),
       children: _accountsArray());
 
   Widget _buildAccountsList(BuildContext context) =>
-      collapsed ? _buildCollapsedAccountsList(context) : _buildExpandedAccountsList(context);
+      collapsed ? _buildCollapsedAccountsList() : _buildExpandedAccountsList();
 
   void _showCreateNewAccountDialog() {
     _dismissDialog();
