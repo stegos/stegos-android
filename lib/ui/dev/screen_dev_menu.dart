@@ -60,7 +60,12 @@ class _DevMenuScreenState extends State<DevMenuScreen> {
                           if (token != null && token.length == 24) {
                             unawaited(store.mergeSingle('wsApiToken', token));
                           }
-                        })
+                        }),
+                    SwitchListTile(
+                      onChanged: (bool value) {store.mergeSingle('needWelcome', value);},
+                      value: store.needWelcome,
+                      title: const Text('Show welcome screen'),
+                    ),
                   ],
                 );
               }),
