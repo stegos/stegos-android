@@ -416,7 +416,6 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
     return client.sendAndAwait({'type': 'seal', 'account_id': '$id'}).catchError((err) {
       if (err is StegosNodeErrorMessage && err.accountIsSealed) {
         // Account is sealed already
-        print('!!!!!!!!!!!!!!!!!!!!!! acc: ${id}');
         return Future<StegosNodeMessage>.value();
       } else {
         return Future<StegosNodeMessage>.error(err);

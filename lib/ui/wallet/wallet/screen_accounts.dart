@@ -46,7 +46,7 @@ class AccountsScreenState extends State<AccountsScreen>
         final scaffold = Scaffold.of(context);
         scaffold.removeCurrentSnackBar();
         scaffold.showSnackBar(SnackBar(
-          content: Text('${accountName} was removed!'),
+          content: Text('${accountName} removed!'),
           duration: const Duration(seconds: 2),
         ));
       }
