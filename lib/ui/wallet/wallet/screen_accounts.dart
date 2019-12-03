@@ -176,6 +176,8 @@ class AccountsScreenState extends State<AccountsScreen>
               FlatButton(
                 onPressed: () {
                   StegosApp.navigatorState.pop(true);
+                  final env = Provider.of<StegosEnv>(context);
+                  env.nodeService.deleteAccount(account);
                 },
                 child: const Text('DELETE'),
               )

@@ -207,8 +207,15 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
     }
   }
 
+  Future<void> deleteAccount(AccountStore account) {
+    if (log.isFine) {
+      log.fine('deleteAccount: ${account.id}');
+    }
+    return _checkConnected().then((_) => client.sendAndForget({'delete_account': '${account.id}'}));
+  }
+
   Future<void> createNewAccount([String name]) async {
-    await _checkOperable();
+    await _checkConnected();
     final pwp = await env.securityService.acquirePasswordForApp();
     final msg = await client.sendAndAwait({'type': 'create_account', 'password': pwp.first});
     unawaited(_syncAccounts().then((_) async {
@@ -302,6 +309,13 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
     }
   }
 
+  Future<void> _onAccountDeleted(StegosNodeMessage msg) =>
+      env.useDb((db) => db.delIgnoreNotFound(_accountsCollecton, msg.accountId)).whenComplete(() {
+        runInAction(() {
+          accounts.remove(msg.accountId);
+        });
+      });
+
   Future<void> _onUpdateBalance(StegosNodeMessage msg) {
     final acc = accounts[msg.accountId];
     if (acc == null) {
@@ -316,6 +330,13 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
     });
   }
 
+  Future<void> _checkConnected() {
+    if (!connected) {
+      return Future.error(StegosUserException('Stegos node is not connected'));
+    }
+    return Future.value();
+  }
+
   Future<void> _checkOperable() {
     if (!operable) {
       return Future.error(StegosUserException('Stegos node is not connected/synchronized'));
@@ -327,6 +348,9 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
     switch (msg.type) {
       case 'balance_changed':
         unawaited(_onUpdateBalance(msg));
+        break;
+      case 'account_deleted':
+        unawaited(_onAccountDeleted(msg));
         break;
     }
   }
