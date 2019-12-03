@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:mobx/mobx.dart';
 import 'package:stegos_wallet/env_stegos.dart';
+import 'package:stegos_wallet/ui/account/screen_account.dart';
 import 'package:stegos_wallet/ui/dev/screen_dev_menu.dart';
 import 'package:stegos_wallet/ui/pinprotect/screen_pin_protect.dart';
 import 'package:stegos_wallet/ui/recover/screen_recover.dart';
@@ -80,6 +81,8 @@ class _InitialRouteScreenState extends State<_InitialRouteScreen> {
 
 mixin Routes {
   static const root = '/';
+  static const accounts = 'accounts';
+  static const account = 'account';
   static const devmenu = 'devmenu';
   static const pinprotect = 'pinprotect';
   static const recover = 'recover';
@@ -102,6 +105,7 @@ mixin Routes {
     return routeFactoryFn = (RouteSettings settings) {
       final name = settings.name;
       env.store.resetError();
+
 
       final welcomeRoute = untracked<RouteSettings>(() {
         if (env.store.needWelcome) {
@@ -136,8 +140,9 @@ mixin Routes {
                     ));
           }
         case welcome:
-          return MaterialPageRoute(
-              maintainState: false, builder: (BuildContext context) => WelcomeScreen());
+          return MaterialPageRoute(builder: (BuildContext context) => WelcomeScreen());
+        case account:
+          return MaterialPageRoute(builder: (BuildContext context) => AccountScreen());
         case wallet:
           return MaterialPageRoute(builder: (BuildContext context) => WalletScreen());
         case recover:

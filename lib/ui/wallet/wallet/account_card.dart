@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:stegos_wallet/services/service_node.dart';
+import 'package:stegos_wallet/ui/routes.dart';
 import 'package:stegos_wallet/ui/themes.dart';
 
 class AccountCard extends StatefulWidget {
@@ -45,7 +46,7 @@ class AccountCardState extends State<AccountCard> {
               alignment: bgAlignment,
               child: InkWell(
                 borderRadius: BorderRadius.circular(3.0),
-                onTap: () {},
+                onTap: () => Navigator.pushNamed(context, Routes.account),
                 child: AspectRatio(
                     aspectRatio: aspectRation,
                     child: Stack(

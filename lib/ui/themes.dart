@@ -212,4 +212,6 @@ mixin StegosThemes {
       contentPadding: const EdgeInsets.symmetric(horizontal: 13.0, vertical: 6.0),
     ),
   );
+
+  static final AccountTheme = baseTheme;
 }
