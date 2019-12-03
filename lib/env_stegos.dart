@@ -22,11 +22,8 @@ class StegosUserException implements Exception {
 FutureOr<T> Function(T, StackTrace) defaultErrorHandler<T>(StegosEnv env) => (err, StackTrace st) {
       if (err is StegosUserException) {
         env.setError(err.message);
-        // ignore: avoid_returning_null_for_future
-        return null;
-      } else {
-        return Future<T>.error(err, st);
       }
+      return Future<T>.error(err, st);
     };
 
 /// Stegos wallet app environment.

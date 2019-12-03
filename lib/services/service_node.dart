@@ -210,12 +210,12 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
   @observable
   String lastDeletedAccountName;
 
-  Future<void> deleteAccount(AccountStore account) {
+  Future<void> deleteAccount(AccountStore account) async {
     if (log.isFine) {
       log.fine('deleteAccount: ${account.id}');
     }
-    return _checkConnected()
-        .then((_) => _unsealAccount(account.id, force: true))
+    await _checkConnected();
+    await _unsealAccount(account.id, force: true)
         .then((_) => client.sendAndAwait({'type': 'delete_account', 'account_id': '${account.id}'}))
         .catchError(defaultErrorHandler(env));
   }
@@ -342,14 +342,16 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
 
   Future<void> _checkConnected() {
     if (!connected) {
-      return Future.error(StegosUserException('Stegos node is not connected'));
+      return Future.error(StegosUserException('Stegos node is not connected'))
+          .catchError(defaultErrorHandler(env));
     }
     return Future.value();
   }
 
   Future<void> _checkOperable() {
     if (!operable) {
-      return Future.error(StegosUserException('Stegos node is not connected/synchronized'));
+      return Future.error(StegosUserException('Stegos node is not connected/synchronized'))
+          .catchError(defaultErrorHandler(env));
     }
     return Future.value();
   }
