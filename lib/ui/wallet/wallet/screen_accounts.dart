@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:mobx/mobx.dart' as mx;
 import 'package:pedantic/pedantic.dart';
 import 'package:provider/provider.dart';
 import 'package:stegos_wallet/env_stegos.dart';
@@ -32,6 +33,33 @@ class AccountsScreenState extends State<AccountsScreen>
 
   AnimationController animationController;
   bool collapsed = false;
+  final _disposers = <mx.ReactionDisposer>[];
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _disposers.forEach((d) => d());
+    _disposers.length = 0;
+    final d = mx.reaction((_) => Provider.of<StegosEnv>(context).nodeService.lastDeletedAccountName,
+        (accountName) {
+      if (accountName != null && context != null) {
+        final scaffold = Scaffold.of(context);
+        scaffold.removeCurrentSnackBar();
+        scaffold.showSnackBar(SnackBar(
+          content: Text('${accountName} was removed!'),
+          duration: const Duration(seconds: 2),
+        ));
+      }
+    });
+    _disposers.add(d);
+  }
+
+  @override
+  void dispose() {
+    _disposers.forEach((d) => d());
+    _disposers.length = 0;
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) => Theme(
@@ -115,8 +143,8 @@ class AccountsScreenState extends State<AccountsScreen>
   }
 
   List<Widget> _accountsArray() {
-    final env = Provider.of<StegosEnv>(context);
     int index = 0;
+    final env = Provider.of<StegosEnv>(context);
     return env.nodeService.accountsList.map((acc) {
       final ValueKey<AccountStore> key = ValueKey(acc);
       return Listener(
@@ -127,11 +155,6 @@ class AccountsScreenState extends State<AccountsScreen>
           },
           child: Dismissible(
             key: key,
-            onDismissed: (DismissDirection direction) {
-              if (direction == DismissDirection.endToStart) {
-                _onDeleteAccount(acc, index++);
-              }
-            },
             direction: DismissDirection.endToStart,
             confirmDismiss: (DismissDirection direction) => _confirmDeleting(acc),
             background: FadeTransition(
@@ -185,14 +208,6 @@ class AccountsScreenState extends State<AccountsScreen>
           );
         },
       );
-
-  void _onDeleteAccount(AccountStore account, int index) {
-    Scaffold.of(context).removeCurrentSnackBar();
-    Scaffold.of(context).showSnackBar(SnackBar(
-      content: Text('${account.humanName} was removed!'),
-      duration: const Duration(seconds: 2),
-    ));
-  }
 
   Widget _buildCollapsedAccountsList() {
     final env = Provider.of<StegosEnv>(context);

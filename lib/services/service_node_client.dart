@@ -32,9 +32,9 @@ class StegosNodeErrorMessage extends StegosUserException {
   @override
   String toString() => 'StegosNodeErrorMessage: ${message}';
 
-  bool get accountIsSealed => message == 'Account is sealed';
+  bool get accountIsSealed => message.startsWith('Account is sealed');
 
-  bool get accountAlreadyUnsealed => message == 'Already unsealed';
+  bool get accountAlreadyUnsealed => message.startsWith('Already unsealed');
 
   bool get invalidPassword => message.startsWith('Invalid password');
 }

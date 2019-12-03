@@ -330,4 +330,24 @@ mixin _$NodeService on _NodeService, Store {
       _$networkAtom.reportChanged();
     }, _$networkAtom, name: '${_$networkAtom.name}_set');
   }
+
+  final _$lastDeletedAccountNameAtom =
+      Atom(name: '_NodeService.lastDeletedAccountName');
+
+  @override
+  String get lastDeletedAccountName {
+    _$lastDeletedAccountNameAtom.context
+        .enforceReadPolicy(_$lastDeletedAccountNameAtom);
+    _$lastDeletedAccountNameAtom.reportObserved();
+    return super.lastDeletedAccountName;
+  }
+
+  @override
+  set lastDeletedAccountName(String value) {
+    _$lastDeletedAccountNameAtom.context.conditionallyRunInAction(() {
+      super.lastDeletedAccountName = value;
+      _$lastDeletedAccountNameAtom.reportChanged();
+    }, _$lastDeletedAccountNameAtom,
+        name: '${_$lastDeletedAccountNameAtom.name}_set');
+  }
 }

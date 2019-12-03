@@ -207,11 +207,17 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
     }
   }
 
+  @observable
+  String lastDeletedAccountName;
+
   Future<void> deleteAccount(AccountStore account) {
     if (log.isFine) {
       log.fine('deleteAccount: ${account.id}');
     }
-    return _checkConnected().then((_) => client.sendAndForget({'delete_account': '${account.id}'}));
+    return _checkConnected()
+        .then((_) => _unsealAccount(account.id, force: true))
+        .then((_) => client.sendAndAwait({'type': 'delete_account', 'account_id': '${account.id}'}))
+        .catchError(defaultErrorHandler(env));
   }
 
   Future<void> createNewAccount([String name]) async {
@@ -312,7 +318,11 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
   Future<void> _onAccountDeleted(StegosNodeMessage msg) =>
       env.useDb((db) => db.delIgnoreNotFound(_accountsCollecton, msg.accountId)).whenComplete(() {
         runInAction(() {
+          final acc = accounts[msg.accountId];
           accounts.remove(msg.accountId);
+          if (acc != null) {
+            lastDeletedAccountName = acc.humanName;
+          }
         });
       });
 
@@ -387,7 +397,7 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
         return db.patchOrPut(_accountsCollecton, acc, id);
       });
     } finally {
-      await _sealAccount(id, force: forceSealing);
+      unawaited(_sealAccount(id, force: forceSealing));
     }
     if (log.isFine) {
       log.fine('Fetched account info: ${acc}');
@@ -406,6 +416,7 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
     return client.sendAndAwait({'type': 'seal', 'account_id': '$id'}).catchError((err) {
       if (err is StegosNodeErrorMessage && err.accountIsSealed) {
         // Account is sealed already
+        print('!!!!!!!!!!!!!!!!!!!!!! acc: ${id}');
         return Future<StegosNodeMessage>.value();
       } else {
         return Future<StegosNodeMessage>.error(err);
