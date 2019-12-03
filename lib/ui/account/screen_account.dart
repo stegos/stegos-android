@@ -2,7 +2,11 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:provider/provider.dart';
+import 'package:stegos_wallet/env_stegos.dart';
+import 'package:stegos_wallet/services/service_node.dart';
 import 'package:stegos_wallet/ui/account/transactions_list.dart';
+import 'package:stegos_wallet/ui/routes.dart';
 import 'package:stegos_wallet/ui/themes.dart';
 import 'package:stegos_wallet/ui/transactions/screen_transactions.dart';
 import 'package:stegos_wallet/widgets/widget_app_bar.dart';
@@ -16,7 +20,9 @@ class Transaction {
 }
 
 class AccountScreen extends StatefulWidget {
-  AccountScreen({Key key}) : super(key: key);
+  AccountScreen({Key key, this.id}) : super(key: key);
+
+  final int id;
 
   @override
   AccountScreenState createState() => AccountScreenState();
@@ -46,107 +52,114 @@ class AccountScreenState extends State<AccountScreen> {
   ];
 
   @override
-  Widget build(BuildContext context) => Theme(
-      data: StegosThemes.AccountTheme,
-      child: Scaffold(
-        appBar: AppBarWidget(
-          centerTitle: false,
-          backgroundColor: Theme.of(context).colorScheme.primary,
-          leading: IconButton(
-            icon: const Image(
-              image: _iconBackImage,
-              width: 24,
-              height: 24,
-            ),
-            onPressed: () => Navigator.pop(context, false),
-          ),
-          actions: <Widget>[
-            IconButton(
-              icon: SvgPicture.asset(
-                'assets/images/gear.svg',
-                width: 22,
-                height: 22,
+  Widget build(BuildContext context) {
+    final env = Provider.of<StegosEnv>(context);
+
+    print(widget.id);
+    final AccountStore acc = env.nodeService.accountsList.firstWhere((AccountStore a) => a.id == widget.id);
+    return Theme(
+        data: StegosThemes.AccountTheme,
+        child: Scaffold(
+          appBar: AppBarWidget(
+            centerTitle: false,
+            backgroundColor: Theme.of(context).colorScheme.primary,
+            leading: IconButton(
+              icon: const Image(
+                image: _iconBackImage,
+                width: 24,
+                height: 24,
               ),
-              onPressed: () {},
-            )
-          ],
-          title: const Text('Account 1'),
-        ),
-        body: Column(
-          children: <Widget>[
-            Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-              Container(
-                  child: Container(
-                      padding: const EdgeInsets.only(top: 30),
-                      color: StegosColors.splashBackground,
-                      child: Column(
-                        children: <Widget>[
-                          const Text('Balance', style: TextStyle(fontSize: 14)),
-                          const SizedBox(height: 7),
-                          const Text('0 STG',
-                              style: TextStyle(
-                                  fontSize: 32,
-                                  fontWeight: FontWeight.w500,
-                                  color: StegosColors.primaryColor)),
-                          const SizedBox(height: 26),
-                          Container(
-                              height: 40,
-                              margin: const EdgeInsets.symmetric(horizontal: 22),
-                              decoration: const BoxDecoration(
-                                border:
-                                    Border(bottom: BorderSide(color: StegosColors.white, width: 1)),
-                              ),
-                              child: const Center(
-                                child: SelectableText('0xf7da9EFFF07539840CF329B71De910ecc7447e41',
-                                    style: TextStyle(fontSize: 10)),
-                              )),
-                          Container(
-                              alignment: Alignment.topRight,
-                              padding: const EdgeInsets.only(top: 14, right: 22, bottom: 19),
-                              child: SvgPicture.asset(
-                                'assets/images/qr.svg',
-                                width: 34,
-                                height: 34,
-                              )),
-                          _buildButtons()
-                        ],
-                      ))),
-            ]),
-            Expanded(
-              child: Stack(
-                children: <Widget>[
-                  Container(
-                    padding: const EdgeInsets.only(left: 10, right: 10),
-                    height: 57,
-                    alignment: Alignment.center,
-                    child: Text(
-                      'Transactions',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  Container(
+              onPressed: () => Navigator.pop(context, false),
+            ),
+            actions: <Widget>[
+              IconButton(
+                icon: SvgPicture.asset(
+                  'assets/images/gear.svg',
+                  width: 22,
+                  height: 22,
+                ),
+                onPressed: () => Navigator.pushNamed(context, Routes.settings, arguments: acc.id),
+              )
+            ],
+            title: Text(acc.humanName),
+          ),
+          body: Column(
+            children: <Widget>[
+              Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                Container(
+                    child: Container(
+                        padding: const EdgeInsets.only(top: 30),
+                        color: StegosColors.splashBackground,
+                        child: Column(
+                          children: <Widget>[
+                            const Text('Balance', style: TextStyle(fontSize: 14)),
+                            const SizedBox(height: 7),
+                            Text('${acc.humanBalance} STG',
+                                style: TextStyle(
+                                    fontSize: 32,
+                                    fontWeight: FontWeight.w500,
+                                    color: StegosColors.primaryColor)),
+                            const SizedBox(height: 26),
+                            Container(
+                                height: 40,
+                                margin: const EdgeInsets.symmetric(horizontal: 22),
+                                decoration: const BoxDecoration(
+                                  border: Border(
+                                      bottom: BorderSide(color: StegosColors.white, width: 1)),
+                                ),
+                                child: Center(
+                                  child: SelectableText(
+                                      acc.pkey,
+                                      style: const TextStyle(fontSize: 10)),
+                                )),
+                            Container(
+                                alignment: Alignment.topRight,
+                                padding: const EdgeInsets.only(top: 14, right: 22, bottom: 19),
+                                child: SvgPicture.asset(
+                                  'assets/images/qr.svg',
+                                  width: 34,
+                                  height: 34,
+                                )),
+                            _buildButtons()
+                          ],
+                        ))),
+              ]),
+              Expanded(
+                child: Stack(
+                  children: <Widget>[
+                    Container(
                       padding: const EdgeInsets.only(left: 10, right: 10),
                       height: 57,
-                      alignment: Alignment.centerRight,
-                      child: transactions.isNotEmpty
-                          ? GestureDetector(
-                              onTap: _seeAll,
-                              child: Text(
-                                'See all',
-                                style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                              ),
-                            )
-                          : null),
-                  Container(
-                      alignment: Alignment.topCenter,
-                      padding: const EdgeInsets.only(top: 57),
-                      child: TransactionsList(transactions)),
-                ],
-              ),
-            )
-          ],
-        ),
-      ));
+                      alignment: Alignment.center,
+                      child: Text(
+                        'Transactions',
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                    Container(
+                        padding: const EdgeInsets.only(left: 10, right: 10),
+                        height: 57,
+                        alignment: Alignment.centerRight,
+                        child: transactions.isNotEmpty
+                            ? GestureDetector(
+                                onTap: _seeAll,
+                                child: Text(
+                                  'See all',
+                                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                                ),
+                              )
+                            : null),
+                    Container(
+                        alignment: Alignment.topCenter,
+                        padding: const EdgeInsets.only(top: 57),
+                        child: TransactionsList(transactions)),
+                  ],
+                ),
+              )
+            ],
+          ),
+        ));
+  }
 
   Container _buildButtons() => Container(
         color: StegosColors.backgroundColor,

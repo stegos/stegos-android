@@ -106,7 +106,6 @@ mixin Routes {
       final name = settings.name;
       env.store.resetError();
 
-
       final welcomeRoute = untracked<RouteSettings>(() {
         if (env.store.needWelcome) {
           return const RouteSettings(name: Routes.welcome);
@@ -142,7 +141,8 @@ mixin Routes {
         case welcome:
           return MaterialPageRoute(builder: (BuildContext context) => WelcomeScreen());
         case account:
-          return MaterialPageRoute(builder: (BuildContext context) => AccountScreen());
+          final arguments = settings.arguments as int;
+          return MaterialPageRoute(builder: (BuildContext context) => AccountScreen(id: arguments));
         case wallet:
           return MaterialPageRoute(builder: (BuildContext context) => WalletScreen());
         case recover:
@@ -152,7 +152,9 @@ mixin Routes {
               maintainState: false,
               builder: (BuildContext context) => SplashScreen(nextRoute: welcomeRoute));
         case Routes.settings:
-          return MaterialPageRoute(builder: (BuildContext context) => SettingsScreen());
+          final arguments = settings.arguments as int;
+          return MaterialPageRoute(
+              builder: (BuildContext context) => SettingsScreen(id: arguments));
         case Routes.devmenu:
           return MaterialPageRoute(builder: (BuildContext context) => DevMenuScreen());
         default:

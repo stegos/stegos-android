@@ -46,7 +46,7 @@ class AccountCardState extends State<AccountCard> {
               alignment: bgAlignment,
               child: InkWell(
                 borderRadius: BorderRadius.circular(3.0),
-                onTap: () => Navigator.pushNamed(context, Routes.account),
+                onTap: () => Navigator.pushNamed(context, Routes.account, arguments: acc.id),
                 child: AspectRatio(
                     aspectRatio: aspectRation,
                     child: Stack(

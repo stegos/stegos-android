@@ -2,12 +2,20 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:provider/provider.dart';
+import 'package:stegos_wallet/env_stegos.dart';
+import 'package:stegos_wallet/services/service_node.dart';
+import 'package:stegos_wallet/ui/routes.dart';
 import 'package:stegos_wallet/ui/themes.dart';
 import 'package:stegos_wallet/widgets/widget_app_bar.dart';
 
 /// Main wallet screen with integrated TabBar.
 ///
 class SettingsScreen extends StatefulWidget {
+  SettingsScreen({Key key, this.id}) : super(key: key);
+
+  final int id;
+
   @override
   State<StatefulWidget> createState() => _SettingsScreenState();
 }
@@ -93,78 +101,84 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   @override
-  Widget build(BuildContext context) => Theme(
-        data: StegosThemes.settingsTheme,
-        child: Scaffold(
-            appBar: AppBarWidget(
-              centerTitle: false,
-              leading: IconButton(
-                icon: Icon(Icons.contacts),
-                onPressed: () => {print('Show menu')},
-              ),
-              title: const Text('Stegos Wallet'),
+  Widget build(BuildContext context) {
+    final env = Provider.of<StegosEnv>(context);
+
+    final AccountStore acc = env.nodeService.accountsList.firstWhere((AccountStore a) => a.id == widget.id);
+    return Theme(
+      data: StegosThemes.settingsTheme,
+      child: Scaffold(
+          appBar: AppBarWidget(
+            centerTitle: false,
+            leading: IconButton(
+              icon: Icon(Icons.arrow_back),
+              onPressed: () => {print('Show menu')},
             ),
-            body: SingleChildScrollView(
-              child: Column(
-                children: <Widget>[
-                  _buildListTile(
-                      leading: SvgPicture.asset('assets/images/account_name.svg'),
-                      title: 'Account name',
-                      subtitle:
-                          'New contacts will see this name before saving to contacts your information',
-                      group: 'General',
-                      trailing: Icon(
-                        Icons.navigate_next,
-                        color: StegosColors.primaryColorDark,
-                      )),
-                  _buildListTile(
-                    leading: SvgPicture.asset('assets/images/packet_main_account.svg'),
-                    title: 'Red packet main account',
-                    subtitle: 'STG from mining red packets enter in account automatically',
+            title: const Text('Settings'),
+          ),
+          body: SingleChildScrollView(
+            child: Column(
+              children: <Widget>[
+                _buildListTile(
+                    leading: SvgPicture.asset('assets/images/account_name.svg'),
+                    title: 'Account name',
+                    subtitle:
+                    'New contacts will see this name before saving to contacts your information',
+                    group: 'General',
+                    trailing: Icon(
+                      Icons.navigate_next,
+                      color: StegosColors.primaryColorDark,
+                    )),
+                _buildListTile(
+                  leading: SvgPicture.asset('assets/images/packet_main_account.svg'),
+                  title: 'Red packet main account',
+                  subtitle: 'STG from mining red packets enter in account automatically',
+                  trailing: Switch(
+                    onChanged: (bool value) {},
+                    value: true,
+                    activeColor: StegosColors.primaryColor,
+                  ),
+                ),
+                _buildListTile(
+                  leading: SvgPicture.asset('assets/images/backed_up.svg'),
+                  title: 'Account backed up',
+                  subtitle: 'Strongly recommend back up your account',
+                  group: 'Security',
+                  trailing: Icon(
+                    Icons.check,
+                    color: StegosColors.accentColor.withOpacity(0.54),
+                  ),
+                  onTap: () => Navigator.pushNamed(context, Routes.recover),
+                ),
+                _buildListTile(
+                    leading: SvgPicture.asset('assets/images/password.svg'),
+                    title: 'Password',
+                    trailing: Icon(
+                      Icons.navigate_next,
+                      color: StegosColors.primaryColorDark,
+                    )),
+                _buildListTile(
+                    leading: SvgPicture.asset(
+                      'assets/images/fingerprint.svg',
+                      width: 21,
+                    ),
+                    title: 'Fingerprint',
+                    subtitle: 'Allow to use fingerprint instead of password',
                     trailing: Switch(
                       onChanged: (bool value) {},
                       value: true,
                       activeColor: StegosColors.primaryColor,
-                    ),
+                    )),
+                _buildListTile(
+                  leading: SvgPicture.asset(
+                    'assets/images/delete.svg',
+                    width: 21,
                   ),
-                  _buildListTile(
-                    leading: SvgPicture.asset('assets/images/backed_up.svg'),
-                    title: 'Account backed up',
-                    subtitle: 'Strongly recommend back up your account',
-                    group: 'Security',
-                    trailing: Icon(
-                      Icons.check,
-                      color: StegosColors.accentColor.withOpacity(0.54),
-                    ),
-                  ),
-                  _buildListTile(
-                      leading: SvgPicture.asset('assets/images/password.svg'),
-                      title: 'Password',
-                      trailing: Icon(
-                        Icons.navigate_next,
-                        color: StegosColors.primaryColorDark,
-                      )),
-                  _buildListTile(
-                      leading: SvgPicture.asset(
-                        'assets/images/fingerprint.svg',
-                        width: 21,
-                      ),
-                      title: 'Fingerprint',
-                      subtitle: 'Allow to use fingerprint instead of password',
-                      trailing: Switch(
-                        onChanged: (bool value) {},
-                        value: true,
-                        activeColor: StegosColors.primaryColor,
-                      )),
-                  _buildListTile(
-                    leading: SvgPicture.asset(
-                      'assets/images/delete.svg',
-                      width: 21,
-                    ),
-                    title: 'Delete',
-                  ),
-                ],
-              ),
-            )),
-      );
+                  title: 'Delete',
+                ),
+              ],
+            ),
+          )),
+    );
+  }
 }
