@@ -12,7 +12,6 @@ import 'package:stegos_wallet/stores/store_stegos.dart';
 import 'package:stegos_wallet/ui/password/screen_password.dart';
 import 'package:stegos_wallet/utils/cont.dart';
 import 'package:stegos_wallet/utils/dialogs.dart';
-import 'package:stegos_wallet/utils/extensions_db.dart';
 
 part 'service_node.g.dart';
 
