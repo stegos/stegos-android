@@ -464,7 +464,7 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
       } else {
         final pw = await appShowDialog<String>(
             builder: (context) => PasswordScreen(
-                  title: 'Unlock account ${acc.humanName}',
+                  title: 'Unlock ${acc.humanName}',
                   caption: 'It seems that this account is locked by unknown password.',
                   titleStatus: 'Please provide account password to unlock',
                   titleSubmitButton: 'UNLOCK',
