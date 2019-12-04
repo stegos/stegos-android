@@ -30,7 +30,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     Widget trailing,
     dense,
     enabled = true,
-    onTap,
+    Function() onTap,
   }) {
     const TextStyle titleStyle = TextStyle(fontSize: 18, letterSpacing: 0.3);
     const TextStyle subtitleStyle =
@@ -51,7 +51,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
         style: subtitleStyle,
       ));
     }
-    return RawMaterialButton( onPressed: () {},
+    return RawMaterialButton(
+      onPressed: onTap ?? () {},
       child: Container(
         padding: const EdgeInsets.all(17).copyWith(top: group != null ? 0 : 17),
         margin: const EdgeInsets.symmetric(horizontal: 10),
@@ -104,7 +105,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget build(BuildContext context) {
     final env = Provider.of<StegosEnv>(context);
 
-    final AccountStore acc = env.nodeService.accountsList.firstWhere((AccountStore a) => a.id == widget.id);
+    final AccountStore acc =
+        env.nodeService.accountsList.firstWhere((AccountStore a) => a.id == widget.id);
     return Theme(
       data: StegosThemes.settingsTheme,
       child: Scaffold(
@@ -112,7 +114,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             centerTitle: false,
             leading: IconButton(
               icon: Icon(Icons.arrow_back),
-              onPressed: () => {print('Show menu')},
+              onPressed: () => {Navigator.pop(context)},
             ),
             title: const Text('Settings'),
           ),
@@ -120,15 +122,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: Column(
               children: <Widget>[
                 _buildListTile(
-                    leading: SvgPicture.asset('assets/images/account_name.svg'),
-                    title: 'Account name',
-                    subtitle:
-                    'New contacts will see this name before saving to contacts your information',
-                    group: 'General',
-                    trailing: Icon(
-                      Icons.navigate_next,
-                      color: StegosColors.primaryColorDark,
-                    )),
+                  leading: SvgPicture.asset('assets/images/account_name.svg'),
+                  title: 'Account name',
+                  subtitle:
+                      'New contacts will see this name before saving to contacts your information',
+                  group: 'General',
+                  trailing: Icon(
+                    Icons.navigate_next,
+                    color: StegosColors.primaryColorDark,
+                  ),
+                  onTap: () => Navigator.pushNamed(context, Routes.username, arguments: acc.id),
+                ),
                 _buildListTile(
                   leading: SvgPicture.asset('assets/images/packet_main_account.svg'),
                   title: 'Red packet main account',
