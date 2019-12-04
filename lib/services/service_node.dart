@@ -496,7 +496,7 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
       log.fine('Unsealing account raw #${acc.id}');
     }
     return client
-        .sendAndAwait({'type': 'unseal', 'account_id': '${acc.id}', 'password': password})
+        .sendAndAwait({'type': 'unseal', 'account_id': '${acc.id}', 'password': password ?? ''})
         .then((_) => const _UnsealAccountStatus(unsealed: true))
         .catchError((err) {
           if (err is StegosNodeErrorMessage) {
