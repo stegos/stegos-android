@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:pedantic/pedantic.dart';
 import 'package:stegos_wallet/ui/app.dart';
 import 'package:stegos_wallet/ui/themes.dart';
 import 'package:stegos_wallet/utils/cont.dart';
@@ -56,6 +55,9 @@ class _PasswordScreenState extends State<PasswordScreen> {
               onPressed: _onCancel,
             ),
             title: Text(widget.title),
+            actions: <Widget>[
+              FlatButton.icon(onPressed: _onCancel, icon: Container(), label: const Text('Cancel'))
+            ],
           ),
           body: ScaffoldBodyWrapperWidget(
               builder: (context) => Column(
