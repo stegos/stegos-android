@@ -404,6 +404,9 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
 
   Future<void> _syncAccountsInfos(Iterable<int> ids, {bool forceSealing = false}) =>
       Future.forEach(ids, (int id) {
+        if (!accounts.containsKey(id)) {
+          return Future.value();
+        }
         return _syncAccountInfo(id, forceSealing: forceSealing).catchError((err, StackTrace st) {
           log.warning('Error getting account info #${id}', err, st);
           accounts.remove(id);
