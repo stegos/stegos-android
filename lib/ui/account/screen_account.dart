@@ -54,8 +54,6 @@ class AccountScreenState extends State<AccountScreen> {
   @override
   Widget build(BuildContext context) {
     final env = Provider.of<StegosEnv>(context);
-
-    print(widget.id);
     final AccountStore acc = env.nodeService.accountsList.firstWhere((AccountStore a) => a.id == widget.id);
     return Theme(
         data: StegosThemes.AccountTheme,
