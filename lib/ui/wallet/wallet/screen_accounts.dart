@@ -143,7 +143,6 @@ class AccountsScreenState extends State<AccountsScreen>
   }
 
   List<Widget> _accountsArray() {
-    int index = 0;
     final env = Provider.of<StegosEnv>(context);
     return env.nodeService.accountsList.map((acc) {
       final ValueKey<AccountStore> key = ValueKey(acc);

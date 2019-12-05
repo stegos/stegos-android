@@ -137,7 +137,7 @@ class StegosEnv extends Env<Widget> {
           switch (state) {
             case AppLifecycleState.paused:
             case AppLifecycleState.inactive:
-            case AppLifecycleState.detached:
+//            case AppLifecycleState.detached:
               if (!_suspended) {
                 _suspended = true;
                 unawaited(_suspend(state));
