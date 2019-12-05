@@ -12,7 +12,6 @@ import 'package:stegos_wallet/stores/store_stegos.dart';
 import 'package:stegos_wallet/ui/password/screen_password.dart';
 import 'package:stegos_wallet/utils/cont.dart';
 import 'package:stegos_wallet/utils/dialogs.dart';
-import 'package:stegos_wallet/utils/extensions_db.dart';
 
 part 'service_node.g.dart';
 
@@ -464,7 +463,7 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
       } else {
         final pw = await appShowDialog<String>(
             builder: (context) => PasswordScreen(
-                  title: 'Unlock account ${acc.humanName}',
+                  title: 'Unlock ${acc.humanName}',
                   caption: 'It seems that this account is locked by unknown password.',
                   titleStatus: 'Please provide account password to unlock',
                   titleSubmitButton: 'UNLOCK',
@@ -496,7 +495,7 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
       log.fine('Unsealing account raw #${acc.id}');
     }
     return client
-        .sendAndAwait({'type': 'unseal', 'account_id': '${acc.id}', 'password': password})
+        .sendAndAwait({'type': 'unseal', 'account_id': '${acc.id}', 'password': password ?? ''})
         .then((_) => const _UnsealAccountStatus(unsealed: true))
         .catchError((err) {
           if (err is StegosNodeErrorMessage) {
