@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:ejdb2_flutter/ejdb2_flutter.dart';
+import 'package:flutter/foundation.dart';
 import 'package:mobx/mobx.dart';
 import 'package:pedantic/pedantic.dart';
 import 'package:stegos_wallet/env_stegos.dart';
@@ -212,6 +213,17 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
   @observable
   String lastDeletedAccountName;
 
+  @computed
+  String get _accountsCollecton => 'accounts_$network';
+
+  @computed
+  String get _txsCollection => 'txs_$network';
+
+  final _disposers = <ReactionDisposer>[];
+
+  // ignore: cancel_subscriptions
+  StreamSubscription<StegosNodeMessage> _nodeClientSubscription;
+
   Future<void> deleteAccount(AccountStore account) async {
     if (log.isFine) {
       log.fine('deleteAccount: ${account.id}');
@@ -289,28 +301,32 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
 
   Future<void> renameAccount(int id, String name) {
     final account = accounts[id];
-
     if (account == null) {
-      log.warning('rename account: invalid arguments: ${id}');
       return Future.value();
     }
-
-    runInAction(() {
-      account.name = name;
-    });
-
-    return env.useDb((db) {
-      return db.patch(_accountsCollecton, {'name': account.name}, account.id);
+    return env.useDb((db) => db.patch(_accountsCollecton, {'name': name}, id)).then((_) {
+      runInAction(() {
+        account.name = name;
+      });
     });
   }
 
-  @computed
-  String get _accountsCollecton => 'accounts_$network';
+  // pay ADDRESS AMOUNT [COMMENT] [/snowball] [/public] [/lock DATETIME] [/fee FEE] [/certificate] - send money
+  // type
+  //     payment - cloaked outputs, but without using Snowball.
+  //     secure_payment - cloaked outputs + Snowball (recommended).
+  //     public_payment - Public (uncloaked) outputs.
+  // recipient - recipient’s address.
+  // amount - amount in μSTG.
+  // payment_fee - desired fee per created UTXO.
+  // comment - a commentary, up to 880 chars.
+  // locked_timestamp - lock created UTXO until specified time.
+  // with_certificate - generate a proof of payment.
 
-  final _disposers = <ReactionDisposer>[];
+  Future<void> pay({
+    @required int accountId,
 
-  // ignore: cancel_subscriptions
-  StreamSubscription<StegosNodeMessage> _nodeClientSubscription;
+  }) async {}
 
   @override
   Future<void> activate() async {
@@ -414,15 +430,15 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
 
   Future<AccountStore> _syncAccountInfo(int id, {bool forceSealing = false}) async {
     final acc = await _unsealAccount(id, force: forceSealing);
-    try {
-      final msg = await client.sendAndAwait({'type': 'balance_info', 'account_id': '$id'});
-      await env.useDb((db) {
-        acc._updateFromBalanceMessage(msg);
-        return db.patchOrPut(_accountsCollecton, acc, id);
-      });
-    } finally {
-      unawaited(_sealAccount(id, force: forceSealing));
-    }
+    //try {
+    final msg = await client.sendAndAwait({'type': 'balance_info', 'account_id': '$id'});
+    await env.useDb((db) {
+      acc._updateFromBalanceMessage(msg);
+      return db.patchOrPut(_accountsCollecton, acc, id);
+    });
+    // } finally {
+    //   unawaited(_sealAccount(id, force: forceSealing));
+    // }
     if (log.isFine) {
       log.fine('Fetched account info: ${acc}');
     }
