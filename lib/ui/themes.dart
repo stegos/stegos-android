@@ -105,18 +105,18 @@ mixin StegosThemes {
   static final _baseAccentTextTheme = _defaults.accentTextTheme;
 
   static final baseTheme = _defaults.copyWith(
-    textTheme: _baseTextTheme,
-    primaryTextTheme: _basePrimaryTextTheme,
-    accentTextTheme: _baseAccentTextTheme,
-    buttonTheme: _defaults.buttonTheme.copyWith(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(2.0)),
-    ),
-    appBarTheme: const AppBarTheme(
-      color: Color(0xff2b2e3b),
-      textTheme: TextTheme(body1: TextStyle(fontSize: 20)),
-      elevation: 0,
-    ),
-  );
+      textTheme: _baseTextTheme,
+      primaryTextTheme: _basePrimaryTextTheme,
+      accentTextTheme: _baseAccentTextTheme,
+      buttonTheme: _defaults.buttonTheme.copyWith(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(2.0)),
+      ),
+      appBarTheme: const AppBarTheme(
+        color: Color(0xff2b2e3b),
+        textTheme: TextTheme(body1: TextStyle(fontSize: 20)),
+        elevation: 0,
+      ),
+      toggleableActiveColor: StegosColors.accentColor);
 
   static final splashTheme = ThemeData.dark().copyWith(
       backgroundColor: StegosColors.splashBackground, canvasColor: StegosColors.splashBackground);

@@ -54,6 +54,7 @@ class AccountScreenState extends State<AccountScreen> {
   @override
   Widget build(BuildContext context) {
     final env = Provider.of<StegosEnv>(context);
+
     final AccountStore acc = env.nodeService.accountsList.firstWhere((AccountStore a) => a.id == widget.id);
     return Theme(
         data: StegosThemes.AccountTheme,
@@ -180,7 +181,7 @@ class AccountScreenState extends State<AccountScreen> {
                     height: 65,
                     child: RaisedButton(
                       padding: const EdgeInsets.all(10),
-                      onPressed: () {},
+                      onPressed: () {Navigator.pushNamed(context, Routes.pay);},
                       color: StegosColors.splashBackground,
                       child: SvgPicture.asset('assets/images/send.svg'),
                     ),
