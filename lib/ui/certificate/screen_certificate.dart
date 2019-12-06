@@ -34,12 +34,12 @@ class CertificateScreenState extends State<CertificateScreen> {
                 width: 24,
                 height: 24,
               ),
-              onPressed: () => Navigator.pop(context, false),
+              onPressed: () => Navigator.pop(context),
             ),
             actions: <Widget>[
               IconButton(
                 icon: Icon(Icons.close),
-                onPressed: () => {},
+                onPressed: () => Navigator.pop(context),
               )
             ],
             title: const Text('Certificate'),
