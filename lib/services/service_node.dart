@@ -288,8 +288,7 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
   }
 
   Future<void> renameAccount(int id, String name) {
-    final account = List<AccountStore>.from(accountsList)
-        .firstWhere((AccountStore a) => a.id == id, orElse: () => null);
+    final account = accounts[id];
 
     if (account == null) {
       log.warning('rename account: invalid arguments: ${id}');
