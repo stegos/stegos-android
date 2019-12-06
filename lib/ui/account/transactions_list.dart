@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:intl/intl.dart';
 import 'package:stegos_wallet/ui/account/screen_account.dart';
+import 'package:stegos_wallet/ui/certificate/screen_certificate.dart';
 import 'package:stegos_wallet/ui/themes.dart';
 
 class TransactionsList extends StatefulWidget {
@@ -64,8 +65,8 @@ class _TransactionsListState extends State<TransactionsList> {
                 Container(
                   alignment: Alignment.topRight,
                   child: transaction.certificateURL != null
-                      ? GestureDetector(
-                          onTap: () {},
+                      ? InkResponse(
+                          onTap: _openCertificate,
                           child: SvgPicture.asset(
                             'assets/images/certificate.svg',
                             width: 24,
@@ -77,4 +78,13 @@ class _TransactionsListState extends State<TransactionsList> {
               ],
             )),
       );
+
+  void _openCertificate() {
+    Navigator.push(
+        context,
+        MaterialPageRoute<Null>(
+          builder: (BuildContext context) => CertificateScreen(),
+          fullscreenDialog: true,
+        ));
+  }
 }
