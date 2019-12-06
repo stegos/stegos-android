@@ -12,7 +12,6 @@ import 'package:stegos_wallet/stores/store_stegos.dart';
 import 'package:stegos_wallet/ui/password/screen_password.dart';
 import 'package:stegos_wallet/utils/cont.dart';
 import 'package:stegos_wallet/utils/dialogs.dart';
-import 'package:stegos_wallet/utils/extensions_db.dart';
 
 part 'service_node.g.dart';
 
@@ -20,6 +19,7 @@ class NodeService = _NodeService with _$NodeService;
 
 class AccountStore extends _AccountStore with _$AccountStore {
   AccountStore.empty(int id) : super(id);
+
   AccountStore._(int id, String name, String password, String iv, int ordinal)
       : super(id, name, password, iv, ordinal);
 
@@ -144,8 +144,10 @@ abstract class _AccountStore with Store {
 
 class _UnsealAccountStatus {
   const _UnsealAccountStatus({this.unsealed = false, this.invalidPassword = false});
+
   final bool unsealed;
   final bool invalidPassword;
+
   @override
   String toString() => 'usealed=${unsealed}, invalidPassword=${invalidPassword}';
 }
@@ -282,6 +284,24 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
       alist.forEach(
           (a) => dbPatches.add(db.patch(_accountsCollecton, {'ordinal': a.ordinal}, a.id)));
       return Future.wait(dbPatches);
+    });
+  }
+
+  Future<void> renameAccount(int id, String name) {
+    final account = List<AccountStore>.from(accountsList)
+        .firstWhere((AccountStore a) => a.id == id, orElse: () => null);
+
+    if (account == null) {
+      log.warning('rename account: invalid arguments: ${id}');
+      return Future.value();
+    }
+
+    runInAction(() {
+      account.name = name;
+    });
+
+    return env.useDb((db) {
+      return db.patch(_accountsCollecton, {'name': account.name}, account.id);
     });
   }
 
@@ -464,7 +484,7 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
       } else {
         final pw = await appShowDialog<String>(
             builder: (context) => PasswordScreen(
-                  title: 'Unlock account ${acc.humanName}',
+                  title: 'Unlock ${acc.humanName}',
                   caption: 'It seems that this account is locked by unknown password.',
                   titleStatus: 'Please provide account password to unlock',
                   titleSubmitButton: 'UNLOCK',
@@ -496,7 +516,7 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
       log.fine('Unsealing account raw #${acc.id}');
     }
     return client
-        .sendAndAwait({'type': 'unseal', 'account_id': '${acc.id}', 'password': password})
+        .sendAndAwait({'type': 'unseal', 'account_id': '${acc.id}', 'password': password ?? ''})
         .then((_) => const _UnsealAccountStatus(unsealed: true))
         .catchError((err) {
           if (err is StegosNodeErrorMessage) {

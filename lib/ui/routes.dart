@@ -5,10 +5,12 @@ import 'package:mobx/mobx.dart';
 import 'package:stegos_wallet/env_stegos.dart';
 import 'package:stegos_wallet/ui/account/screen_account.dart';
 import 'package:stegos_wallet/ui/dev/screen_dev_menu.dart';
+import 'package:stegos_wallet/ui/pay/screen_pay.dart';
 import 'package:stegos_wallet/ui/pinprotect/screen_pin_protect.dart';
 import 'package:stegos_wallet/ui/recover/screen_recover.dart';
 import 'package:stegos_wallet/ui/settings/screen_settings.dart';
 import 'package:stegos_wallet/ui/splash/screen_splash.dart';
+import 'package:stegos_wallet/ui/username/screen_username.dart';
 import 'package:stegos_wallet/ui/wallet/screen_wallet.dart';
 import 'package:stegos_wallet/ui/welcome/screen_welcome.dart';
 
@@ -91,6 +93,8 @@ mixin Routes {
   static const unlock = 'unlock';
   static const wallet = 'wallet';
   static const welcome = 'welcome';
+  static const username = 'username';
+  static const pay = 'pay';
 
   static RouteFactory createRouteFactory(StegosEnv env, bool showSplash) {
     MaterialPageRoute Function(RouteSettings settings) routeFactoryFn;
@@ -155,8 +159,14 @@ mixin Routes {
           final arguments = settings.arguments as int;
           return MaterialPageRoute(
               builder: (BuildContext context) => SettingsScreen(id: arguments));
+        case Routes.username:
+          final arguments = settings.arguments as int;
+          return MaterialPageRoute(
+              builder: (BuildContext context) => UsernameScreen(id: arguments));
         case Routes.devmenu:
           return MaterialPageRoute(builder: (BuildContext context) => DevMenuScreen());
+        case pay:
+          return MaterialPageRoute(builder: (BuildContext context) => PayScreen());
         default:
           return MaterialPageRoute(
               maintainState: false,
