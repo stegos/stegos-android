@@ -94,11 +94,9 @@ class _UsernameScreenState extends State<UsernameScreen> with Loggable<_Username
 
   void _onSubmit() {
     final env = Provider.of<StegosEnv>(context);
-    unawaited(env.nodeService.renameAccount(widget.id, usernameController.text).then<void>((_) {
+    unawaited(env.nodeService.renameAccount(widget.id, usernameController.text).then((_) {
       StegosApp.navigatorState.pop();
-    }).catchError((err, StackTrace st) {
-      log.warning('Failed to rename account: ', err, st);
-    }));
+    }).catchError(defaultErrorHandler(env)));
   }
 
   void _onCancel() {
