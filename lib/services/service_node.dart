@@ -16,6 +16,22 @@ import 'package:stegos_wallet/utils/dialogs.dart';
 
 part 'service_node.g.dart';
 
+const stegosFeeStandard = 1000;
+
+const stagosFeeHigh = 5000;
+
+/// Payment mode used in [_NodeService.pay]
+enum PaymentMethod {
+  /// Cloaked outputs, but without using Snowball.
+  SIMPLE,
+
+  /// Cloaked outputs + Snowball (recommended)
+  SECURED,
+
+  /// Public (uncloaked) outputs
+  PUBLIC
+}
+
 class NodeService = _NodeService with _$NodeService;
 
 class AccountStore extends _AccountStore with _$AccountStore {
@@ -323,10 +339,45 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
   // locked_timestamp - lock created UTXO until specified time.
   // with_certificate - generate a proof of payment.
 
-  Future<void> pay({
-    @required int accountId,
+  Future<void> pay(
+      {@required int accountId,
+      @required String recipient,
+      @required int amount,
+      PaymentMethod paymentMethod = PaymentMethod.SECURED,
+      String comment,
+      int fee,
+      bool withCertificate,
+      DateTime lockedTimestamp}) async {
+    comment ??= '';
+    fee ??= stegosFeeStandard;
+    withCertificate ??= false;
+    if (withCertificate) {
+      paymentMethod = PaymentMethod.SECURED;
+    }
+    lockedTimestamp = DateTime.now();
+    String type;
+    switch (paymentMethod) {
+      case PaymentMethod.SECURED:
+        type = 'secure_payment';
+        break;
+      case PaymentMethod.PUBLIC:
+        type = 'public_payment';
+        break;
+      default:
+        type = 'payment';
+    }
 
-  }) async {}
+    final msg = await client.sendAndAwait({
+      'type': type,
+      'recipient': recipient,
+      'amount': amount,
+      'comment': comment,
+      'payment_fee': fee,
+      'locked_timestamp': lockedTimestamp.toIso8601String()
+    });
+
+    log.info('!!!!!!!!!!!!!!!!!!!!!!!!! response: ${msg}');
+  }
 
   @override
   Future<void> activate() async {

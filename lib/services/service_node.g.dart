@@ -296,6 +296,12 @@ mixin _$NodeService on _NodeService, Store {
   String get _accountsCollecton => (_$_accountsCollectonComputed ??=
           Computed<String>(() => super._accountsCollecton))
       .value;
+  Computed<String> _$_txsCollectionComputed;
+
+  @override
+  String get _txsCollection => (_$_txsCollectionComputed ??=
+          Computed<String>(() => super._txsCollection))
+      .value;
 
   final _$synchronizedAtom = Atom(name: '_NodeService.synchronized');
 

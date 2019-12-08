@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:pedantic/pedantic.dart';
@@ -29,8 +27,7 @@ class _UsernameScreenState extends State<UsernameScreen> with Loggable<_Username
   Widget build(BuildContext context) {
     if (usernameController.text.isEmpty) {
       final env = Provider.of<StegosEnv>(context);
-      final AccountStore acc =
-          env.nodeService.accountsList.firstWhere((AccountStore a) => a.id == widget.id);
+      final AccountStore acc = env.nodeService.accounts[widget.id];
       usernameController.text = acc.name;
     }
 
