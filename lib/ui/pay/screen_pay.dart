@@ -28,7 +28,6 @@ class _PayScreenState extends State<PayScreen> {
   final _store = PayScreenStore();
 
   final FocusNode _recepientFocusNode = FocusNode();
-  final TextEditingController _toAddressController = TextEditingController();
 
   @override
   void initState() {
@@ -178,6 +177,10 @@ class _PayScreenState extends State<PayScreen> {
   }
 
   Widget _buildToAddress() {
+    final UnderlineInputBorder textFieldBorder = UnderlineInputBorder(
+        borderSide: BorderSide(
+            color: _store.isValidToAddress() ? StegosColors.accentColor : Colors.redAccent,
+            width: 1));
     return _withLabel(
         'Recepient address',
         Container(
@@ -193,14 +196,16 @@ class _PayScreenState extends State<PayScreen> {
                 },
                 focusNode: _recepientFocusNode,
                 decoration: InputDecoration(
+                    focusedBorder: textFieldBorder,
+                    enabledBorder: textFieldBorder,
                     suffix: Transform.translate(
-                  offset: const Offset(0, 4),
-                  child: Image.asset(
-                    'assets/images/qr.png',
-                    height: 20,
-                    width: 20,
-                  ),
-                )),
+                      offset: const Offset(0, 4),
+                      child: Image.asset(
+                        'assets/images/qr.png',
+                        height: 20,
+                        width: 20,
+                      ),
+                    )),
               ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -291,6 +296,7 @@ class _PayScreenState extends State<PayScreen> {
                 child: Container(
                   width: 150,
                   height: 40,
+                  padding: const EdgeInsets.only(top: 9),
                   margin: const EdgeInsets.only(bottom: 19),
                   decoration: const BoxDecoration(
                       border: Border(bottom: BorderSide(width: 1, color: StegosColors.white))),
