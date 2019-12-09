@@ -569,12 +569,7 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
       // https://github.com/stegos/stegos/issues/1449
       return;
     }
-    final accountId =
-        json['account_id'] is String ? int.tryParse(json['account_id'] as String) : null;
-    if (accountId == null) {
-      return;
-    }
-    final account = accounts[accountId];
+    final account = accounts[msg.accountId];
     if (account == null) {
       return;
     }
@@ -587,13 +582,22 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
   }
 
   Future<void> _onTransactionStatus(StegosNodeMessage msg) async {
-    final updated = await env.useDb((db) => db
-        .createQuery('/tx_hash = :? | apply :? | count')
-        .setString(0, msg.json['tx_hash'] as String)
-        .setJson(1, {'status': msg.json['status']}).executeScalarInt());
-    if (log.isFine) {
-      log.fine('onTransactionStatus updated: ${updated}');
+    final json = msg.json;
+    final account = accounts[msg.accountId];
+    if (account == null) {
+      return;
     }
+    final doc = await env.useDb((db) => db
+        .createQuery('/tx_hash = :? | apply :?')
+        .setString(0, msg.json['tx_hash'] as String)
+        .setJson(1, {'status': msg.json['status']}).first());
+    if (!doc.isPresent) {
+      return;
+    }
+    if (log.isFine) {
+      log.fine('onTransactionStatus updated');
+    }
+    account._updateTransaction(doc.value.id, json);
   }
 
   void _syncNodeStatus(bool connected) {
