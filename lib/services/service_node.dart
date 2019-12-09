@@ -20,6 +20,8 @@ const stegosFeeStandard = 1000;
 
 const stagosFeeHigh = 5000;
 
+StegosEnv env;
+
 /// Payment mode used in [_NodeService.pay]
 enum PaymentMethod {
   /// Cloaked outputs, but without using Snowball.
@@ -32,7 +34,79 @@ enum PaymentMethod {
   PUBLIC
 }
 
-class NodeService = _NodeService with _$NodeService;
+class TxStore extends _TxStore with _$TxStore {
+  TxStore(int id, bool send, String recipient, int amount, int cts, String comment, int fee,
+      bool pending, String status)
+      : super(id, send, recipient, amount, cts, comment, fee, pending, status);
+
+  factory TxStore.fromJson(int id, dynamic json) {
+    final type = json['type'] as String ?? '';
+    // fixme: it is too empiric
+    final send = type.startsWith('transaction_') || type.contains('payment');
+    final recipient = json['recipient'] as String;
+    final amount = json['amount'] as int ?? 0;
+    final cts = json['_cts'] as int ?? DateTime.now().toUtc().millisecondsSinceEpoch;
+    final comment = json['comment'] as String ?? '';
+    var fee = 0;
+    var status = '';
+    var pending = false;
+    if (send) {
+      fee = json['fee'] as int ?? 0;
+      status = json['status'] as String ?? status;
+      pending = status != 'committed';
+    }
+    return TxStore(id, send, recipient, amount, cts, comment, fee, pending, status);
+  }
+}
+
+abstract class _TxStore with Store {
+  _TxStore(this.id, this.send, this.recipient, this.amount, this.cts, this.comment, this.fee,
+      this.pending, this.status);
+
+  /// Transaction database ID
+  final int id;
+
+  /// Is send transaction
+  final bool send;
+
+  /// Transaction amount in nSTG
+  final int amount;
+
+  /// Transaction createtion time ms since epoch UTC
+  final int cts;
+
+  /// Transactiont comment
+  final String comment;
+
+  /// Recipient address
+  final String recipient;
+
+  /// Transaction in pending state
+  @observable
+  bool pending;
+
+  @observable
+  int fee;
+
+  /// Human readable status of transaction state
+  @observable
+  String status = '';
+
+  @override
+  int get hashCode => id.hashCode;
+
+  @override
+  bool operator ==(dynamic other) => other is TxStore && other.id == id;
+
+  @action
+  void _updateFromJson(dynamic json) {
+    if (send) {
+      fee = json['fee'] as int ?? fee ?? 0;
+      status = json['status'] as String ?? status;
+      pending = status != 'committed';
+    }
+  }
+}
 
 class AccountStore extends _AccountStore with _$AccountStore {
   AccountStore.empty(int id) : super(id);
@@ -58,6 +132,8 @@ abstract class _AccountStore with Store {
   }
 
   final int id;
+
+  final txList = ObservableList<TxStore>();
 
   String pkey;
 
@@ -116,6 +192,24 @@ abstract class _AccountStore with Store {
   bool operator ==(dynamic other) => other is _AccountStore && other.id == id;
 
   @action
+  void _registerTransaction(TxStore tx) {
+    txList.insert(0, tx);
+    while (txList.length > env.configMaxTransactionsPerAccount) {
+      txList.removeLast();
+    }
+  }
+
+  @action
+  void _updateTransaction(int id, dynamic json) {
+    final tx = txList.firstWhere((tx) => tx.id == id, orElse: () => null);
+    if (tx == null) {
+      _registerTransaction(TxStore.fromJson(id, json));
+    } else {
+      tx._updateFromJson(json);
+    }
+  }
+
+  @action
   void _updateFromJson(dynamic json) {
     name = json['name'] as String ?? name;
     ordinal = json['ordinal'] as int ?? ordinal;
@@ -169,20 +263,19 @@ class _UnsealAccountStatus {
   String toString() => 'usealed=${unsealed}, invalidPassword=${invalidPassword}';
 }
 
+class NodeService = _NodeService with _$NodeService;
+
 abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
-  _NodeService(this.parent);
+  _NodeService(this.parent) {
+    // Set global env
+    env = parent.env;
+  }
 
   final StegosStore parent;
 
   StegosNodeClient get client => parent.env.nodeClient;
 
-  StegosEnv get env => parent.env;
-
   final accounts = ObservableMap<int, AccountStore>();
-
-  final receivePaymentAtom = Atom(name: 'receivePaymentAtom');
-
-  final sendPaymentAtom = Atom(name: 'sendPaymentAtom');
 
   @computed
   List<AccountStore> get accountsList =>
@@ -333,20 +426,8 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
     });
   }
 
-  // pay ADDRESS AMOUNT [COMMENT] [/snowball] [/public] [/lock DATETIME] [/fee FEE] [/certificate] - send money
-  // type
-  //     payment - cloaked outputs, but without using Snowball.
-  //     secure_payment - cloaked outputs + Snowball (recommended).
-  //     public_payment - Public (uncloaked) outputs.
-  // recipient - recipient’s address.
-  // amount - amount in μSTG.
-  // payment_fee - desired fee per created UTXO.
-  // comment - a commentary, up to 880 chars.
-  // locked_timestamp - lock created UTXO until specified time.
-  // with_certificate - generate a proof of payment.
-
   Future<void> pay(
-      {@required int accountId,
+      {@required AccountStore account,
       @required String recipient,
       @required int amount,
       PaymentMethod paymentMethod = PaymentMethod.SECURED,
@@ -372,29 +453,33 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
         type = 'payment';
     }
 
-    await _unsealAccount(accountId, force: true);
+    await _unsealAccount(account.id, force: true);
     final payload = {
       'type': type,
       'recipient': recipient,
       'amount': amount,
       'comment': comment,
-      'account_id': '${accountId}',
+      'account_id': '${account.id}',
       'with_certificate': withCertificate,
       'payment_fee': fee,
       'locked_timestamp': lockedTimestamp?.toUtc()?.toIso8601String(),
     };
 
-    final id = await env.useDb((db) => db
-        .put(_txsCollection, {...payload, '_cts': DateTime.now().toUtc().millisecondsSinceEpoch}));
-    runInAction(sendPaymentAtom.reportChanged);
+    final txdata = {...payload, '_cts': DateTime.now().toUtc().millisecondsSinceEpoch};
+    final id = await env.useDb((db) => db.put(_txsCollection, txdata));
+    if (log.isFine) {
+      log.fine('Payment persisted: ${txdata}');
+    }
+    account._updateTransaction(id, txdata);
 
     final msg =
         await client.sendAndAwait(payload).catchError(defaultErrorHandler<StegosNodeMessage>(env));
     if (log.isFine) {
-      log.fine('Payment response: ${msg}');
+      log.fine('Payment accepted: ${msg}');
     }
+
     await env.useDb((db) => db.patch(_txsCollection, msg.json, id));
-    runInAction(sendPaymentAtom.reportChanged);
+    account._updateTransaction(id, msg.json);
   }
 
   @override
@@ -484,11 +569,20 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
       // https://github.com/stegos/stegos/issues/1449
       return;
     }
+    final accountId =
+        json['account_id'] is String ? int.tryParse(json['account_id'] as String) : null;
+    if (accountId == null) {
+      return;
+    }
+    final account = accounts[accountId];
+    if (account == null) {
+      return;
+    }
     if (log.isFine) {
       log.fine('onReceived: ${msg}');
     }
     return env.useDb((db) => db.put(_txsCollection, json)).then((id) {
-      runInAction(receivePaymentAtom.reportChanged);
+      account._updateTransaction(id, json);
     });
   }
 

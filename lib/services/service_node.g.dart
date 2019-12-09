@@ -8,6 +8,71 @@ part of 'service_node.dart';
 
 // ignore_for_file: non_constant_identifier_names, unnecessary_lambdas, prefer_expression_function_bodies, lines_longer_than_80_chars, avoid_as, avoid_annotating_with_dynamic
 
+mixin _$TxStore on _TxStore, Store {
+  final _$pendingAtom = Atom(name: '_TxStore.pending');
+
+  @override
+  bool get pending {
+    _$pendingAtom.context.enforceReadPolicy(_$pendingAtom);
+    _$pendingAtom.reportObserved();
+    return super.pending;
+  }
+
+  @override
+  set pending(bool value) {
+    _$pendingAtom.context.conditionallyRunInAction(() {
+      super.pending = value;
+      _$pendingAtom.reportChanged();
+    }, _$pendingAtom, name: '${_$pendingAtom.name}_set');
+  }
+
+  final _$feeAtom = Atom(name: '_TxStore.fee');
+
+  @override
+  int get fee {
+    _$feeAtom.context.enforceReadPolicy(_$feeAtom);
+    _$feeAtom.reportObserved();
+    return super.fee;
+  }
+
+  @override
+  set fee(int value) {
+    _$feeAtom.context.conditionallyRunInAction(() {
+      super.fee = value;
+      _$feeAtom.reportChanged();
+    }, _$feeAtom, name: '${_$feeAtom.name}_set');
+  }
+
+  final _$statusAtom = Atom(name: '_TxStore.status');
+
+  @override
+  String get status {
+    _$statusAtom.context.enforceReadPolicy(_$statusAtom);
+    _$statusAtom.reportObserved();
+    return super.status;
+  }
+
+  @override
+  set status(String value) {
+    _$statusAtom.context.conditionallyRunInAction(() {
+      super.status = value;
+      _$statusAtom.reportChanged();
+    }, _$statusAtom, name: '${_$statusAtom.name}_set');
+  }
+
+  final _$_TxStoreActionController = ActionController(name: '_TxStore');
+
+  @override
+  void _updateFromJson(dynamic json) {
+    final _$actionInfo = _$_TxStoreActionController.startAction();
+    try {
+      return super._updateFromJson(json);
+    } finally {
+      _$_TxStoreActionController.endAction(_$actionInfo);
+    }
+  }
+}
+
 mixin _$AccountStore on _AccountStore, Store {
   Computed<String> _$humanNameComputed;
 
@@ -239,6 +304,26 @@ mixin _$AccountStore on _AccountStore, Store {
 
   final _$_AccountStoreActionController =
       ActionController(name: '_AccountStore');
+
+  @override
+  void _registerTransaction(TxStore tx) {
+    final _$actionInfo = _$_AccountStoreActionController.startAction();
+    try {
+      return super._registerTransaction(tx);
+    } finally {
+      _$_AccountStoreActionController.endAction(_$actionInfo);
+    }
+  }
+
+  @override
+  void _updateTransaction(int id, dynamic json) {
+    final _$actionInfo = _$_AccountStoreActionController.startAction();
+    try {
+      return super._updateTransaction(id, json);
+    } finally {
+      _$_AccountStoreActionController.endAction(_$actionInfo);
+    }
+  }
 
   @override
   void _updateFromJson(dynamic json) {

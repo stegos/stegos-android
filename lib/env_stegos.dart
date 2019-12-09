@@ -75,6 +75,9 @@ class StegosEnv extends Env<Widget> {
   /// to wait for specific reply for message from stegos node.
   int get configNodeMaxAwaitMessageResponseMs => 30 * 60 * 1000; // 30min
 
+  /// Max number of recent transactions listed for
+  int get configMaxTransactionsPerAccount => 100;
+
   /// Stegos node websocket endpoint
   String get configNodeWsEndpoint => 'ws://10.0.2.2:3145';
 
