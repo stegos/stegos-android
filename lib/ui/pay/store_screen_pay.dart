@@ -6,7 +6,6 @@ part 'store_screen_pay.g.dart';
 class PayScreenStore = _PayScreenStore with _$PayScreenStore;
 
 abstract class _PayScreenStore with Store {
-
   static final RegExp _stegosAddressRegExp = RegExp(
     r'^st[rgt]1[ac-hj-np-z02-9]{8,87}$',
     caseSensitive: false,
@@ -36,14 +35,19 @@ abstract class _PayScreenStore with Store {
     generateCertificate = false;
   }
 
-   @computed
-   bool isValidToAddress() {
-      if (toAddress == null) {
-        return false;
-      } else {
-        return _stegosAddressRegExp.hasMatch(toAddress);
-      }
-   }
+  @computed
+  bool isValidToAddress() {
+    if (toAddress == null) {
+      return false;
+    } else {
+      return _stegosAddressRegExp.hasMatch(toAddress);
+    }
+  }
+
+  @computed
+  bool isValidForm() {
+    return senderAccount != null && amount > 0 && fee > 0 && isValidToAddress();
+  }
 //  export const BECH32_STEGOS_ADDRESS_REGEX = /^st[rgt]1[ac-hj-np-z02-9]{8,87}$/;
 
 //  export const isStegosAddress = str => BECH32_STEGOS_ADDRESS_REGEX.test(str);

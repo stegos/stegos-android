@@ -343,25 +343,27 @@ class _PayScreenState extends State<PayScreen> {
     return RaisedButton(
       elevation: 8,
       disabledElevation: 8,
-      onPressed: () {
-        final store = _store;
-        final env = Provider.of<StegosEnv>(context);
-        final nodeService = env.nodeService;
+      onPressed: _store.isValidForm()
+          ? () {
+              final store = _store;
+              final env = Provider.of<StegosEnv>(context);
+              final nodeService = env.nodeService;
 
-        // nodeService.pay(
-        //     accountId: store.senderAccount.id,
-        //     recipient: store.toAddress,
-        //     amount: (store.amount * 1e6).ceil(),
-        //     fee: (store.fee * 1e6).ceil(),
-        //     withCertificate: store.generateCertificate);
+              // nodeService.pay(
+              //     accountId: store.senderAccount.id,
+              //     recipient: store.toAddress,
+              //     amount: (store.amount * 1e6).ceil(),
+              //     fee: (store.fee * 1e6).ceil(),
+              //     withCertificate: store.generateCertificate);
 
-        // nodeService.pay(
-        //     accountId: 1,
-        //     recipient: 'stt1zz6u5zlgh5292lz5nasykazdtsf65vptd8hg6uryhzcxr0ykyvxq4kk5a5',
-        //     amount: (0.01 * 1e6).ceil(),
-        //     fee: stegosFeeStandard,
-        //     withCertificate: false);
-      },
+              // nodeService.pay(
+              //     accountId: 1,
+              //     recipient: 'stt1zz6u5zlgh5292lz5nasykazdtsf65vptd8hg6uryhzcxr0ykyvxq4kk5a5',
+              //     amount: (0.01 * 1e6).ceil(),
+              //     fee: stegosFeeStandard,
+              //     withCertificate: false);
+            }
+          : null,
       child: const Text('SEND'),
     );
   }
