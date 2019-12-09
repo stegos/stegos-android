@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:mobx/mobx.dart';
 import 'package:provider/provider.dart';
 import 'package:stegos_wallet/env_stegos.dart';
@@ -10,20 +11,41 @@ import 'package:stegos_wallet/utils/cont.dart';
 import 'package:stegos_wallet/widgets/widget_app_bar.dart';
 import 'package:stegos_wallet/widgets/widget_scaffold_body_wrapper.dart';
 
+class FeeType {
+  FeeType(this.name, this.amount);
+
+  final String name;
+  final double amount;
+}
+
 class PayScreen extends StatefulWidget {
   @override
   _PayScreenState createState() => _PayScreenState();
 }
 
 class _PayScreenState extends State<PayScreen> {
-  final _firstLabelStyle = TextStyle(fontSize: 12, color: StegosColors.white.withOpacity(0.8));
-  final _secondLabelStyle = TextStyle(fontSize: 12, color: StegosColors.white.withOpacity(0.5));
+  static const _iconBackImage = AssetImage('assets/images/arrow_back.png');
   final _store = PayScreenStore();
+
+  final FocusNode _recepientFocusNode = FocusNode();
+  final TextEditingController _toAddressController = TextEditingController();
+
+  @override
+  void initState() {
+    _recepientFocusNode.addListener(() => setState(() {
+      _recepientFieldColor = _recepientFocusNode.hasFocus
+          ? StegosColors.accentColor
+          : StegosColors.primaryColorDark;
+    }));
+    super.initState();
+  }
+
+  Color _recepientFieldColor = StegosColors.primaryColorDark;
 
   @override
   Widget build(BuildContext context) {
     return Theme(
-      data: StegosThemes.baseTheme,
+      data: StegosThemes.sendStgTheme,
       child: Scaffold(
         appBar: AppBarWidget(
           centerTitle: false,
@@ -32,40 +54,45 @@ class _PayScreenState extends State<PayScreen> {
             icon: const SizedBox(
               width: 24,
               height: 24,
-              child: Image(image: AssetImage('assets/images/arrow_back.png')),
+              child: Image(image: _iconBackImage),
             ),
             onPressed: () => Navigator.pop(context),
           ),
           title: const Text('Send STG'),
         ),
         body: ScaffoldBodyWrapperWidget(
-          builder: (context) => SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: <Widget>[
-                _buildAccountDropdown(),
-                //_buildToDropdown(),
-                _buildToAddress(),
-                _buildAmount(),
-                _buildFeeDropdown(),
-                _buildCertificateCheckbox(),
-                _buildSendButton(),
-              ],
-            ),
+          builder: (context) => Column(
+            children: <Widget>[
+              Expanded(
+                child: SingleChildScrollView(
+                  padding:
+                  const EdgeInsets.symmetric(horizontal: 22, vertical: 14).copyWith(top: 55),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: <Widget>[
+                      _buildAccountDropdown(),
+                      _buildToAddress(),
+                      _buildAmount(),
+                      _buildFeeDropdown(),
+                      _buildCertificateCheckbox(),
+                    ],
+                  ),
+                ),
+              ),
+              SizedBox(width: double.infinity, height: 50, child: _buildSendButton())
+            ],
           ),
         ),
       ),
     );
   }
 
-  Widget _withLabel(Widget label, Widget content) {
+  Widget _withLabel(String label, Widget content) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         Container(
-          height: 16,
-          child: label,
+          child: Text(label, style: TextStyle(fontSize: 12, color: StegosColors.primaryColorDark)),
         ),
         Container(
           child: content,
@@ -75,100 +102,138 @@ class _PayScreenState extends State<PayScreen> {
   }
 
   Widget _buildAccountDropdown() => Observer(builder: (context) {
-        final env = Provider.of<StegosEnv>(context);
-        final List<AccountStore> accountsList = env.nodeService.accountsList;
-        return _withLabel(
-            Text('from', style: _secondLabelStyle),
-            _withLabel(
-                Text('Choose account', style: _firstLabelStyle),
-                Container(
-                  padding: const EdgeInsets.only(bottom: 19),
-                  child: DropdownButton<AccountStore>(
-                    value: _store.senderAccount,
-                    icon: const Icon(Icons.keyboard_arrow_down),
-                    isExpanded: true,
-                    iconSize: 24,
-                    elevation: 16,
-                    underline: Container(
-                      height: 1,
-                      color: StegosColors.white,
-                    ),
-                    onChanged: (AccountStore acc) {
-                      runInAction(() {
-                        _store.senderAccount = acc;
-                      });
-                    },
-                    items: accountsList.map<DropdownMenuItem<AccountStore>>((AccountStore value) {
-                      return DropdownMenuItem<AccountStore>(
-                        value: value,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: <Widget>[
-                            Text(value.humanName),
-                            Text('${value.humanBalance} STG')
-                          ],
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                )));
-      });
-
-  // Widget _buildToDropdown() {
-  //   return _withLabel(
-  //       Text('to', style: secondLabelStyle),
-  //       _withLabel(
-  //           Text('choose user from your contact', style: firstLabelStyle),
-  //           Container(
-  //             padding: const EdgeInsets.only(bottom: 19),
-  //             child: DropdownButton<String>(
-  //               value: selectedRecipient,
-  //               icon: Icon(Icons.keyboard_arrow_down),
-  //               isExpanded: true,
-  //               iconSize: 24,
-  //               elevation: 16,
-  //               underline: Container(
-  //                 height: 1,
-  //                 color: StegosColors.white,
-  //               ),
-  //               onChanged: (String newValue) {
-  //                 setState(() {
-  //                   selectedRecipient = newValue;
-  //                 });
-  //               },
-  //               items: ['account1', 'account2', 'account3']
-  //                   .map<DropdownMenuItem<String>>((String value) {
-  //                 return DropdownMenuItem<String>(
-  //                   value: value,
-  //                   child: Text(value),
-  //                 );
-  //               }).toList(),
-  //             ),
-  //           )));
-  //}
-
-  Widget _buildToAddress() => _withLabel(
-      Text('to', style: _secondLabelStyle),
-      _withLabel(
-          Text('recipient address', style: _firstLabelStyle),
-          Container(
-            padding: const EdgeInsets.only(bottom: 19),
-            child: TextField(
-              controller: TextEditingController(text: _store.toAddress),
-              onChanged: (String value) {
-                runInAction(() {
-                  _store.toAddress = value;
-                });
-              },
+    final env = Provider.of<StegosEnv>(context);
+    final List<AccountStore> accountsList = env.nodeService.accountsList;
+    return _withLabel(
+        'Account to debit',
+        Container(
+          padding: const EdgeInsets.only(bottom: 19),
+          child: DropdownButton<AccountStore>(
+            value: _store.senderAccount,
+            isExpanded: true,
+            elevation: 16,
+            underline: Container(
+              height: 1,
+              color: StegosColors.white,
             ),
-          )));
+            onChanged: (AccountStore acc) {
+              runInAction(() {
+                _store.senderAccount = acc;
+              });
+            },
+            items: accountsList.map<DropdownMenuItem<AccountStore>>((AccountStore value) {
+              return DropdownMenuItem<AccountStore>(
+                value: value,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    Text(value.humanName),
+                    Text('${value.humanBalance} STG', style: const TextStyle(fontSize: 18))
+                  ],
+                ),
+              );
+            }).toList(),
+          ),
+        ));
+  });
 
-  Widget _buildAmount() => _withLabel(
-      Text('type amount', style: _firstLabelStyle),
+  Widget _buildMyAccountsDropdown() {
+    final env = Provider.of<StegosEnv>(context);
+    final List<AccountStore> accountsList = env.nodeService.accountsList;
+    return PopupMenuButton<String>(
+      elevation: 16,
+      onSelected: (String value) {
+        runInAction(() {
+          _store.toAddress = value;
+        });
+      },
+      itemBuilder: (context) => accountsList.map<PopupMenuItem<String>>((AccountStore value) {
+        return PopupMenuItem<String>(
+          value: value.pkey,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              Text(value.humanName),
+              Text('${value.humanBalance} STG', style: const TextStyle(fontSize: 18))
+            ],
+          ),
+        );
+      }).toList(),
+      child: FlatButton.icon(
+        padding: const EdgeInsets.only(left: 10),
+        splashColor: StegosColors.primaryColorDark,
+        highlightColor: Colors.transparent,
+        icon: SvgPicture.asset(
+          'assets/images/accounts.svg',
+          height: 21,
+          color: _recepientFieldColor,
+        ),
+        label: Text(
+          'My accounts',
+          style: TextStyle(fontSize: 12, color: _recepientFieldColor),
+        ),
+        onPressed: null,
+      ),
+    );
+  }
+
+  Widget _buildToAddress() {
+    return _withLabel(
+        'Recepient address',
+        Container(
+          padding: const EdgeInsets.only(bottom: 19),
+          child: Column(
+            children: <Widget>[
+              TextField(
+                controller: TextEditingController(text: _store.toAddress),
+                onChanged: (String value) {
+                  runInAction(() {
+                    _store.toAddress = value;
+                  });
+                },
+                focusNode: _recepientFocusNode,
+                decoration: InputDecoration(
+                    suffix: Transform.translate(
+                      offset: const Offset(0, 4),
+                      child: Image.asset(
+                        'assets/images/qr.png',
+                        height: 20,
+                        width: 20,
+                      ),
+                    )),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+                  FlatButton.icon(
+                      padding: const EdgeInsets.only(right: 10),
+                      onPressed: () {},
+                      splashColor: StegosColors.primaryColorDark,
+                      highlightColor: Colors.transparent,
+                      icon: SvgPicture.asset(
+                        'assets/images/contacts.svg',
+                        height: 26,
+                        color: _recepientFieldColor,
+                      ),
+                      label: Text(
+                        'Open contacts',
+                        style: TextStyle(fontSize: 12, color: _recepientFieldColor),
+                      )),
+                  _buildMyAccountsDropdown()
+                ],
+              )
+            ],
+          ),
+        ));
+  }
+
+  Widget _buildAmount() {
+    return _withLabel(
+      'type amount',
       Row(
         children: <Widget>[
           Container(
-            width: 92,
+            width: 118,
             padding: const EdgeInsets.only(bottom: 19),
             child: TextField(
               keyboardType: TextInputType.number,
@@ -184,69 +249,94 @@ class _PayScreenState extends State<PayScreen> {
           ),
           const Text('STG'),
         ],
-      ));
+      ),
+    );
+  }
 
   Widget _buildFeeDropdown() => Observer(builder: (context) {
-        return _withLabel(
-            Text('Fee', style: _firstLabelStyle),
-            Container(
-              padding: const EdgeInsets.only(bottom: 19),
-              child: DropdownButton<double>(
-                value: _store.fee,
-                icon: const Icon(Icons.keyboard_arrow_down),
-                isExpanded: true,
-                iconSize: 24,
-                elevation: 16,
-                underline: Container(
-                  height: 1,
-                  color: StegosColors.white,
-                ),
-                onChanged: (v) {
-                  runInAction(() {
-                    _store.fee = v;
-                  });
-                },
-                items:
-                    [Pair<String, double>('Standard', 0.001), Pair<String, double>('Fast', 0.005)]
-                        .map<DropdownMenuItem<double>>((value) => DropdownMenuItem<double>(
-                              value: value.second,
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: <Widget>[
-                                  Text(value.first),
-                                  Text(
-                                    '${value.second} STG per UTXO',
-                                    style: _secondLabelStyle,
-                                  )
-                                ],
-                              ),
-                            ))
-                        .toList(),
+    return _withLabel(
+        'Fee',
+        Stack(children: [
+          Container(
+            padding: const EdgeInsets.only(bottom: 19).copyWith(right: 165),
+            child: DropdownButton<double>(
+              value: _store.fee,
+              isExpanded: true,
+              elevation: 16,
+              underline: Container(
+                height: 1,
+                color: StegosColors.white,
               ),
-            ));
-      });
+              onChanged: (v) {
+                runInAction(() {
+                  _store.fee = v;
+                });
+              },
+              items:
+              [Pair<String, double>('Standard', 0.001), Pair<String, double>('Fast', 0.005)]
+                  .map<DropdownMenuItem<double>>((value) => DropdownMenuItem<double>(
+                value: value.second,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    Text('${value.first}'),
+                  ],
+                ),
+              ))
+                  .toList(),
+            ),
+          ),
+          Container(
+            alignment: Alignment.bottomRight,
+            child: Container(
+              width: 150,
+              height: 40,
+              margin: const EdgeInsets.only(bottom: 19),
+              decoration: const BoxDecoration(
+                  border: Border(bottom: BorderSide(width: 1, color: StegosColors.white))),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: <Widget>[
+                  Text(
+                    '${_store.fee} STG ',
+                    style: const TextStyle(fontSize: 18),
+                  ),
+                  const Text(
+                    'per UTXO',
+                    style: TextStyle(fontSize: 12),
+                  )
+                ],
+              ),
+            ),
+          )
+        ]));
+  });
 
   Widget _buildCertificateCheckbox() => Observer(builder: (context) {
-        return Container(
-          padding: const EdgeInsets.only(bottom: 19),
-          child: Row(
-            children: <Widget>[
-              Checkbox(
-                onChanged: (v) {
-                  runInAction(() {
-                    _store.generateCertificate = v;
-                  });
-                },
-                value: _store.generateCertificate,
-              ),
-              const Text('Generate certificate')
-            ],
+    return Transform.translate(
+      offset: const Offset(-10, 0),
+      child: Row(
+        children: <Widget>[
+          Checkbox(
+            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            onChanged: (v) {
+              runInAction(() {
+                _store.generateCertificate = v;
+              });
+            },
+            value: _store.generateCertificate,
+            checkColor: StegosColors.backgroundColor,
           ),
-        );
-      });
+          const Text('Generate certificate')
+        ],
+      ),
+    );
+  });
 
   Widget _buildSendButton() {
     return RaisedButton(
+      elevation: 8,
+      disabledElevation: 8,
       onPressed: () {
         // todo: validation
         // todo:

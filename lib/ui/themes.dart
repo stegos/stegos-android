@@ -141,6 +141,8 @@ mixin StegosThemes {
       prefixStyle: defaultInputTextStyle.copyWith(color: Colors.transparent),
       contentPadding: const EdgeInsets.only(left: 40.0, right: 13.0, top: 6.0, bottom: 6.0),
     ),
+    textSelectionColor: StegosColors.accentColor,
+    textSelectionHandleColor: StegosColors.accentColor,
   );
 
   static final accountsTheme = baseTheme.copyWith(
@@ -214,4 +216,22 @@ mixin StegosThemes {
   );
 
   static final AccountTheme = baseTheme;
+
+  static final sendStgTheme = baseTheme.copyWith(
+    buttonTheme: _defaults.buttonTheme.copyWith(
+      shape: const RoundedRectangleBorder(),
+      textTheme: ButtonTextTheme.accent,
+      colorScheme: ColorScheme.fromSwatch(
+          primaryColorDark: StegosColors.primaryColorDark,
+          accentColor: StegosColors.white,
+          backgroundColor: StegosColors.primaryColorDark,
+          brightness: Brightness.dark),
+      disabledColor: StegosColors.primaryColorDark,
+      buttonColor: StegosColors.primaryColor,
+      focusColor: StegosColors.white,
+      highlightColor: StegosColors.primaryColor,
+      hoverColor: StegosColors.primaryColor,
+      splashColor: const Color(0xffe26e04),
+    ),
+  );
 }
