@@ -179,7 +179,7 @@ class _PayScreenState extends State<PayScreen> {
   Widget _buildToAddress() => Observer(builder: (context) {
         final UnderlineInputBorder textFieldBorder = UnderlineInputBorder(
             borderSide: BorderSide(
-                color: _store.isValidToAddress() ? StegosColors.accentColor : Colors.redAccent,
+                color: _store.isValidToAddress ? StegosColors.accentColor : Colors.redAccent,
                 width: 1));
         return _withLabel(
             'Recepient address',
@@ -347,12 +347,13 @@ class _PayScreenState extends State<PayScreen> {
         return RaisedButton(
           elevation: 8,
           disabledElevation: 8,
-          onPressed: _store.isValidForm() || true
+          onPressed: _store.isValidForm || true
               ? () {
-                  final store = _store;
+                  //final store = _store;
                   final env = Provider.of<StegosEnv>(context);
                   final nodeService = env.nodeService;
 
+                  // FIXME:
                   // nodeService.pay(
                   //     accountId: store.senderAccount.id,
                   //     recipient: store.toAddress,
@@ -360,8 +361,9 @@ class _PayScreenState extends State<PayScreen> {
                   //     fee: (store.fee * 1e6).ceil(),
                   //     withCertificate: store.generateCertificate);
 
+                  final account = nodeService.accounts[1];
                   nodeService.pay(
-                      accountId: 1,
+                      account: account,
                       recipient: 'stt1zz6u5zlgh5292lz5nasykazdtsf65vptd8hg6uryhzcxr0ykyvxq4kk5a5',
                       amount: (0.02 * 1e6).ceil(),
                       fee: stegosFeeStandard,

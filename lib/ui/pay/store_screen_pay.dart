@@ -35,8 +35,7 @@ abstract class _PayScreenStore with Store {
     generateCertificate = false;
   }
 
-  @computed
-  bool isValidToAddress() {
+  bool get isValidToAddress {
     if (toAddress == null) {
       return false;
     } else {
@@ -44,12 +43,7 @@ abstract class _PayScreenStore with Store {
     }
   }
 
-  @computed
-  bool isValidForm() {
-    return senderAccount != null && amount > 0 && fee > 0 && isValidToAddress();
+  bool get isValidForm {
+    return senderAccount != null && amount > 0 && fee > 0 && isValidToAddress;
   }
-//  export const BECH32_STEGOS_ADDRESS_REGEX = /^st[rgt]1[ac-hj-np-z02-9]{8,87}$/;
-
-//  export const isStegosAddress = str => BECH32_STEGOS_ADDRESS_REGEX.test(str);
-
 }
