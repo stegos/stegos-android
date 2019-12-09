@@ -113,7 +113,7 @@ class _PayScreenState extends State<PayScreen> {
                 elevation: 16,
                 underline: Container(
                   height: 1,
-                  color: StegosColors.white,
+                  color: _store.senderAccount != null ? StegosColors.white : Colors.redAccent,
                 ),
                 onChanged: (AccountStore acc) {
                   runInAction(() {
@@ -176,87 +176,91 @@ class _PayScreenState extends State<PayScreen> {
     );
   }
 
-  Widget _buildToAddress() {
-    final UnderlineInputBorder textFieldBorder = UnderlineInputBorder(
-        borderSide: BorderSide(
-            color: _store.isValidToAddress() ? StegosColors.accentColor : Colors.redAccent,
-            width: 1));
-    return _withLabel(
-        'Recepient address',
-        Container(
-          padding: const EdgeInsets.only(bottom: 19),
-          child: Column(
-            children: <Widget>[
-              TextField(
-                controller: TextEditingController(text: _store.toAddress),
-                onChanged: (String value) {
-                  runInAction(() {
-                    _store.toAddress = value;
-                  });
-                },
-                focusNode: _recepientFocusNode,
-                decoration: InputDecoration(
-                    focusedBorder: textFieldBorder,
-                    enabledBorder: textFieldBorder,
-                    suffix: Transform.translate(
-                      offset: const Offset(0, 4),
-                      child: Image.asset(
-                        'assets/images/qr.png',
-                        height: 20,
-                        width: 20,
-                      ),
-                    )),
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  Widget _buildToAddress() => Observer(builder: (context) {
+        final UnderlineInputBorder textFieldBorder = UnderlineInputBorder(
+            borderSide: BorderSide(
+                color: _store.isValidToAddress() ? StegosColors.accentColor : Colors.redAccent,
+                width: 1));
+        return _withLabel(
+            'Recepient address',
+            Container(
+              padding: const EdgeInsets.only(bottom: 19),
+              child: Column(
                 children: <Widget>[
-                  FlatButton.icon(
-                      padding: const EdgeInsets.only(right: 10),
-                      onPressed: () {},
-                      splashColor: StegosColors.primaryColorDark,
-                      highlightColor: Colors.transparent,
-                      icon: SvgPicture.asset(
-                        'assets/images/contacts.svg',
-                        height: 26,
-                        color: _recepientFieldColor,
-                      ),
-                      label: Text(
-                        'Open contacts',
-                        style: TextStyle(fontSize: 12, color: _recepientFieldColor),
-                      )),
-                  _buildMyAccountsDropdown()
+                  TextField(
+                    onChanged: (String value) {
+                      runInAction(() {
+                        _store.toAddress = value;
+                      });
+                    },
+                    focusNode: _recepientFocusNode,
+                    decoration: InputDecoration(
+                        focusedBorder: textFieldBorder,
+                        enabledBorder: textFieldBorder,
+                        suffix: Transform.translate(
+                          offset: const Offset(0, 4),
+                          child: Image.asset(
+                            'assets/images/qr.png',
+                            height: 20,
+                            width: 20,
+                          ),
+                        )),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      FlatButton.icon(
+                          padding: const EdgeInsets.only(right: 10),
+                          onPressed: () {},
+                          splashColor: StegosColors.primaryColorDark,
+                          highlightColor: Colors.transparent,
+                          icon: SvgPicture.asset(
+                            'assets/images/contacts.svg',
+                            height: 26,
+                            color: _recepientFieldColor,
+                          ),
+                          label: Text(
+                            'Open contacts',
+                            style: TextStyle(fontSize: 12, color: _recepientFieldColor),
+                          )),
+                      _buildMyAccountsDropdown()
+                    ],
+                  )
                 ],
-              )
+              ),
+            ));
+      });
+
+  Widget _buildAmount() => Observer(builder: (context) {
+        final UnderlineInputBorder textFieldBorder = UnderlineInputBorder(
+            borderSide: BorderSide(
+                color: _store.amount > 0 ? StegosColors.accentColor : Colors.redAccent, width: 1));
+        return _withLabel(
+          'type amount',
+          Row(
+            children: <Widget>[
+              Container(
+                width: 118,
+                padding: const EdgeInsets.only(bottom: 19),
+                child: TextField(
+                  decoration:
+                      InputDecoration(enabledBorder: textFieldBorder, focusedBorder: textFieldBorder),
+                  keyboardType: TextInputType.number,
+                  onChanged: (String value) {
+                    final v = double.tryParse(value);
+                    if (v != null) {
+                      runInAction(() {
+                        _store.amount = v;
+                      });
+                    }
+                  },
+                ),
+              ),
+              const Text('STG'),
             ],
           ),
-        ));
-  }
-
-  Widget _buildAmount() {
-    return _withLabel(
-      'type amount',
-      Row(
-        children: <Widget>[
-          Container(
-            width: 118,
-            padding: const EdgeInsets.only(bottom: 19),
-            child: TextField(
-              keyboardType: TextInputType.number,
-              onChanged: (String value) {
-                final v = double.tryParse(value);
-                if (v != null) {
-                  runInAction(() {
-                    _store.amount = v;
-                  });
-                }
-              },
-            ),
-          ),
-          const Text('STG'),
-        ],
-      ),
-    );
-  }
+        );
+      });
 
   Widget _buildFeeDropdown() => Observer(builder: (context) {
         return _withLabel(
@@ -339,32 +343,32 @@ class _PayScreenState extends State<PayScreen> {
         );
       });
 
-  Widget _buildSendButton() {
-    return RaisedButton(
-      elevation: 8,
-      disabledElevation: 8,
-      onPressed: _store.isValidForm()
-          ? () {
-              final store = _store;
-              final env = Provider.of<StegosEnv>(context);
-              final nodeService = env.nodeService;
+  Widget _buildSendButton() => Observer(builder: (context) {
+        return RaisedButton(
+          elevation: 8,
+          disabledElevation: 8,
+          onPressed: _store.isValidForm()
+              ? () {
+                  final store = _store;
+                  final env = Provider.of<StegosEnv>(context);
+                  final nodeService = env.nodeService;
 
-              // nodeService.pay(
-              //     accountId: store.senderAccount.id,
-              //     recipient: store.toAddress,
-              //     amount: (store.amount * 1e6).ceil(),
-              //     fee: (store.fee * 1e6).ceil(),
-              //     withCertificate: store.generateCertificate);
+                  // nodeService.pay(
+                  //     accountId: store.senderAccount.id,
+                  //     recipient: store.toAddress,
+                  //     amount: (store.amount * 1e6).ceil(),
+                  //     fee: (store.fee * 1e6).ceil(),
+                  //     withCertificate: store.generateCertificate);
 
-              // nodeService.pay(
-              //     accountId: 1,
-              //     recipient: 'stt1zz6u5zlgh5292lz5nasykazdtsf65vptd8hg6uryhzcxr0ykyvxq4kk5a5',
-              //     amount: (0.01 * 1e6).ceil(),
-              //     fee: stegosFeeStandard,
-              //     withCertificate: false);
-            }
-          : null,
-      child: const Text('SEND'),
-    );
-  }
+                  // nodeService.pay(
+                  //     accountId: 1,
+                  //     recipient: 'stt1zz6u5zlgh5292lz5nasykazdtsf65vptd8hg6uryhzcxr0ykyvxq4kk5a5',
+                  //     amount: (0.01 * 1e6).ceil(),
+                  //     fee: stegosFeeStandard,
+                  //     withCertificate: false);
+                }
+              : null,
+          child: const Text('SEND'),
+        );
+      });
 }
