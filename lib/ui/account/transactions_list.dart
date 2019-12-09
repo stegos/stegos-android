@@ -1,3 +1,6 @@
+import 'dart:math';
+
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:intl/intl.dart';
@@ -16,7 +19,16 @@ class TransactionsList extends StatefulWidget {
   _TransactionsListState createState() => _TransactionsListState();
 }
 
-class _TransactionsListState extends State<TransactionsList> {
+class _TransactionsListState extends State<TransactionsList> with TickerProviderStateMixin {
+  AnimationController rotationController;
+
+  @override
+  void initState() {
+    rotationController = AnimationController(duration: const Duration(seconds: 20), vsync: this);
+    rotationController.repeat();
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) => Theme(
         data: StegosThemes.AccountTheme,
@@ -42,9 +54,22 @@ class _TransactionsListState extends State<TransactionsList> {
               children: <Widget>[
                 Container(
                     alignment: Alignment.topLeft,
-                    child: Text(
-                      transaction.amount > 0 ? 'Received' : 'Sent',
-                      style: const TextStyle(fontSize: 16, color: StegosColors.white),
+                    child: Row(
+                      children: <Widget>[
+                        Padding(
+                            padding: const EdgeInsets.only(right: 5),
+                            child: transaction.finished
+                                ? Icon(Icons.check, size: 16, color: const Color(0xff32ff6b))
+                                : RotationTransition(
+                                    turns:
+                                        Tween(begin: 0.0, end: 2 * pi).animate(rotationController),
+                                    child: Icon(Icons.autorenew,
+                                        size: 16, color: StegosColors.accentColor))),
+                        Text(
+                          transaction.amount > 0 ? 'Received' : 'Sent',
+                          style: const TextStyle(fontSize: 16, color: StegosColors.white),
+                        )
+                      ],
                     )),
                 Container(
                     alignment: Alignment.bottomLeft,

@@ -12,11 +12,12 @@ import 'package:stegos_wallet/ui/transactions/screen_transactions.dart';
 import 'package:stegos_wallet/widgets/widget_app_bar.dart';
 
 class Transaction {
-  Transaction({this.amount = 0, this.created, this.certificateURL});
+  Transaction({this.amount = 0, this.created, this.certificateURL, this.finished = true});
 
   final double amount;
   final DateTime created;
   final String certificateURL;
+  final bool finished;
 }
 
 class AccountScreen extends StatefulWidget {
@@ -34,8 +35,8 @@ class AccountScreenState extends State<AccountScreen> {
   final EdgeInsets defaultPadding = const EdgeInsets.all(16.0);
 
   final List<Transaction> transactions = [
-    Transaction(amount: 10, created: DateTime.now(), certificateURL: 'URL to certificate document'),
-    Transaction(amount: -1230, created: DateTime.now(), certificateURL: null),
+    Transaction(amount: 10, created: DateTime.now(), certificateURL: 'URL to certificate document', finished: false),
+    Transaction(amount: -1230, created: DateTime.now(), certificateURL: null, finished: false),
     Transaction(amount: -1.1235, created: DateTime.now(), certificateURL: null),
     Transaction(amount: 3250, created: DateTime.now(), certificateURL: null),
     Transaction(amount: 1.0001, created: DateTime.now(), certificateURL: null),
