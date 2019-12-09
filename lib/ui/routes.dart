@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:mobx/mobx.dart';
 import 'package:stegos_wallet/env_stegos.dart';
+import 'package:stegos_wallet/services/service_node.dart';
 import 'package:stegos_wallet/ui/account/screen_account.dart';
 import 'package:stegos_wallet/ui/dev/screen_dev_menu.dart';
 import 'package:stegos_wallet/ui/pay/screen_pay.dart';
@@ -145,8 +146,9 @@ mixin Routes {
         case welcome:
           return MaterialPageRoute(builder: (BuildContext context) => WelcomeScreen());
         case account:
-          final arguments = settings.arguments as int;
-          return MaterialPageRoute(builder: (BuildContext context) => AccountScreen(id: arguments));
+          final account = settings.arguments as AccountStore;
+          return MaterialPageRoute(
+              builder: (BuildContext context) => AccountScreen(account: account));
         case wallet:
           return MaterialPageRoute(builder: (BuildContext context) => WalletScreen());
         case recover:

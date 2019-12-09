@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:logging/logging.dart';
 
 mixin Loggable<T> {
@@ -22,7 +23,20 @@ class Log implements Logger {
         if (rec.stackTrace != null) {
           sb.write('\n${rec.stackTrace}');
         }
-        print(sb.toString());
+
+        void printWrapped(String text) {
+          const block = 800;
+          final n = text.length ~/ block;
+          final r = text.length % block;
+          for (var i = 0; i < n; ++i) {
+            print(text.substring(i * block, (i + 1) * block));
+          }
+          if (r > 0) {
+            print(text.substring(text.length - r, text.length));
+          }
+        }
+
+        printWrapped(sb.toString());
       });
     }
   }

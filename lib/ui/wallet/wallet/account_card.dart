@@ -20,9 +20,9 @@ class AccountCardState extends State<AccountCard> {
 
   @override
   Widget build(BuildContext context) => Observer(builder: (context) {
-        final acc = widget.account;
+        final account = widget.account;
         final bgAlignment = (() {
-          switch (acc.ordinal % 3) {
+          switch (account.ordinal % 3) {
             case 1:
               return Alignment.topCenter;
             case 2:
@@ -46,7 +46,7 @@ class AccountCardState extends State<AccountCard> {
               alignment: bgAlignment,
               child: InkWell(
                 borderRadius: BorderRadius.circular(3.0),
-                onTap: () => Navigator.pushNamed(context, Routes.account, arguments: acc.id),
+                onTap: () => Navigator.pushNamed(context, Routes.account, arguments: account),
                 child: AspectRatio(
                     aspectRatio: aspectRation,
                     child: Stack(
@@ -54,7 +54,7 @@ class AccountCardState extends State<AccountCard> {
                         Container(
                             alignment: Alignment.centerRight,
                             padding: EdgeInsets.only(right: widget.collapsed ? 52 : 19),
-                            child: Text('${acc.humanBalance} STG',
+                            child: Text('${account.humanBalance} STG',
                                 style: TextStyle(fontSize: widget.collapsed ? 18 : 32))),
                         Container(
                             padding: EdgeInsets.only(
@@ -66,7 +66,7 @@ class AccountCardState extends State<AccountCard> {
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: <Widget>[
-                                Text(acc.humanName, style: const TextStyle(fontSize: 12)),
+                                Text(account.humanName, style: const TextStyle(fontSize: 12)),
                                 const Image(
                                     image: AssetImage('assets/images/qr.png'),
                                     width: 20,

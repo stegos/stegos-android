@@ -19,11 +19,18 @@ class StegosUserException implements Exception {
   final String message;
 }
 
-FutureOr<T> Function(T, StackTrace) defaultErrorHandler<T>(StegosEnv env) => (err, StackTrace st) {
+FutureOr<T> Function(Object, StackTrace) defaultErrorHandler<T>(StegosEnv env) =>
+    (Object err, StackTrace st) {
       if (err is StegosUserException) {
         env.setError(err.message);
       }
       return Future<T>.error(err, st);
+    };
+
+FutureOr<T> Function(Object, StackTrace) silentWarnLogErrorHandler<T>(StegosEnv env) =>
+    (Object err, StackTrace st) {
+      env.log.warning('Unhandled error', err, st);
+      return Future<T>.value();
     };
 
 /// Stegos wallet app environment.

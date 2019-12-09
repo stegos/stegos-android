@@ -180,6 +180,10 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
 
   final accounts = ObservableMap<int, AccountStore>();
 
+  final receivePaymentAtom = Atom(name: 'receivePaymentAtom');
+
+  final sendPaymentAtom = Atom(name: 'sendPaymentAtom');
+
   @computed
   List<AccountStore> get accountsList =>
       accounts.values.toList(growable: false)..sort((a, b) => a.ordinal.compareTo(b.ordinal));
@@ -369,8 +373,7 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
     }
 
     await _unsealAccount(accountId, force: true);
-
-    final msg = await client.sendAndAwait({
+    final payload = {
       'type': type,
       'recipient': recipient,
       'amount': amount,
@@ -379,33 +382,19 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
       'with_certificate': withCertificate,
       'payment_fee': fee,
       'locked_timestamp': lockedTimestamp?.toUtc()?.toIso8601String(),
-    }).catchError(defaultErrorHandler(env));
+    };
 
-    /*
+    final id = await env.useDb((db) => db
+        .put(_txsCollection, {...payload, '_cts': DateTime.now().toUtc().millisecondsSinceEpoch}));
+    runInAction(sendPaymentAtom.reportChanged);
 
-   type: withCertificate ? 'payment' : 'secure_payment',
-    recipient,
-    amount,
-    comment,
-    account_id: accountId,
-    with_certificate: withCertificate,
-    payment_fee: fee,
-    locked_timestamp: null
-
-  "account_id": "1",
-  "type": "payment",
-  "recipient": "dev1jjufnwk6u5scyj05259tpy2a7096dap0umj5uhqlynfdfua255fs5fm7w4",
-  "amount": 100,
-  "payment_fee": 1000,
-  "comment": "Test",
-  "locked_timestamp": "2019-08-22T12:35:06.343300856Z",
-  "with_certificate": false
-    */
-
-    // msg={"type":"secure_payment","account_id":1,"recipient":"stt1zz6u5zlgh5292lz5nasykazdtsf65vptd8hg6uryhzcxr0ykyvxq4kk5a5",
-    // "amount":10000,"comment":"","payment_fee":1000,"locked_timestamp":"2019-12-09T04:44:26.751872Z","with_certificate":false,"id":7}
-
-    log.info('!!!!!!!!!!!!!!!!!!!!!!!!! response: ${msg}');
+    final msg =
+        await client.sendAndAwait(payload).catchError(defaultErrorHandler<StegosNodeMessage>(env));
+    if (log.isFine) {
+      log.fine('Payment response: ${msg}');
+    }
+    await env.useDb((db) => db.patch(_txsCollection, msg.json, id));
+    runInAction(sendPaymentAtom.reportChanged);
   }
 
   @override
@@ -479,9 +468,37 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
       case 'account_deleted':
         unawaited(_onAccountDeleted(msg));
         break;
-      case 'transaction_created':
       case 'transaction_status':
+        unawaited(_onTransactionStatus(msg));
         break;
+      case 'received':
+        unawaited(_onReceived(msg));
+        break;
+    }
+  }
+
+  Future<void> _onReceived(StegosNodeMessage msg) async {
+    final json = msg.json;
+    if (json['comment'] == 'Change') {
+      // FIXME: use `is_change`
+      // https://github.com/stegos/stegos/issues/1449
+      return;
+    }
+    if (log.isFine) {
+      log.fine('onReceived: ${msg}');
+    }
+    return env.useDb((db) => db.put(_txsCollection, json)).then((id) {
+      runInAction(receivePaymentAtom.reportChanged);
+    });
+  }
+
+  Future<void> _onTransactionStatus(StegosNodeMessage msg) async {
+    final updated = await env.useDb((db) => db
+        .createQuery('/tx_hash = :? | apply :? | count')
+        .setString(0, msg.json['tx_hash'] as String)
+        .setJson(1, {'status': msg.json['status']}).executeScalarInt());
+    if (log.isFine) {
+      log.fine('onTransactionStatus updated: ${updated}');
     }
   }
 
@@ -669,6 +686,13 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
     runInAction(() {
       network = pkey.substring(0, 3);
     });
+
+    unawaited(env.useDb((db) => Future.wait([
+          db.ensureStringIndex(_txsCollection, '/tx_hash', true),
+          db.ensureIntIndex(_txsCollection, '/_cts', true),
+          db.ensureIntIndex(_txsCollection, '/account_id', false)
+        ])));
+
     log.info('Using Stegos network: ${network}');
     return nodeAccounts;
   }
