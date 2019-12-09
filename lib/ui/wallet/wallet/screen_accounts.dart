@@ -112,7 +112,7 @@ class AccountsScreenState extends State<AccountsScreen>
                 const SizedBox(
                   height: 15,
                 ),
-                Text('${node.totalBalance} STG',
+                Text('${node.totalBalanceSTG} STG',
                     style: TextStyle(fontSize: 24, color: StegosColors.primaryColor))
               ],
             ),

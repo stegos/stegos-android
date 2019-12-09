@@ -66,7 +66,7 @@ abstract class _AccountStore with Store {
   @computed
   String get humanName => name ?? 'Account #${id}';
 
-  String get humanBalance => '${balanceCurrent}';
+  String get humanBalance => '${(balanceCurrent.toDouble() / 1e6).toStringAsFixed(3)}';
 
   @observable
   String name;
@@ -187,6 +187,8 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
   @computed
   int get totalBalance =>
       accounts.values.fold(0, (s, a) => s + a.balanceCurrent); // todo: balanceCurrent?
+
+  String get totalBalanceSTG => (totalBalance.toDouble() / 1e6).toStringAsFixed(3);
 
   /// Is app is connected to network
   @computed
