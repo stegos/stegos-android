@@ -20,12 +20,12 @@ class TransactionsList extends StatefulWidget {
 }
 
 class _TransactionsListState extends State<TransactionsList> with TickerProviderStateMixin {
-  AnimationController rotationController;
+  AnimationController _rotationController;
 
   @override
   void initState() {
-    rotationController = AnimationController(duration: const Duration(seconds: 20), vsync: this);
-    rotationController.repeat();
+    _rotationController = AnimationController(duration: const Duration(seconds: 20), vsync: this);
+    _rotationController.repeat();
     super.initState();
   }
 
@@ -62,7 +62,7 @@ class _TransactionsListState extends State<TransactionsList> with TickerProvider
                                 ? Icon(Icons.check, size: 16, color: const Color(0xff32ff6b))
                                 : RotationTransition(
                                     turns:
-                                        Tween(begin: 0.0, end: 2 * pi).animate(rotationController),
+                                        Tween(begin: 0.0, end: 2 * pi).animate(_rotationController),
                                     child: Icon(Icons.autorenew,
                                         size: 16, color: StegosColors.accentColor))),
                         Text(
@@ -111,5 +111,11 @@ class _TransactionsListState extends State<TransactionsList> with TickerProvider
           builder: (BuildContext context) => CertificateScreen(),
           fullscreenDialog: true,
         ));
+  }
+
+  @override
+  void dispose() {
+    _rotationController.dispose();
+    super.dispose();
   }
 }
