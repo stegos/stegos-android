@@ -356,7 +356,6 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
     if (withCertificate) {
       paymentMethod = PaymentMethod.SECURED;
     }
-    lockedTimestamp = DateTime.now();
     String type;
     switch (paymentMethod) {
       case PaymentMethod.SECURED:
@@ -369,14 +368,42 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
         type = 'payment';
     }
 
+    await _unsealAccount(accountId, force: true);
+
     final msg = await client.sendAndAwait({
       'type': type,
       'recipient': recipient,
       'amount': amount,
       'comment': comment,
+      'account_id': '${accountId}',
+      'with_certificate': withCertificate,
       'payment_fee': fee,
-      'locked_timestamp': lockedTimestamp.toIso8601String()
-    });
+      'locked_timestamp': lockedTimestamp?.toUtc()?.toIso8601String(),
+    }).catchError(defaultErrorHandler(env));
+
+    /*
+
+   type: withCertificate ? 'payment' : 'secure_payment',
+    recipient,
+    amount,
+    comment,
+    account_id: accountId,
+    with_certificate: withCertificate,
+    payment_fee: fee,
+    locked_timestamp: null
+
+  "account_id": "1",
+  "type": "payment",
+  "recipient": "dev1jjufnwk6u5scyj05259tpy2a7096dap0umj5uhqlynfdfua255fs5fm7w4",
+  "amount": 100,
+  "payment_fee": 1000,
+  "comment": "Test",
+  "locked_timestamp": "2019-08-22T12:35:06.343300856Z",
+  "with_certificate": false
+    */
+
+    // msg={"type":"secure_payment","account_id":1,"recipient":"stt1zz6u5zlgh5292lz5nasykazdtsf65vptd8hg6uryhzcxr0ykyvxq4kk5a5",
+    // "amount":10000,"comment":"","payment_fee":1000,"locked_timestamp":"2019-12-09T04:44:26.751872Z","with_certificate":false,"id":7}
 
     log.info('!!!!!!!!!!!!!!!!!!!!!!!!! response: ${msg}');
   }
@@ -451,6 +478,9 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
         break;
       case 'account_deleted':
         unawaited(_onAccountDeleted(msg));
+        break;
+      case 'transaction_created':
+      case 'transaction_status':
         break;
     }
   }

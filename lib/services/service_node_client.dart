@@ -216,7 +216,8 @@ abstract class _StegosNodeClient with Store, Loggable<StegosNodeClient> {
   void _onIncomingMessage(String payload) {
     payload = _messageDecrypt(payload);
     if (log.isFine) {
-      log.fine('onIncomingMessage: ${payload}');
+      //log.fine('onIncomingMessage: ${payload}\n');
+      print('\n\n${payload}\n\n');
     }
     final json = jsonDecode(payload) as Map<String, dynamic>;
     if (json['type'] == 'error') {
