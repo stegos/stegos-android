@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:stegos_wallet/env_stegos.dart';
 import 'package:stegos_wallet/services/service_node.dart';
 import 'package:stegos_wallet/ui/pay/store_screen_pay.dart';
+import 'package:stegos_wallet/ui/routes.dart';
 import 'package:stegos_wallet/ui/themes.dart';
 import 'package:stegos_wallet/utils/cont.dart';
 import 'package:stegos_wallet/widgets/widget_app_bar.dart';
@@ -199,11 +200,11 @@ class _PayScreenState extends State<PayScreen> {
                         enabledBorder: textFieldBorder,
                         suffix: Transform.translate(
                           offset: const Offset(0, 4),
-                          child: Image.asset(
+                          child: GestureDetector( onTap: () => Navigator.pushNamed(context, Routes.wallet, arguments: 1),child: Image.asset(
                             'assets/images/qr.png',
                             height: 20,
                             width: 20,
-                          ),
+                          ),),
                         )),
                   ),
                   Row(

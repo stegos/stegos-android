@@ -148,6 +148,7 @@ mixin Routes {
           final arguments = settings.arguments as int;
           return MaterialPageRoute(builder: (BuildContext context) => AccountScreen(id: arguments));
         case wallet:
+          final arguments = settings.arguments as int;
           return MaterialPageRoute(builder: (BuildContext context) => WalletScreen());
         case recover:
           return MaterialPageRoute(builder: (BuildContext context) => RecoverScreen());

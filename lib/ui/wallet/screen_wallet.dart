@@ -3,12 +3,17 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stegos_wallet/ui/routes.dart';
 import 'package:stegos_wallet/ui/themes.dart';
+import 'package:stegos_wallet/ui/wallet/qr_reader/qr_reader.dart';
 import 'package:stegos_wallet/ui/wallet/wallet/screen_accounts.dart';
 import 'package:stegos_wallet/widgets/widget_app_bar.dart';
 
 /// Main wallet screen with integrated TabBar.
 ///
 class WalletScreen extends StatefulWidget {
+  WalletScreen({this.initialTab = 0});
+
+  final int initialTab;
+
   @override
   State<StatefulWidget> createState() => _WalletScreenState();
 }
@@ -25,7 +30,7 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(vsync: this, length: 4);
+    _tabController = TabController(vsync: this, length: 4, initialIndex: widget.initialTab);
     _tabController.addListener(() {
       setState(() {
         selectedItem = _tabController.index;
@@ -36,79 +41,80 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
   @override
   Widget build(BuildContext context) {
     return Theme(
-        data: StegosThemes.walletTheme,
-        child: DefaultTabController(
-          length: 4,
-          child: Scaffold(
-            key: _drawerKey,
-            appBar: AppBarWidget(
-              centerTitle: false,
-              leading: IconButton(
-                icon: SvgPicture.asset('assets/images/menu.svg'),
-                onPressed: () => {_drawerKey.currentState.openDrawer()},
-              ),
-              title: const Text('Stegos Wallet'),
+      data: StegosThemes.walletTheme,
+      child: DefaultTabController(
+        initialIndex: 2,
+        length: 4,
+        child: Scaffold(
+          key: _drawerKey,
+          appBar: AppBarWidget(
+            centerTitle: false,
+            leading: IconButton(
+              icon: SvgPicture.asset('assets/images/menu.svg'),
+              onPressed: () => {_drawerKey.currentState.openDrawer()},
             ),
-            drawer: Drawer(
-              child: ListView(
-                // Important: Remove any padding from the ListView.
-                padding: EdgeInsets.zero,
-                children: <Widget>[
-                  DrawerHeader(
-                    decoration: BoxDecoration(
-                      color: StegosColors.accentColor,
-                    ),
-                    child: const Text('Stegos'),
+            title: const Text('Stegos Wallet'),
+          ),
+          drawer: Drawer(
+            child: ListView(
+              // Important: Remove any padding from the ListView.
+              padding: EdgeInsets.zero,
+              children: <Widget>[
+                DrawerHeader(
+                  decoration: BoxDecoration(
+                    color: StegosColors.accentColor,
                   ),
-                  ListTile(
-                    title: const Text('Development'),
-                    onTap: () {
-                      Navigator.pushNamed(context, Routes.devmenu);
-                    },
-                  ),
-                ],
-              ),
-            ),
-            bottomNavigationBar: Container(
-              color: StegosColors.splashBackground,
-              child: TabBar(
-                controller: _tabController,
-                tabs: [
-                  Tab(
-                    icon: _buildTabIcon('assets/images/wallet.svg', selectedItem == 0),
-                    text: 'Wallet',
-                  ),
-                  Tab(
-                    icon: _buildTabIcon('assets/images/qr_reader.svg', selectedItem == 1),
-                    text: 'QR Reader',
-                  ),
-                  Tab(
-                    icon: _buildTabIcon('assets/images/chat.svg', selectedItem == 2),
-                    text: 'Chat',
-                  ),
-                  Tab(
-                    icon: _buildTabIcon('assets/images/contacts.svg', selectedItem == 3),
-                    text: 'Contacts',
-                  ),
-                ],
-                indicator: UnderlineTabIndicator(
-                  borderSide: BorderSide.none,
-                  insets: EdgeInsets.zero,
+                  child: const Text('Stegos'),
                 ),
-              ),
-            ),
-            body: TabBarView(
-              physics: const NeverScrollableScrollPhysics(),
-              controller: _tabController,
-              children: [
-                AccountsScreen(),
-                Text('QR reader'),
-                Text('Chat'),
-                Text('Contacts'),
+                ListTile(
+                  title: const Text('Development'),
+                  onTap: () {
+                    Navigator.pushNamed(context, Routes.devmenu);
+                  },
+                ),
               ],
             ),
           ),
+          bottomNavigationBar: Container(
+            color: StegosColors.splashBackground,
+            child: TabBar(
+              controller: _tabController,
+              tabs: [
+                Tab(
+                  icon: _buildTabIcon('assets/images/wallet.svg', selectedItem == 0),
+                  text: 'Wallet',
+                ),
+                Tab(
+                  icon: _buildTabIcon('assets/images/qr_reader.svg', selectedItem == 1),
+                  text: 'QR Reader',
+                ),
+                Tab(
+                  icon: _buildTabIcon('assets/images/chat.svg', selectedItem == 2),
+                  text: 'Chat',
+                ),
+                Tab(
+                  icon: _buildTabIcon('assets/images/contacts.svg', selectedItem == 3),
+                  text: 'Contacts',
+                ),
+              ],
+              indicator: UnderlineTabIndicator(
+                borderSide: BorderSide.none,
+                insets: EdgeInsets.zero,
+              ),
+            ),
+          ),
+          body: TabBarView(
+            physics: const NeverScrollableScrollPhysics(),
+            controller: _tabController,
+            children: [
+              AccountsScreen(),
+              QrReader(),
+              Text('Chat'),
+              Text('Contacts'),
+            ],
+          ),
         ),
-      );
+      ),
+    );
   }
 }
