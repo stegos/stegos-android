@@ -42,22 +42,15 @@ class _TransactionsListState extends State<TransactionsList> with TickerProvider
           child: Observer(
             builder: (context) {
               return widget.account.txList.isEmpty
-                  ? const Text(
-                      'No transactions yet',
-                      style: TextStyle(fontSize: 14),
-                      textAlign: TextAlign.center,
-                    )
-                  : ListView(
-                      children: widget.account.txList
-                          .map((tx) => _buildTransactionRow(widget.account, tx))
-                          .toList(),
-                    );
+                  ? const Text('No transactions yet',
+                      style: TextStyle(fontSize: 14), textAlign: TextAlign.center)
+                  : ListView(children: widget.account.txList.map(_buildTransactionRow).toList());
             },
           ),
         ),
       );
 
-  Widget _buildTransactionRow(AccountStore account, TxStore transaction) => Padding(
+  Widget _buildTransactionRow(TxStore transaction) => Padding(
         padding: const EdgeInsets.only(left: 20, right: 10, top: 25, bottom: 25),
         child: Container(
             height: 39,
@@ -77,7 +70,7 @@ class _TransactionsListState extends State<TransactionsList> with TickerProvider
                                     child: Icon(Icons.autorenew,
                                         size: 16, color: StegosColors.accentColor))),
                         Text(
-                          transaction.amount > 0 ? 'Received' : 'Sent',
+                          transaction.send ? 'Sent' : 'Received',
                           style: const TextStyle(fontSize: 16, color: StegosColors.white),
                         )
                       ],
@@ -85,17 +78,17 @@ class _TransactionsListState extends State<TransactionsList> with TickerProvider
                 Container(
                     alignment: Alignment.bottomLeft,
                     child: Text(
-                      transaction.created,
+                      transaction.humanCreationTime,
                       style: const TextStyle(fontSize: 12, color: StegosColors.white),
                     )),
                 Container(
                   alignment: Alignment.topRight,
                   margin: const EdgeInsets.only(right: 54),
                   child: Text(
-                    '${transaction.amount.toString()} STG',
+                    '${transaction.humanAmount} STG',
                     style: TextStyle(
                         fontSize: 16,
-                        color: transaction.amount > 0 ? const Color(0xff32ff6b) : Colors.white),
+                        color: !transaction.send ? const Color(0xff32ff6b) : Colors.white),
                   ),
                 ),
                 Container(

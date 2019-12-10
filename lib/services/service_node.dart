@@ -38,11 +38,11 @@ enum PaymentMethod {
 }
 
 class TxStore extends _TxStore with _$TxStore {
-  TxStore(int id, bool send, String recipient, int amount, int cts, String comment, int fee,
-      bool pending, String status)
-      : super(id, send, recipient, amount, cts, comment, fee, pending, status);
+  TxStore(AccountStore account, int id, bool send, String recipient, int amount, int cts,
+      String comment, int fee, bool pending, String status)
+      : super(account, id, send, recipient, amount, cts, comment, fee, pending, status);
 
-  factory TxStore.fromJson(int id, dynamic json) {
+  factory TxStore.fromJson(AccountStore account, int id, dynamic json) {
     final type = json['type'] as String ?? '';
     // fixme: it is too empiric
     final send = type == 'outgoing' || type.startsWith('transaction_') || type.contains('payment');
@@ -63,14 +63,17 @@ class TxStore extends _TxStore with _$TxStore {
       status = json['status'] as String ?? status;
       pending = status != 'committed';
     }
-    return TxStore(id, send, recipient, amount, cts, comment, fee, pending, status);
+    return TxStore(account, id, send, recipient, amount, cts, comment, fee, pending, status);
   }
 }
 
 abstract class _TxStore with Store {
-  _TxStore(this.id, this.send, this.recipient, this.amount, this.cts, this.comment, this.fee,
-      this.pending, this.status)
-      : created = _txDateFormatter.format(DateTime.fromMillisecondsSinceEpoch(cts));
+  _TxStore(this.account, this.id, this.send, this.recipient, this.amount, this.cts, this.comment,
+      this.fee, this.pending, this.status)
+      : humanCreationTime = _txDateFormatter.format(DateTime.fromMillisecondsSinceEpoch(cts)),
+        humanAmount = '${send ? '-' : ''}${(amount / 1e6).toStringAsFixed(3)}';
+
+  final AccountStore account;
 
   /// Transaction database ID
   final int id;
@@ -81,11 +84,14 @@ abstract class _TxStore with Store {
   /// Transaction amount in nSTG
   final int amount;
 
+  /// Human readable tx amount in STG
+  final String humanAmount;
+
   /// Transaction creation time ms since epoch UTC
   final int cts;
 
   /// Transaction creation time in local timezone
-  final String created;
+  final String humanCreationTime;
 
   /// Transactiont comment
   final String comment;
@@ -225,7 +231,7 @@ abstract class _AccountStore with Store {
   void _updateTransaction(int id, dynamic json) {
     final tx = txList.firstWhere((tx) => tx.id == id, orElse: () => null);
     if (tx == null) {
-      _registerTransaction(TxStore.fromJson(id, json));
+      _registerTransaction(TxStore.fromJson(this as AccountStore, id, json));
     } else {
       tx._updateFromJson(json);
     }
@@ -632,7 +638,7 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
       return;
     }
     if (log.isFine) {
-      log.fine('onTransactionStatus updated: ${doc.value}');
+      log.fine('onTransactionStatus updated: ${doc.value}\nStatus: ${msg.json['status']}');
     }
     account._updateTransaction(doc.value.id, json);
   }
@@ -676,7 +682,7 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
         }
         runInAction(() {
           account.txList.clear();
-          account.txList.addAll(list.map((doc) => TxStore.fromJson(doc.id, doc.object)));
+          account.txList.addAll(list.map((doc) => TxStore.fromJson(account, doc.id, doc.object)));
         });
       });
 
@@ -842,7 +848,6 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
     });
 
     unawaited(_env.useDb((db) => Future.wait([
-          db.removeIntIndex(_txsCollection, '/_cts', true), // fixme:
           db.ensureStringIndex(_txsCollection, '/tx_hash', true),
           db.ensureStringIndex(_txsCollection, '/output_hash', true),
           db.ensureIntIndex(_txsCollection, '/account_id', false)

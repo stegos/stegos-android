@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:mobx/mobx.dart';
+import 'package:pedantic/pedantic.dart';
 import 'package:provider/provider.dart';
 import 'package:stegos_wallet/env_stegos.dart';
 import 'package:stegos_wallet/services/service_node.dart';
+import 'package:stegos_wallet/ui/app.dart';
 import 'package:stegos_wallet/ui/pay/store_screen_pay.dart';
 import 'package:stegos_wallet/ui/themes.dart';
 import 'package:stegos_wallet/ui/wallet/qr_reader/qr_reader.dart';
@@ -360,7 +362,7 @@ class _PayScreenState extends State<PayScreen> {
           elevation: 8,
           disabledElevation: 8,
           onPressed: _store.isValidForm || true
-              ? () {
+              ? () async {
                   //final store = _store;
                   final env = Provider.of<StegosEnv>(context);
                   final nodeService = env.nodeService;
@@ -374,12 +376,14 @@ class _PayScreenState extends State<PayScreen> {
                   //     withCertificate: store.generateCertificate);
 
                   final account = nodeService.accounts[1];
-                  nodeService.pay(
+                  unawaited(nodeService.pay(
                       account: account,
                       recipient: 'stt1zz6u5zlgh5292lz5nasykazdtsf65vptd8hg6uryhzcxr0ykyvxq4kk5a5',
                       amount: (0.02 * 1e6).ceil(),
                       fee: stegosFeeStandard,
-                      withCertificate: false);
+                      withCertificate: false));
+
+                  StegosApp.navigatorState.pop();
                 }
               : null,
           child: const Text('SEND'),
