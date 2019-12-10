@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
+import 'package:stegos_wallet/ui/app.dart';
+import 'package:stegos_wallet/widgets/widget_app_bar.dart';
 
 class QrReader extends StatefulWidget {
   @override
@@ -9,87 +10,89 @@ class QrReader extends StatefulWidget {
 }
 
 class _QrReaderState extends State<QrReader> {
+  static const _iconBackImage = AssetImage('assets/images/arrow_back.png');
+  static final RegExp _stegosAddressRegExp = RegExp(
+    r'^st[rgt]1[ac-hj-np-z02-9]{8,87}$',
+    caseSensitive: false,
+    multiLine: false,
+  );
+
   final GlobalKey _qrViewKey = GlobalKey(debugLabel: 'QR');
-  final _key = GlobalKey<ScaffoldState>();
-  var qrText = '';
   QRViewController controller;
+
+  bool isValidToAddress(String address) {
+    if (address == null) {
+      return false;
+    } else {
+      return _stegosAddressRegExp.hasMatch(address);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      key: _key,
-      body: Column(
+      appBar: AppBarWidget(
+        backgroundColor: Colors.transparent,
+        centerTitle: false,
+        leading: IconButton(
+          icon: const SizedBox(
+            width: 24,
+            height: 24,
+            child: Image(image: _iconBackImage),
+          ),
+          onPressed: () => StegosApp.navigatorState.pop(null),
+        ),
+        title: const Text('Scaning QR code'),
+      ),
+      body: Stack(
         children: <Widget>[
-          Expanded(
-              flex: 5,
-              child: LayoutBuilder(builder: (BuildContext context, BoxConstraints constraints) {
-                final maxWidth = constraints.maxWidth;
-//                final maxHeight = constraints.maxHeight;
-                return Stack(
-                  children: <Widget>[
-                    Container(
-                      alignment: Alignment.center,
-                      child: QRView(
-                        key: _qrViewKey,
-                        onQRViewCreated: _onQRViewCreated,
+          Container(
+              child: Stack(
+              children: <Widget>[
+                Container(
+                  alignment: Alignment.center,
+                  child: QRView(
+                    key: _qrViewKey,
+                    onQRViewCreated: _onQRViewCreated,
+                  ),
+                ),
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 50),
+                    child: AspectRatio(
+                      aspectRatio: 1,
+                      child: Container(
+                        decoration:
+                            BoxDecoration(border: Border.all(color: Colors.redAccent, width: 2)),
                       ),
                     ),
-                    Center(
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(horizontal: maxWidth * 0.15),
-                        child: AspectRatio(
-                          aspectRatio: 1,
-                          child: Container(
-                            decoration: BoxDecoration(
-                                border: Border.all(color: Colors.redAccent, width: 2)),
-                          ),
-                        ),
-                      ),
-                    )
-                  ],
-                );
-              })),
-          Expanded(
-            flex: 1,
-            child: Column(
-              children: <Widget>[
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    IconButton(
-                        onPressed: controller != null
-                            ? () {
-                                controller.flipCamera();
-                              }
-                            : null,
-                        icon: Icon(Icons.switch_camera)),
-                    IconButton(
-                        onPressed: controller != null
-                            ? () {
-                                controller.toggleFlash();
-                              }
-                            : null,
-                        icon: Icon(Icons.flash_on))
-                  ],
-                ),
-                Container(
-                  height: 48,
-                  alignment: Alignment.center,
-                  child: qrText.isNotEmpty
-                      ? FlatButton.icon(
-                          icon: Icon(Icons.content_copy),
-                          label: Text(qrText, overflow: TextOverflow.ellipsis),
-                          onPressed: () {
-                            Clipboard.setData(ClipboardData(text: qrText));
-                            _key.currentState.showSnackBar(const SnackBar(
-                              content: Text('Copied to Clipboard'),
-                            ));
-                          },
-                        )
-                      : const Text('Scaning for QR code'),
-                ),
+                  ),
+                )
               ],
             ),
+          ),
+          Container(
+            alignment: Alignment.bottomCenter,
+            child: controller != null
+                ? Container(
+                    height: 120,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[
+                        IconButton(
+                            onPressed: () {
+                              controller.flipCamera();
+                            },
+                            icon: Icon(Icons.switch_camera)),
+                        IconButton(
+                            onPressed: () {
+                              controller.toggleFlash();
+                            },
+                            icon: Icon(Icons.flash_on))
+                      ],
+                    ),
+                  )
+                : null,
           )
         ],
       ),
@@ -97,11 +100,15 @@ class _QrReaderState extends State<QrReader> {
   }
 
   void _onQRViewCreated(QRViewController controller) {
-    this.controller = controller;
+    setState(() {
+      this.controller = controller;
+    });
     controller.scannedDataStream.listen((scanData) {
-      Feedback.forTap(context);
       setState(() {
-        qrText = scanData;
+        if (isValidToAddress(scanData)) {
+          controller?.dispose();
+          StegosApp.navigatorState.pop(scanData);
+        }
         // do something
       });
     });

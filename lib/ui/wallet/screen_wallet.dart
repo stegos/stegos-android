@@ -108,7 +108,7 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
             controller: _tabController,
             children: [
               AccountsScreen(),
-              QrReader(),
+              Text('QR reader'),
               Text('Chat'),
               Text('Contacts'),
             ],

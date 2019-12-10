@@ -6,9 +6,10 @@ import 'package:provider/provider.dart';
 import 'package:stegos_wallet/env_stegos.dart';
 import 'package:stegos_wallet/services/service_node.dart';
 import 'package:stegos_wallet/ui/pay/store_screen_pay.dart';
-import 'package:stegos_wallet/ui/routes.dart';
 import 'package:stegos_wallet/ui/themes.dart';
+import 'package:stegos_wallet/ui/wallet/qr_reader/qr_reader.dart';
 import 'package:stegos_wallet/utils/cont.dart';
+import 'package:stegos_wallet/utils/dialogs.dart';
 import 'package:stegos_wallet/widgets/widget_app_bar.dart';
 import 'package:stegos_wallet/widgets/widget_scaffold_body_wrapper.dart';
 
@@ -200,11 +201,14 @@ class _PayScreenState extends State<PayScreen> {
                         enabledBorder: textFieldBorder,
                         suffix: Transform.translate(
                           offset: const Offset(0, 4),
-                          child: GestureDetector( onTap: () => Navigator.pushNamed(context, Routes.wallet, arguments: 1),child: Image.asset(
-                            'assets/images/qr.png',
-                            height: 20,
-                            width: 20,
-                          ),),
+                          child: GestureDetector(
+                            onTap: _scanQr,
+                            child: Image.asset(
+                              'assets/images/qr.png',
+                              height: 20,
+                              width: 20,
+                            ),
+                          ),
                         )),
                   ),
                   Row(
@@ -374,4 +378,14 @@ class _PayScreenState extends State<PayScreen> {
           child: const Text('SEND'),
         );
       });
+
+  void _scanQr() async {
+    final toAddress = await appShowDialog<String>(builder: (context) => QrReader());
+    if (toAddress == null) {
+      return;
+    }
+    runInAction(() {
+      _store.toAddress = toAddress;
+    });
+  }
 }
