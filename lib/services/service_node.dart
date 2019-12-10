@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:ejdb2_flutter/ejdb2_flutter.dart';
 import 'package:flutter/foundation.dart';
+import 'package:intl/intl.dart';
 import 'package:mobx/mobx.dart';
 import 'package:pedantic/pedantic.dart';
 import 'package:stegos_wallet/env_stegos.dart';
@@ -20,7 +21,9 @@ const stegosFeeStandard = 1000;
 
 const stagosFeeHigh = 5000;
 
-StegosEnv env;
+StegosEnv _env;
+
+final _txDateFormatter = DateFormat('yyyy-MM-dd hh:mm:ss');
 
 /// Payment mode used in [_NodeService.pay]
 enum PaymentMethod {
@@ -66,7 +69,8 @@ class TxStore extends _TxStore with _$TxStore {
 
 abstract class _TxStore with Store {
   _TxStore(this.id, this.send, this.recipient, this.amount, this.cts, this.comment, this.fee,
-      this.pending, this.status);
+      this.pending, this.status)
+      : created = _txDateFormatter.format(DateTime.fromMillisecondsSinceEpoch(cts));
 
   /// Transaction database ID
   final int id;
@@ -77,14 +81,23 @@ abstract class _TxStore with Store {
   /// Transaction amount in nSTG
   final int amount;
 
-  /// Transaction createtion time ms since epoch UTC
+  /// Transaction creation time ms since epoch UTC
   final int cts;
+
+  /// Transaction creation time in local timezone
+  final String created;
 
   /// Transactiont comment
   final String comment;
 
   /// Recipient address
   final String recipient;
+
+  /// todo:
+  String certificateURL;
+
+  /// Transaction is finished. `!pending`
+  bool get finished => !pending;
 
   /// Transaction in pending state
   @observable
@@ -185,6 +198,10 @@ abstract class _AccountStore with Store {
   @observable
   int ordinal = 0;
 
+  @computed
+  bool get hasPendingTransactions =>
+      txList.firstWhere((tx) => tx.pending, orElse: () => null) != null;
+
   /// PIN encrypted dedicated account password
   String _password;
 
@@ -199,7 +216,7 @@ abstract class _AccountStore with Store {
   @action
   void _registerTransaction(TxStore tx) {
     txList.insert(0, tx);
-    while (txList.length > env.configMaxTransactionsPerAccount) {
+    while (txList.length > _env.configMaxTransactionsPerAccount) {
       txList.removeLast();
     }
   }
@@ -273,7 +290,7 @@ class NodeService = _NodeService with _$NodeService;
 abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
   _NodeService(this.parent) {
     // Set global env
-    env = parent.env;
+    _env = parent.env;
   }
 
   final StegosStore parent;
@@ -351,19 +368,19 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
     await _checkConnected();
     return _unsealAccount(account.id, force: true)
         .then((_) => client.sendAndAwait({'type': 'delete_account', 'account_id': '${account.id}'}))
-        .catchError(defaultErrorHandler<void>(env));
+        .catchError(defaultErrorHandler<void>(_env));
   }
 
   Future<void> createNewAccount([String name]) async {
     await _checkConnected();
-    final pwp = await env.securityService.acquirePasswordForApp();
+    final pwp = await _env.securityService.acquirePasswordForApp();
     final msg = await client.sendAndAwait({'type': 'create_account', 'password': pwp.first});
     unawaited(_syncAccounts().then((_) async {
       final accountId = msg.accountId;
       if (accountId > 0 && name != null && name.isNotEmpty) {
         final acc = accounts[accountId];
         if (acc != null) {
-          await env.useDb((db) =>
+          await _env.useDb((db) =>
               db.patchOrPut(_accountsCollecton, {'id': accountId, 'name': name}, accountId));
           runInAction(() {
             acc.name = name;
@@ -380,7 +397,7 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
       return Future.error('Invalid recovery phrase');
     }
     await _checkOperable();
-    final pwp = await env.securityService.acquirePasswordForApp();
+    final pwp = await _env.securityService.acquirePasswordForApp();
     return client.sendAndAwait({
       'type': 'recover_account',
       'recovery': recoveryPhrase.join(' '),
@@ -411,7 +428,7 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
       }
     });
 
-    return env.useDb((db) {
+    return _env.useDb((db) {
       final List<Future<void>> dbPatches = [];
       alist.forEach(
           (a) => dbPatches.add(db.patch(_accountsCollecton, {'ordinal': a.ordinal}, a.id)));
@@ -424,7 +441,7 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
     if (account == null) {
       return Future.value();
     }
-    return env.useDb((db) => db.patch(_accountsCollecton, {'name': name}, id)).then((_) {
+    return _env.useDb((db) => db.patch(_accountsCollecton, {'name': name}, id)).then((_) {
       runInAction(() {
         account.name = name;
       });
@@ -471,19 +488,19 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
     };
 
     final txdata = {...payload, '_cts': DateTime.now().toUtc().millisecondsSinceEpoch};
-    final id = await env.useDb((db) => db.put(_txsCollection, txdata));
+    final id = await _env.useDb((db) => db.put(_txsCollection, txdata));
     if (log.isFine) {
       log.fine('Payment persisted: ${txdata}');
     }
     account._updateTransaction(id, txdata);
 
     final msg =
-        await client.sendAndAwait(payload).catchError(defaultErrorHandler<StegosNodeMessage>(env));
+        await client.sendAndAwait(payload).catchError(defaultErrorHandler<StegosNodeMessage>(_env));
     if (log.isFine) {
       log.fine('Payment accepted: ${msg}');
     }
 
-    await env.useDb((db) => db.patch(_txsCollection, msg.json, id));
+    await _env.useDb((db) => db.patch(_txsCollection, msg.json, id));
     account._updateTransaction(id, msg.json);
   }
 
@@ -491,7 +508,7 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
   Future<void> activate() async {
     _disposers.addAll([
       reaction((_) => client.connected, _syncNodeStatus),
-      reaction((_) => client.connected && !env.securityService.needAppUnlock, (bool connected) {
+      reaction((_) => client.connected && !_env.securityService.needAppUnlock, (bool connected) {
         if (connected) _syncAccounts();
       })
     ]);
@@ -509,7 +526,7 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
     }
   }
 
-  Future<void> _onAccountDeleted(StegosNodeMessage msg) => env.useDb((db) async {
+  Future<void> _onAccountDeleted(StegosNodeMessage msg) => _env.useDb((db) async {
         await db
             .createQuery('/[account_id = :?] | del | count', _txsCollection)
             .setInt(0, msg.accountId)
@@ -533,7 +550,7 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
     if (log.isFine) {
       log.info('Update balance: ${msg}');
     }
-    return env.useDb((db) {
+    return _env.useDb((db) {
       acc._updateFromBalanceMessage(msg);
       return db.patchOrPut(_accountsCollecton, acc, acc.id);
     });
@@ -542,7 +559,7 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
   Future<void> _checkConnected() {
     if (!connected) {
       return Future.error(StegosUserException('Stegos node is not connected'))
-          .catchError(defaultErrorHandler(env));
+          .catchError(defaultErrorHandler(_env));
     }
     return Future.value();
   }
@@ -550,7 +567,7 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
   Future<void> _checkOperable() {
     if (!operable) {
       return Future.error(StegosUserException('Stegos node is not connected/synchronized'))
-          .catchError(defaultErrorHandler(env));
+          .catchError(defaultErrorHandler(_env));
     }
     return Future.value();
   }
@@ -586,7 +603,7 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
     if (log.isFine) {
       log.fine('onReceived: ${msg}');
     }
-    return env.useDb((db) async {
+    return _env.useDb((db) async {
       final res = await db
           .createQuery('/[account_id = :?] and /[output_hash = :?]', _txsCollection)
           .setInt(0, msg.accountId)
@@ -606,7 +623,7 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
     if (account == null) {
       return;
     }
-    final doc = await env.useDb((db) => db
+    final doc = await _env.useDb((db) => db
         .createQuery('/[tx_hash = :?] | apply :?', _txsCollection)
         .setString(0, msg.json['tx_hash'] as String)
         .setJson(1, {'status': msg.json['status']}).first());
@@ -646,12 +663,12 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
         });
       });
 
-  Future<void> _syncAccountTransactions(AccountStore account) => env.useDb((db) async {
+  Future<void> _syncAccountTransactions(AccountStore account) => _env.useDb((db) async {
         // await db.removeCollection(_txsCollection);
         final list = await db
             .createQuery('/[account_id = :?] | limit :?', _txsCollection)
             .setInt(0, account.id)
-            .setInt(1, env.configMaxTransactionsPerAccount)
+            .setInt(1, _env.configMaxTransactionsPerAccount)
             .execute()
             .toList();
         if (log.isFine) {
@@ -667,7 +684,7 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
     final account = await _unsealAccount(id, force: forceSealing);
     //try {
     final msg = await client.sendAndAwait({'type': 'balance_info', 'account_id': '$id'});
-    await env.useDb((db) async {
+    await _env.useDb((db) async {
       account._updateFromBalanceMessage(msg);
       await db.patchOrPut(_accountsCollecton, account, id);
       // fixme: Lazy loading of account transactions
@@ -714,11 +731,11 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
       return acc;
     }
     _UnsealAccountStatus status;
-    final pwp = await env.securityService.acquirePasswordForApp();
+    final pwp = await _env.securityService.acquirePasswordForApp();
     if (acc._password != null && acc._iv != null) {
       // We have own pin protected account password
       final apwp =
-          env.securityService.recoverPinProtectedPassword(pwp.second, acc._password, acc._iv);
+          _env.securityService.recoverPinProtectedPassword(pwp.second, acc._password, acc._iv);
       status = await _unsealAccountRaw(acc, apwp.first);
       if (status.unsealed) {
         return acc;
@@ -748,11 +765,11 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
                     if (status.invalidPassword) {
                       return Pair(null, 'Invalid password provided');
                     }
-                    final pwp = await env.securityService.acquirePasswordForApp();
-                    final pp = env.securityService.setupPinProtectedPassword(password, pwp.second);
+                    final pwp = await _env.securityService.acquirePasswordForApp();
+                    final pp = _env.securityService.setupPinProtectedPassword(password, pwp.second);
                     acc._password = pp.first;
                     acc._iv = pp.second;
-                    await env.useDb((db) => db.patchOrPut(
+                    await _env.useDb((db) => db.patchOrPut(
                         _accountsCollecton, {'password': acc._password, 'iv': acc._iv}, id));
                     return Pair(password, null);
                   },
@@ -808,7 +825,7 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
   Future<Map<String, dynamic>> _detectNetworkAndSetupInitialAccounts() async {
     var nodeAccounts = await _listRawAccounts();
     if (nodeAccounts.isEmpty) {
-      final pwp = await env.securityService.acquirePasswordForApp();
+      final pwp = await _env.securityService.acquirePasswordForApp();
       await client.sendAndAwait({'type': 'create_account', 'password': pwp.first});
       nodeAccounts = await _listRawAccounts();
       if (nodeAccounts.isEmpty) {
@@ -824,7 +841,7 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
       network = pkey.substring(0, 3);
     });
 
-    unawaited(env.useDb((db) => Future.wait([
+    unawaited(_env.useDb((db) => Future.wait([
           db.removeIntIndex(_txsCollection, '/_cts', true), // fixme:
           db.ensureStringIndex(_txsCollection, '/tx_hash', true),
           db.ensureStringIndex(_txsCollection, '/output_hash', true),
@@ -845,7 +862,7 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
     if (ids.isEmpty) {
       return Future.value();
     }
-    return env.useDb((db) async {
+    return _env.useDb((db) async {
       await for (final doc
           in db.createQuery('/[id in :?]', _accountsCollecton).setJson(0, ids).execute()) {
         final id = doc.object['id'] as int;

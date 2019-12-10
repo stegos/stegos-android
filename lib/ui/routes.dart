@@ -84,18 +84,18 @@ class _InitialRouteScreenState extends State<_InitialRouteScreen> {
 
 mixin Routes {
   static const root = '/';
-  static const accounts = 'accounts';
   static const account = 'account';
+  static const accounts = 'accounts';
   static const devmenu = 'devmenu';
+  static const pay = 'pay';
   static const pinprotect = 'pinprotect';
   static const recover = 'recover';
   static const settings = 'settings';
   static const splash = 'splash';
   static const unlock = 'unlock';
+  static const username = 'username';
   static const wallet = 'wallet';
   static const welcome = 'welcome';
-  static const username = 'username';
-  static const pay = 'pay';
 
   static RouteFactory createRouteFactory(StegosEnv env, bool showSplash) {
     MaterialPageRoute Function(RouteSettings settings) routeFactoryFn;
@@ -150,7 +150,6 @@ mixin Routes {
           return MaterialPageRoute(
               builder: (BuildContext context) => AccountScreen(account: account));
         case wallet:
-          final arguments = settings.arguments as int;
           return MaterialPageRoute(builder: (BuildContext context) => WalletScreen());
         case recover:
           return MaterialPageRoute(builder: (BuildContext context) => RecoverScreen());
@@ -169,6 +168,7 @@ mixin Routes {
         case Routes.devmenu:
           return MaterialPageRoute(builder: (BuildContext context) => DevMenuScreen());
         case pay:
+          final account = settings.arguments as AccountStore;
           return MaterialPageRoute(builder: (BuildContext context) => PayScreen());
         default:
           return MaterialPageRoute(

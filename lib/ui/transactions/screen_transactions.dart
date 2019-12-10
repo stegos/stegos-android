@@ -1,20 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:stegos_wallet/ui/account/screen_account.dart';
-import 'package:stegos_wallet/ui/account/transactions_list.dart';
+import 'package:stegos_wallet/services/service_node.dart';
+import 'package:stegos_wallet/ui/app.dart';
 import 'package:stegos_wallet/ui/themes.dart';
+import 'package:stegos_wallet/ui/transactions/transactions_list.dart';
 import 'package:stegos_wallet/widgets/widget_app_bar.dart';
+import 'package:stegos_wallet/widgets/widget_scaffold_body_wrapper.dart';
 
-class TransactionsScreen extends StatefulWidget {
-  TransactionsScreen([this.transactions]);
+class TransactionsScreen extends StatelessWidget {
+  TransactionsScreen({Key key, @required this.account}) : super(key: key);
 
-  final List<Transaction> transactions;
-
-  @override
-  _TransactionsScreenState createState() => _TransactionsScreenState();
-}
-
-class _TransactionsScreenState extends State<TransactionsScreen> {
-  static const _iconBackImage = AssetImage('assets/images/arrow_back.png');
+  final AccountStore account;
 
   @override
   Widget build(BuildContext context) => Theme(
@@ -25,19 +20,19 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
             backgroundColor: Theme.of(context).colorScheme.primary,
             leading: IconButton(
               icon: const Image(
-                image: _iconBackImage,
+                image: AssetImage('assets/images/arrow_back.png'),
                 width: 24,
                 height: 24,
               ),
-              onPressed: () => Navigator.pop(context),
+              onPressed: () => StegosApp.navigatorState.pop(),
             ),
             actions: <Widget>[
               IconButton(
                 icon: Icon(Icons.close),
-                onPressed: () => Navigator.pop(context),
+                onPressed: () => StegosApp.navigatorState.pop(),
               )
             ],
             title: const Text('Transactions'),
           ),
-          body: TransactionsList(widget.transactions)));
+          body: ScaffoldBodyWrapperWidget(builder: (context) => TransactionsList(account))));
 }

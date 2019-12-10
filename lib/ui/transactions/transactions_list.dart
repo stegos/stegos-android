@@ -2,18 +2,17 @@ import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:intl/intl.dart';
-import 'package:stegos_wallet/ui/account/screen_account.dart';
+import 'package:stegos_wallet/services/service_node.dart';
+import 'package:stegos_wallet/ui/app.dart';
 import 'package:stegos_wallet/ui/certificate/screen_certificate.dart';
 import 'package:stegos_wallet/ui/themes.dart';
 
 class TransactionsList extends StatefulWidget {
-  TransactionsList([this.transactions]);
+  TransactionsList(this.account);
 
-  final List<Transaction> transactions;
-
-  final txTowDateFormatter = DateFormat('yyyy-MM-dd hh:mm:ss');
+  final AccountStore account;
 
   @override
   _TransactionsListState createState() => _TransactionsListState();
@@ -24,9 +23,15 @@ class _TransactionsListState extends State<TransactionsList> with TickerProvider
 
   @override
   void initState() {
+    super.initState();
     _rotationController = AnimationController(duration: const Duration(seconds: 20), vsync: this);
     _rotationController.repeat();
-    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _rotationController.dispose();
+    super.dispose();
   }
 
   @override
@@ -34,19 +39,25 @@ class _TransactionsListState extends State<TransactionsList> with TickerProvider
         data: StegosThemes.AccountTheme,
         child: Container(
           alignment: Alignment.topCenter,
-          child: widget.transactions.isEmpty
-              ? const Text(
-                  'There were no transactions yet',
-                  style: TextStyle(fontSize: 14),
-                  textAlign: TextAlign.center,
-                )
-              : ListView(
-                  children: widget.transactions.map(_buildTransactionRow).toList(),
-                ),
+          child: Observer(
+            builder: (context) {
+              return widget.account.txList.isEmpty
+                  ? const Text(
+                      'No transactions yet',
+                      style: TextStyle(fontSize: 14),
+                      textAlign: TextAlign.center,
+                    )
+                  : ListView(
+                      children: widget.account.txList
+                          .map((tx) => _buildTransactionRow(widget.account, tx))
+                          .toList(),
+                    );
+            },
+          ),
         ),
       );
 
-  Widget _buildTransactionRow(Transaction transaction) => Padding(
+  Widget _buildTransactionRow(AccountStore account, TxStore transaction) => Padding(
         padding: const EdgeInsets.only(left: 20, right: 10, top: 25, bottom: 25),
         child: Container(
             height: 39,
@@ -74,7 +85,7 @@ class _TransactionsListState extends State<TransactionsList> with TickerProvider
                 Container(
                     alignment: Alignment.bottomLeft,
                     child: Text(
-                      widget.txTowDateFormatter.format(transaction.created),
+                      transaction.created,
                       style: const TextStyle(fontSize: 12, color: StegosColors.white),
                     )),
                 Container(
@@ -105,17 +116,9 @@ class _TransactionsListState extends State<TransactionsList> with TickerProvider
       );
 
   void _openCertificate() {
-    Navigator.push(
-        context,
-        MaterialPageRoute<Null>(
-          builder: (BuildContext context) => CertificateScreen(),
-          fullscreenDialog: true,
-        ));
-  }
-
-  @override
-  void dispose() {
-    _rotationController.dispose();
-    super.dispose();
+    StegosApp.navigatorState.push(MaterialPageRoute(
+      builder: (BuildContext context) => CertificateScreen(),
+      fullscreenDialog: true,
+    ));
   }
 }
