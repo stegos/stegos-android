@@ -65,7 +65,7 @@ class TxStore extends _TxStore with _$TxStore {
       pending = !['committed', 'rejected', 'conflicted'].contains(status);
     }
     return TxStore(account, id, send, recipient, amount, cts, comment, fee, pending, status,
-        json['output_hash'] as String ?? json['tx_hash'] as String);
+        json['tx_hash'] as String ?? json['output_hash'] as String);
   }
 }
 
