@@ -2,8 +2,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:stegos_wallet/services/service_node.dart';
+import 'package:stegos_wallet/ui/qr_generator/qr_generator.dart';
 import 'package:stegos_wallet/ui/routes.dart';
 import 'package:stegos_wallet/ui/themes.dart';
+import 'package:stegos_wallet/utils/dialogs.dart';
 
 class AccountCard extends StatefulWidget {
   AccountCard({@required ValueKey<AccountStore> key, @required this.collapsed}) : super(key: key);
@@ -67,10 +69,13 @@ class AccountCardState extends State<AccountCard> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: <Widget>[
                                 Text(account.humanName, style: const TextStyle(fontSize: 12)),
-                                const Image(
-                                    image: AssetImage('assets/images/qr.png'),
-                                    width: 20,
-                                    height: 20),
+                                GestureDetector(
+                                  onTap: _showQr,
+                                  child: const Image(
+                                      image: AssetImage('assets/images/qr.png'),
+                                      width: 20,
+                                      height: 20),
+                                ),
                               ],
                             ))
                       ],
@@ -80,4 +85,12 @@ class AccountCardState extends State<AccountCard> {
           ),
         );
       });
+
+  void _showQr() async {
+    await appShowDialog<String>(
+        builder: (context) => QrGenerator(
+              title: 'Qr code for ${widget.account.humanName}',
+              qrData: widget.account.pkey,
+            ));
+  }
 }

@@ -3,16 +3,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import 'package:stegos_wallet/services/service_node.dart';
 import 'package:stegos_wallet/ui/account/transactions_list.dart';
+import 'package:stegos_wallet/ui/qr_generator/qr_generator.dart';
 import 'package:stegos_wallet/ui/routes.dart';
 import 'package:stegos_wallet/ui/themes.dart';
 import 'package:stegos_wallet/ui/transactions/screen_transactions.dart';
+import 'package:stegos_wallet/utils/dialogs.dart';
 import 'package:stegos_wallet/widgets/widget_app_bar.dart';
 import 'package:stegos_wallet/widgets/widget_scaffold_body_wrapper.dart';
 
 class Transaction {
   Transaction({this.amount = 0, this.created, this.certificateURL, this.finished = true});
+
   final double amount;
   final DateTime created;
   final String certificateURL;
@@ -119,10 +123,15 @@ class AccountScreenState extends State<AccountScreen> {
                                           alignment: Alignment.topRight,
                                           padding:
                                               const EdgeInsets.only(top: 14, right: 22, bottom: 19),
-                                          child: SvgPicture.asset(
-                                            'assets/images/qr.svg',
-                                            width: 34,
-                                            height: 34,
+                                          child: InkWell(
+                                            onTap: _showQr,
+                                            child: QrImage(
+                                              padding: EdgeInsets.zero,
+                                              foregroundColor: StegosColors.white,
+                                              data: account.pkey,
+                                              version: QrVersions.auto,
+                                              size: 36,
+                                            ),
                                           )),
                                       _buildButtons()
                                     ],
@@ -240,5 +249,13 @@ class AccountScreenState extends State<AccountScreen> {
           builder: (BuildContext context) => TransactionsScreen(transactions),
           fullscreenDialog: true,
         ));
+  }
+
+  void _showQr() async {
+    await appShowDialog<String>(
+        builder: (context) => QrGenerator(
+              title: 'Qr code for ${widget.account.humanName}',
+              qrData: widget.account.pkey,
+            ));
   }
 }

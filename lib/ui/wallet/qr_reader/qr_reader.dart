@@ -81,11 +81,6 @@ class _QrReaderState extends State<QrReader> {
                       children: <Widget>[
                         IconButton(
                             onPressed: () {
-                              controller.flipCamera();
-                            },
-                            icon: Icon(Icons.switch_camera)),
-                        IconButton(
-                            onPressed: () {
                               controller.toggleFlash();
                             },
                             icon: Icon(Icons.flash_on))
