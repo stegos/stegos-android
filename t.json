@@ -1,0 +1,233 @@
+{
+  "account_id": "1",
+  "type": "history_info",
+  "log": [
+    {
+      "type": "incoming",
+      "timestamp": "2019-11-27T16:01:36.109Z",
+      "output_type": "payment",
+      "output_hash": "e823f15571afe41c83b4f4a20ea2200afee0cbaedf75e15853513f695dc1c904",
+      "amount": 4000000,
+      "comment": "",
+      "recipient": "stt1gt2v6u68acjdhq0xq974q2q2y64aj5lt5340smylksqqwu0kdarsk38pqw",
+      "is_change": false
+    },
+    {
+      "type": "outgoing",
+      "timestamp": "2019-11-27T16:03:21.254Z",
+      "tx_hash": "1927a0f1298d7e6252bc8a6f9eeb8bc0de85be4776527a450642564a815c2625",
+      "fee": 2000,
+      "outputs": [
+        {
+          "output_type": "payment",
+          "output_hash": "740fbae7acffa507b3520306922c93ea6c983908a8a9a306823e4f6eb01527b5",
+          "amount": 1000000,
+          "comment": "",
+          "recipient": "stt1s2sfz29vsc9mgwvg6u7jpssdc97u037mppxgtf9l9khptp633aqqvujfgz",
+          "is_change": false
+        },
+        {
+          "output_type": "payment",
+          "output_hash": "7397b35a43f20cf468262437bb867587cf025bed71896379f5c16de14d3ada9a",
+          "amount": 2998000,
+          "comment": "Change",
+          "recipient": "stt1gt2v6u68acjdhq0xq974q2q2y64aj5lt5340smylksqqwu0kdarsk38pqw",
+          "is_change": true
+        }
+      ],
+      "inputs": ["e823f15571afe41c83b4f4a20ea2200afee0cbaedf75e15853513f695dc1c904"],
+      "status": "rollback",
+      "epoch": 1237,
+      "offset": 29
+    },
+    {
+      "type": "incoming",
+      "timestamp": "2019-11-27T16:03:24.986Z",
+      "output_type": "payment",
+      "output_hash": "7397b35a43f20cf468262437bb867587cf025bed71896379f5c16de14d3ada9a",
+      "amount": 2998000,
+      "comment": "Change",
+      "recipient": "stt1gt2v6u68acjdhq0xq974q2q2y64aj5lt5340smylksqqwu0kdarsk38pqw",
+      "is_change": true
+    },
+    {
+      "type": "outgoing",
+      "timestamp": "2019-12-08T07:19:15.925Z",
+      "tx_hash": "35c6461ccd57c2c06cf6d0de768479a4a216a3eea307db6d234728e13ac2c728",
+      "fee": 22000,
+      "outputs": [
+        {
+          "output_type": "payment",
+          "output_hash": "89d9591e616d2864d836e0620f51f635d0055f6d4f1343870a318eecf384c496",
+          "amount": 10000,
+          "comment": "",
+          "recipient": "stt1s2sfz29vsc9mgwvg6u7jpssdc97u037mppxgtf9l9khptp633aqqvujfgz",
+          "is_change": false
+        },
+        {
+          "output_type": "payment",
+          "output_hash": "35c942ca99a30c6fe02bdaa7a34a2b174572b67c86a0445e856543499a16fb70",
+          "amount": 2986000,
+          "comment": "Change",
+          "recipient": "stt1gt2v6u68acjdhq0xq974q2q2y64aj5lt5340smylksqqwu0kdarsk38pqw",
+          "is_change": true
+        }
+      ],
+      "inputs": [
+        "708570a7a6d88821e78814da9f70d6ed976fdb63f7f881a1f533aa8b583b3655",
+        "ff2e7f3ec1883c56dc0b0223479d6cb37feec73a23b740a4ac7f61d4cb10e6d8",
+        "de40321fe3124242679a5421a459db77f74aa890780fda626af92decbe85acff",
+        "5741124d187ae1360f992ec8085cc49b65974f62272720928c0790887cb4f890",
+        "5f8efccadf2cbee6a4bffa224c1b20b23b432789d9ba7e6a949ffc32774fff31",
+        "477be129ce7dd692de7fe5cb8553af9ad64a060c5c41a8a0bd5cb473750197f3",
+        "c5c5dff06dbc4aaafaae8828a133953ccf0c922e21aef8403a4a265d29497428",
+        "db38758f5a7e0668fd64e2470819fe5989c7416e1002f9936b8c24a1e0277e40",
+        "bab54de03c517ad811195c06dcbda7df480f1cdf95babadc297b084603a34bc0",
+        "5b9941cbbdb7b2d71181f975f0ad8f182a5734a4728c0bdab3ef934bc41cbbdc",
+        "39a1de71d70982252a9700e421cc0d6bc5189a36981216f41bbf1c6b547ca90f",
+        "795fe0621592e963dd36c6bcb8da5f4e80410b910bb66ef53421938290b5f939",
+        "bb1fd0d8a4e3dba7329f58d78ebcbf4fa100e862d3351869186dfb7a43d7a1e5",
+        "7aa2b05b43987c9afe4ebcc49999413bf928635321cb8eb72532dc6931406c15",
+        "e6eba19a69952781e3b82d66320ea763fcaedc3babe29317368076c6d4653fb2",
+        "1408233b43c3d24febee75a5baf95c9b7a58389727f07ae305539ad30f507dfa",
+        "ddbdc07f54292291dddd069531224f2883c7cf0ff9b7cd26fd2131b467d103de",
+        "05073048a7a9cabe7fb6ce6f3f65a28e541538db9a01dd563ca31f1ee7a2e123",
+        "b4c605c8cf107bca0277c62654afe18aaacb58c2ddbc81e9ac54279afba3aef0",
+        "74336250fa898010bab8f35c06205d178ca2f33354441abf1a7ccad86477b726",
+        "7397b35a43f20cf468262437bb867587cf025bed71896379f5c16de14d3ada9a"
+      ],
+      "status": "committed",
+      "epoch": 2784
+    },
+    {
+      "type": "incoming",
+      "timestamp": "2019-12-08T07:19:29.401Z",
+      "output_type": "payment",
+      "output_hash": "35c942ca99a30c6fe02bdaa7a34a2b174572b67c86a0445e856543499a16fb70",
+      "amount": 2986000,
+      "comment": "Change",
+      "recipient": "stt1gt2v6u68acjdhq0xq974q2q2y64aj5lt5340smylksqqwu0kdarsk38pqw",
+      "is_change": true
+    },
+    {
+      "type": "outgoing",
+      "timestamp": "2019-12-08T12:00:00.577Z",
+      "tx_hash": "3d40d7d7c01f6a5254826c1a8e1b1400aabe86ffcbde5cac7a3edfe8699eedbe",
+      "fee": 2000,
+      "outputs": [
+        {
+          "output_type": "payment",
+          "output_hash": "8b07b681bb05232946192a43d45a73c1e67b4d10542bc23c460a74678bab08e3",
+          "amount": 10000,
+          "comment": "",
+          "recipient": "stt1s2sfz29vsc9mgwvg6u7jpssdc97u037mppxgtf9l9khptp633aqqvujfgz",
+          "is_change": false
+        },
+        {
+          "output_type": "payment",
+          "output_hash": "2d8bd0935a82916112b7d466ab5b63d93882bbab633221d05d28ecdadacb1cf3",
+          "amount": 2974000,
+          "comment": "Change",
+          "recipient": "stt1gt2v6u68acjdhq0xq974q2q2y64aj5lt5340smylksqqwu0kdarsk38pqw",
+          "is_change": true
+        }
+      ],
+      "inputs": ["35c942ca99a30c6fe02bdaa7a34a2b174572b67c86a0445e856543499a16fb70"],
+      "status": "committed",
+      "epoch": 2813
+    },
+    {
+      "type": "incoming",
+      "timestamp": "2019-12-08T12:00:07.785Z",
+      "output_type": "payment",
+      "output_hash": "2d8bd0935a82916112b7d466ab5b63d93882bbab633221d05d28ecdadacb1cf3",
+      "amount": 2974000,
+      "comment": "Change",
+      "recipient": "stt1gt2v6u68acjdhq0xq974q2q2y64aj5lt5340smylksqqwu0kdarsk38pqw",
+      "is_change": true
+    },
+    {
+      "type": "outgoing",
+      "timestamp": "2019-12-08T12:19:35.371Z",
+      "tx_hash": "2984d3d9502cf35a8cc7703d9e8afecddb843ed1d021a22876fd81395fcf1ff1",
+      "fee": 8000,
+      "outputs": [
+        {
+          "output_type": "payment",
+          "output_hash": "9bef461202cd3e23d6117c4caa1f46b6de775ab03923e1719591495e3b1200ef",
+          "amount": 10000,
+          "comment": "",
+          "recipient": "stt1s2sfz29vsc9mgwvg6u7jpssdc97u037mppxgtf9l9khptp633aqqvujfgz",
+          "is_change": false
+        },
+        {
+          "output_type": "payment",
+          "output_hash": "b8b5a5522c721eba733d21782d046683e81ebffff914e2464db79e9cda5dd247",
+          "amount": 2962000,
+          "comment": "Change",
+          "recipient": "stt1gt2v6u68acjdhq0xq974q2q2y64aj5lt5340smylksqqwu0kdarsk38pqw",
+          "is_change": true
+        }
+      ],
+      "inputs": [
+        "60473fd543ce88efc5e5ded80be89f72a95b4d7be8c82471feaaf32bafd020f3",
+        "7ae7325de8275ec3a7ffb31b0c641558031938872ed2ef6b78d4f0a9501db212",
+        "e641f900aa5c6b03354e509a139d69ef751e200156f61bc7e06cecbf34ca15e4",
+        "31f792be4fe098f12e4c739f3221f0a9f9568682128fccec3d7c7abb988fcdb0",
+        "7a05764431242a2564781bdd12ba76bf7d3f115d931f27293a80bb7faae64097",
+        "85faa815ac24f814af8a0dcbc5ae16c370dce9ec9f75d6d7856283c2bff02998",
+        "2d8bd0935a82916112b7d466ab5b63d93882bbab633221d05d28ecdadacb1cf3"
+      ],
+      "status": "committed",
+      "epoch": 2815
+    },
+    {
+      "type": "incoming",
+      "timestamp": "2019-12-08T12:21:32.885Z",
+      "output_type": "payment",
+      "output_hash": "b8b5a5522c721eba733d21782d046683e81ebffff914e2464db79e9cda5dd247",
+      "amount": 2962000,
+      "comment": "Change",
+      "recipient": "stt1gt2v6u68acjdhq0xq974q2q2y64aj5lt5340smylksqqwu0kdarsk38pqw",
+      "is_change": true
+    },
+    {
+      "type": "outgoing",
+      "timestamp": "2019-12-10T16:14:03.449Z",
+      "tx_hash": "fb46501f74ce2d342b735de99710ee6dc8df9481e3c60ae52fa970c39828e03f",
+      "fee": 2000,
+      "outputs": [
+        {
+          "output_type": "payment",
+          "output_hash": "ed5d647ed8c6a7954e911d471ad0ac250bc13f508e7cb32048a96324c3cdccf3",
+          "amount": 10000,
+          "comment": "",
+          "recipient": "stt1s2sfz29vsc9mgwvg6u7jpssdc97u037mppxgtf9l9khptp633aqqvujfgz",
+          "is_change": false
+        },
+        {
+          "output_type": "payment",
+          "output_hash": "a9dab0d829a70d32774ba7b3cd338c3c3f6bc643ef6eae3c3417d470c253561c",
+          "amount": 2950000,
+          "comment": "Change",
+          "recipient": "stt1gt2v6u68acjdhq0xq974q2q2y64aj5lt5340smylksqqwu0kdarsk38pqw",
+          "is_change": true
+        }
+      ],
+      "inputs": ["b8b5a5522c721eba733d21782d046683e81ebffff914e2464db79e9cda5dd247"],
+      "status": "committed",
+      "epoch": 3122
+    },
+    {
+      "type": "incoming",
+      "timestamp": "2019-12-10T16:14:07.681Z",
+      "output_type": "payment",
+      "output_hash": "a9dab0d829a70d32774ba7b3cd338c3c3f6bc643ef6eae3c3417d470c253561c",
+      "amount": 2950000,
+      "comment": "Change",
+      "recipient": "stt1gt2v6u68acjdhq0xq974q2q2y64aj5lt5340smylksqqwu0kdarsk38pqw",
+      "is_change": true
+    }
+  ],
+  "id": 5
+}

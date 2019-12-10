@@ -14,6 +14,7 @@ import 'package:stegos_wallet/stores/store_stegos.dart';
 import 'package:stegos_wallet/ui/password/screen_password.dart';
 import 'package:stegos_wallet/utils/cont.dart';
 import 'package:stegos_wallet/utils/dialogs.dart';
+import 'package:stegos_wallet/utils/extensions.dart';
 
 part 'service_node.g.dart';
 
@@ -39,8 +40,8 @@ enum PaymentMethod {
 
 class TxStore extends _TxStore with _$TxStore {
   TxStore(AccountStore account, int id, bool send, String recipient, int amount, int cts,
-      String comment, int fee, bool pending, String status)
-      : super(account, id, send, recipient, amount, cts, comment, fee, pending, status);
+      String comment, int fee, bool pending, String status, String hash)
+      : super(account, id, send, recipient, amount, cts, comment, fee, pending, status, hash);
 
   factory TxStore.fromJson(AccountStore account, int id, dynamic json) {
     final type = json['type'] as String ?? '';
@@ -61,15 +62,16 @@ class TxStore extends _TxStore with _$TxStore {
     if (send) {
       fee = json['fee'] as int ?? 0;
       status = json['status'] as String ?? status;
-      pending = status != 'committed';
+      pending = !['committed', 'rejected', 'conflicted'].contains(status);
     }
-    return TxStore(account, id, send, recipient, amount, cts, comment, fee, pending, status);
+    return TxStore(account, id, send, recipient, amount, cts, comment, fee, pending, status,
+        json['output_hash'] as String ?? json['tx_hash'] as String);
   }
 }
 
 abstract class _TxStore with Store {
   _TxStore(this.account, this.id, this.send, this.recipient, this.amount, this.cts, this.comment,
-      this.fee, this.pending, this.status)
+      this.fee, this.pending, this.status, this.hash)
       : humanCreationTime = _txDateFormatter.format(DateTime.fromMillisecondsSinceEpoch(cts)),
         humanAmount = '${send ? '-' : ''}${(amount / 1e6).toStringAsFixed(3)}';
 
@@ -99,6 +101,9 @@ abstract class _TxStore with Store {
   /// Recipient address
   final String recipient;
 
+  /// tx hash / output_hash
+  final String hash;
+
   /// todo:
   String certificateURL;
 
@@ -127,7 +132,7 @@ abstract class _TxStore with Store {
     if (send) {
       fee = json['fee'] as int ?? fee ?? 0;
       status = json['status'] as String ?? status;
-      pending = status != 'committed';
+      pending = !['committed', 'rejected', 'conflicted'].contains(status);
     }
   }
 }
@@ -670,19 +675,65 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
       });
 
   Future<void> _syncAccountTransactions(AccountStore account) => _env.useDb((db) async {
-        // await db.removeCollection(_txsCollection);
         final list = await db
-            .createQuery('/[account_id = :?] | limit :?', _txsCollection)
+            .createQuery('/[account_id = :?] | noidx limit :?', _txsCollection)
             .setInt(0, account.id)
             .setInt(1, _env.configMaxTransactionsPerAccount)
             .execute()
+            .map((doc) => TxStore.fromJson(account, doc.id, doc.object))
             .toList();
+
         if (log.isFine) {
           list.forEach((doc) => log.fine('#${account.id} TX: ${doc}'));
         }
+
+        final hmap = <String, TxStore>{};
+        list.forEach((tx) {
+          if (tx.hash != null) {
+            hmap[tx.hash] = tx;
+          }
+        });
+
+        final fromTs = list.lastOrNull?.cts ??
+            DateTime.now().toUtc().millisecondsSinceEpoch - 1000 * 60 * 60 * 24 * 365; // ~1Y
+
+        final msg = await client.sendAndAwait({
+          'type': 'history_info',
+          'account_id': '${account.id}',
+          'starting_from':
+              DateTime.fromMillisecondsSinceEpoch(fromTs, isUtc: true).toIso8601StringV2(),
+          'limit': 10 * 1024 // 10K
+        });
+
+        final history = (msg.json['log'] as List ?? []).where(
+            (h) => h['is_change'] as bool ?? true == false || h['status'] as String == 'committed');
+
+        // log.info('HHHHH:  ${history.join('\n')}');
+
+        for (final h in history) {
+          final hash = h['tx_hash'] as String ?? h['output_hash'] as String;
+          if (hash != null) {
+            final tx = hmap[hash];
+            if (tx == null) {
+              final toadd = {'account_id': '${account.id}', ...h as Map};
+              // log.info('ADD: $toadd');
+              final id = await db.put(_txsCollection, toadd);
+              list.add(TxStore.fromJson(account, id, toadd));
+            } else if (tx.send && tx.status != 'committed') {
+              // log.info('UPD: committed');
+              runInAction(() {
+                tx.status = 'committed';
+              });
+              await db.patch(_txsCollection, {'status': 'committed'}, tx.id);
+            }
+          }
+        }
+
+        list.sort((s1, s2) => s2.cts.compareTo(s1.cts));
+
         runInAction(() {
           account.txList.clear();
-          account.txList.addAll(list.map((doc) => TxStore.fromJson(account, doc.id, doc.object)));
+          account.txList.addAll(list);
         });
       });
 
@@ -846,6 +897,8 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
     runInAction(() {
       network = pkey.substring(0, 3);
     });
+
+    // await _env.useDb((db) => db.removeCollection(_txsCollection));
 
     unawaited(_env.useDb((db) => Future.wait([
           db.ensureStringIndex(_txsCollection, '/tx_hash', true),
