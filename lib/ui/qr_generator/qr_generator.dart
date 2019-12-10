@@ -40,6 +40,14 @@ class _QrGeneratorState extends State<QrGenerator> {
             child: LayoutBuilder(builder: (BuildContext context, BoxConstraints constraints) {
           final double maxWidth = constraints.maxWidth;
           return Column(mainAxisAlignment: MainAxisAlignment.center, children: <Widget>[
+            SizedBox(
+                width: maxWidth * 0.9,
+                child: SelectableText(
+                  widget.qrData,
+                  style: const TextStyle(fontSize: 9),
+                  textAlign: TextAlign.center,
+                )),
+            const SizedBox(height: 8),
             GestureDetector(
               onTap: _copyToClipboard,
               child: QrImage(
