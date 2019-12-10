@@ -581,8 +581,17 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
     if (log.isFine) {
       log.fine('onReceived: ${msg}');
     }
-    return env.useDb((db) => db.put(_txsCollection, json)).then((id) {
-      account._updateTransaction(id, json);
+    return env.useDb((db) async {
+      final res = await db
+          .createQuery('/[account_id = :?] and /[output_hash = :?]', _txsCollection)
+          .setInt(0, msg.accountId)
+          .setString(1, json['output_hash'] as String)
+          .first();
+      if (res.isNotPresent) {
+        final doc = {...json, '_cts': DateTime.now().toUtc().millisecondsSinceEpoch};
+        final id = await db.put(_txsCollection, doc);
+        account._updateTransaction(id, doc);
+      }
     });
   }
 
@@ -593,7 +602,7 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
       return;
     }
     final doc = await env.useDb((db) => db
-        .createQuery('/tx_hash = :? | apply :?', _txsCollection)
+        .createQuery('/[tx_hash = :?] | apply :?', _txsCollection)
         .setString(0, msg.json['tx_hash'] as String)
         .setJson(1, {'status': msg.json['status']}).first());
     if (!doc.isPresent) {
@@ -601,7 +610,7 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
       return;
     }
     if (log.isFine) {
-      log.fine('onTransactionStatus updated');
+      log.fine('onTransactionStatus updated: ${doc.value}');
     }
     account._updateTransaction(doc.value.id, json);
   }
@@ -633,6 +642,7 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
       });
 
   Future<void> _syncAccountTransactions(AccountStore account) => env.useDb((db) async {
+        // await db.removeCollection(_txsCollection);
         final list = await db
             .createQuery('/[account_id = :?] | desc /_cts limit :?', _txsCollection)
             .setInt(0, account.id)
@@ -641,7 +651,7 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
             .toList();
         runInAction(() {
           account.txList.clear();
-          account.txList.addAll(list.map((doc) => TxStore.fromJson(doc.id, doc.json)));
+          account.txList.addAll(list.map((doc) => TxStore.fromJson(doc.id, doc.object)));
         });
       });
 
