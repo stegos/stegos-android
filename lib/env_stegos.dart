@@ -78,6 +78,11 @@ class StegosEnv extends Env<Widget> {
   /// Max number of recent transactions listed for
   int get configMaxTransactionsPerAccount => 100;
 
+  /// Skip mobile app suspending:
+  /// - Closing DB
+  /// - Closing node WS connection
+  bool get configSkipAppSuspending => true;
+
   /// Stegos node websocket endpoint
   String get configNodeWsEndpoint => 'ws://10.0.2.2:3145';
 
@@ -195,6 +200,10 @@ class StegosEnv extends Env<Widget> {
   }
 
   Future<void> _suspend(AppLifecycleState state) async {
+    if (configSkipAppSuspending) {
+      log.info('App suspend skipped due to env configuration: \'configSkipAppSuspending\'');
+      return;
+    }
     log.info('Suspending environment');
     if (_client != null) {
       await _client.close(dispose: false).catchError((err) {
