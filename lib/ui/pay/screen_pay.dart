@@ -180,7 +180,7 @@ class _PayScreenState extends State<PayScreen> {
   Widget _buildToAddress() => Observer(builder: (context) {
         final UnderlineInputBorder textFieldBorder = UnderlineInputBorder(
             borderSide: BorderSide(
-                color: _store.isValidToAddress() ? StegosColors.accentColor : Colors.redAccent,
+                color: _store.isValidToAddress ? StegosColors.accentColor : Colors.redAccent,
                 width: 1));
         return _withLabel(
             'Recepient address',
@@ -244,8 +244,8 @@ class _PayScreenState extends State<PayScreen> {
                 width: 118,
                 padding: const EdgeInsets.only(bottom: 19),
                 child: TextField(
-                  decoration:
-                      InputDecoration(enabledBorder: textFieldBorder, focusedBorder: textFieldBorder),
+                  decoration: InputDecoration(
+                      enabledBorder: textFieldBorder, focusedBorder: textFieldBorder),
                   keyboardType: TextInputType.number,
                   onChanged: (String value) {
                     final v = double.tryParse(value);
@@ -348,12 +348,13 @@ class _PayScreenState extends State<PayScreen> {
         return RaisedButton(
           elevation: 8,
           disabledElevation: 8,
-          onPressed: _store.isValidForm()
+          onPressed: _store.isValidForm || true
               ? () {
-                  final store = _store;
+                  //final store = _store;
                   final env = Provider.of<StegosEnv>(context);
                   final nodeService = env.nodeService;
 
+                  // FIXME:
                   // nodeService.pay(
                   //     accountId: store.senderAccount.id,
                   //     recipient: store.toAddress,
@@ -361,12 +362,13 @@ class _PayScreenState extends State<PayScreen> {
                   //     fee: (store.fee * 1e6).ceil(),
                   //     withCertificate: store.generateCertificate);
 
-                  // nodeService.pay(
-                  //     accountId: 1,
-                  //     recipient: 'stt1zz6u5zlgh5292lz5nasykazdtsf65vptd8hg6uryhzcxr0ykyvxq4kk5a5',
-                  //     amount: (0.01 * 1e6).ceil(),
-                  //     fee: stegosFeeStandard,
-                  //     withCertificate: false);
+                  final account = nodeService.accounts[1];
+                  nodeService.pay(
+                      account: account,
+                      recipient: 'stt1zz6u5zlgh5292lz5nasykazdtsf65vptd8hg6uryhzcxr0ykyvxq4kk5a5',
+                      amount: (0.02 * 1e6).ceil(),
+                      fee: stegosFeeStandard,
+                      withCertificate: false);
                 }
               : null,
           child: const Text('SEND'),

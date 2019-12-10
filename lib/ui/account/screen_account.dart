@@ -1,28 +1,28 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:provider/provider.dart';
-import 'package:stegos_wallet/env_stegos.dart';
 import 'package:stegos_wallet/services/service_node.dart';
 import 'package:stegos_wallet/ui/account/transactions_list.dart';
 import 'package:stegos_wallet/ui/routes.dart';
 import 'package:stegos_wallet/ui/themes.dart';
 import 'package:stegos_wallet/ui/transactions/screen_transactions.dart';
 import 'package:stegos_wallet/widgets/widget_app_bar.dart';
+import 'package:stegos_wallet/widgets/widget_scaffold_body_wrapper.dart';
 
 class Transaction {
-  Transaction({this.amount = 0, this.created, this.certificateURL});
-
+  Transaction({this.amount = 0, this.created, this.certificateURL, this.finished = true});
   final double amount;
   final DateTime created;
   final String certificateURL;
+  final bool finished;
 }
 
 class AccountScreen extends StatefulWidget {
-  AccountScreen({Key key, this.id}) : super(key: key);
+  AccountScreen({Key key, this.account}) : super(key: key);
 
-  final int id;
+  final AccountStore account;
 
   @override
   AccountScreenState createState() => AccountScreenState();
@@ -34,8 +34,12 @@ class AccountScreenState extends State<AccountScreen> {
   final EdgeInsets defaultPadding = const EdgeInsets.all(16.0);
 
   final List<Transaction> transactions = [
-    Transaction(amount: 10, created: DateTime.now(), certificateURL: 'URL to certificate document'),
-    Transaction(amount: -1230, created: DateTime.now(), certificateURL: null),
+    Transaction(
+        amount: 10,
+        created: DateTime.now(),
+        certificateURL: 'URL to certificate document',
+        finished: false),
+    Transaction(amount: -1230, created: DateTime.now(), certificateURL: null, finished: false),
     Transaction(amount: -1.1235, created: DateTime.now(), certificateURL: null),
     Transaction(amount: 3250, created: DateTime.now(), certificateURL: null),
     Transaction(amount: 1.0001, created: DateTime.now(), certificateURL: null),
@@ -53,110 +57,113 @@ class AccountScreenState extends State<AccountScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final env = Provider.of<StegosEnv>(context);
-
-    final AccountStore acc = env.nodeService.accountsList.firstWhere((AccountStore a) => a.id == widget.id);
+    final AccountStore account = widget.account;
     return Theme(
         data: StegosThemes.AccountTheme,
         child: Scaffold(
           appBar: AppBarWidget(
-            centerTitle: false,
-            backgroundColor: Theme.of(context).colorScheme.primary,
-            leading: IconButton(
-              icon: const Image(
-                image: _iconBackImage,
-                width: 24,
-                height: 24,
+              centerTitle: false,
+              backgroundColor: Theme.of(context).colorScheme.primary,
+              leading: IconButton(
+                icon: const Image(
+                  image: _iconBackImage,
+                  width: 24,
+                  height: 24,
+                ),
+                onPressed: () => Navigator.pop(context, false),
               ),
-              onPressed: () => Navigator.pop(context, false),
-            ),
-            actions: <Widget>[
-              IconButton(
-                icon: SvgPicture.asset(
-                  'assets/images/gear.svg',
-                  width: 22,
-                  height: 22,
-                ),
-                onPressed: () => Navigator.pushNamed(context, Routes.settings, arguments: acc.id),
-              )
-            ],
-            title: Text(acc.humanName),
-          ),
-          body: Column(
-            children: <Widget>[
-              Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                Container(
-                    child: Container(
-                        padding: const EdgeInsets.only(top: 30),
-                        color: StegosColors.splashBackground,
-                        child: Column(
+              actions: <Widget>[
+                IconButton(
+                  icon: SvgPicture.asset(
+                    'assets/images/gear.svg',
+                    width: 22,
+                    height: 22,
+                  ),
+                  onPressed: () =>
+                      Navigator.pushNamed(context, Routes.settings, arguments: account.id),
+                )
+              ],
+              title: Observer(builder: (context) => Text(account.humanName))),
+          body: ScaffoldBodyWrapperWidget(
+              builder: (context) => Column(
+                    children: <Widget>[
+                      Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                        Container(
+                            child: Container(
+                                padding: const EdgeInsets.only(top: 30),
+                                color: StegosColors.splashBackground,
+                                child: Observer(
+                                  builder: (context) => Column(
+                                    children: <Widget>[
+                                      const Text('Balance', style: TextStyle(fontSize: 14)),
+                                      const SizedBox(height: 7),
+                                      Text('${account.humanBalance} STG',
+                                          style: TextStyle(
+                                              fontSize: 32,
+                                              fontWeight: FontWeight.w500,
+                                              color: StegosColors.primaryColor)),
+                                      const SizedBox(height: 26),
+                                      Container(
+                                          height: 40,
+                                          margin: const EdgeInsets.symmetric(horizontal: 22),
+                                          decoration: const BoxDecoration(
+                                            border: Border(
+                                                bottom: BorderSide(
+                                                    color: StegosColors.white, width: 1)),
+                                          ),
+                                          child: Center(
+                                            child: SelectableText(account.pkey,
+                                                style: const TextStyle(fontSize: 10)),
+                                          )),
+                                      Container(
+                                          alignment: Alignment.topRight,
+                                          padding:
+                                              const EdgeInsets.only(top: 14, right: 22, bottom: 19),
+                                          child: SvgPicture.asset(
+                                            'assets/images/qr.svg',
+                                            width: 34,
+                                            height: 34,
+                                          )),
+                                      _buildButtons()
+                                    ],
+                                  ),
+                                ))),
+                      ]),
+                      Expanded(
+                        child: Stack(
                           children: <Widget>[
-                            const Text('Balance', style: TextStyle(fontSize: 14)),
-                            const SizedBox(height: 7),
-                            Text('${acc.humanBalance} STG',
-                                style: TextStyle(
-                                    fontSize: 32,
-                                    fontWeight: FontWeight.w500,
-                                    color: StegosColors.primaryColor)),
-                            const SizedBox(height: 26),
                             Container(
-                                height: 40,
-                                margin: const EdgeInsets.symmetric(horizontal: 22),
-                                decoration: const BoxDecoration(
-                                  border: Border(
-                                      bottom: BorderSide(color: StegosColors.white, width: 1)),
-                                ),
-                                child: Center(
-                                  child: SelectableText(
-                                      acc.pkey,
-                                      style: const TextStyle(fontSize: 10)),
-                                )),
+                              padding: const EdgeInsets.only(left: 10, right: 10),
+                              height: 57,
+                              alignment: Alignment.center,
+                              child: Text(
+                                'Transactions',
+                                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                              ),
+                            ),
                             Container(
-                                alignment: Alignment.topRight,
-                                padding: const EdgeInsets.only(top: 14, right: 22, bottom: 19),
-                                child: SvgPicture.asset(
-                                  'assets/images/qr.svg',
-                                  width: 34,
-                                  height: 34,
-                                )),
-                            _buildButtons()
+                                padding: const EdgeInsets.only(left: 10, right: 10),
+                                height: 57,
+                                alignment: Alignment.centerRight,
+                                child: transactions.isNotEmpty
+                                    ? GestureDetector(
+                                        onTap: _seeAll,
+                                        child: Text(
+                                          'See all',
+                                          style:
+                                              TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                                        ),
+                                      )
+                                    : null),
+                            Container(
+                                alignment: Alignment.topCenter,
+                                padding: const EdgeInsets.only(top: 57),
+                                child: TransactionsList(transactions)),
                           ],
-                        ))),
-              ]),
-              Expanded(
-                child: Stack(
-                  children: <Widget>[
-                    Container(
-                      padding: const EdgeInsets.only(left: 10, right: 10),
-                      height: 57,
-                      alignment: Alignment.center,
-                      child: Text(
-                        'Transactions',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                    Container(
-                        padding: const EdgeInsets.only(left: 10, right: 10),
-                        height: 57,
-                        alignment: Alignment.centerRight,
-                        child: transactions.isNotEmpty
-                            ? GestureDetector(
-                                onTap: _seeAll,
-                                child: Text(
-                                  'See all',
-                                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                                ),
-                              )
-                            : null),
-                    Container(
-                        alignment: Alignment.topCenter,
-                        padding: const EdgeInsets.only(top: 57),
-                        child: TransactionsList(transactions)),
-                  ],
-                ),
-              )
-            ],
-          ),
+                        ),
+                      )
+                    ],
+                  )),
         ));
   }
 
@@ -181,7 +188,9 @@ class AccountScreenState extends State<AccountScreen> {
                     height: 65,
                     child: RaisedButton(
                       padding: const EdgeInsets.all(10),
-                      onPressed: () {Navigator.pushNamed(context, Routes.pay);},
+                      onPressed: () {
+                        Navigator.pushNamed(context, Routes.pay);
+                      },
                       color: StegosColors.splashBackground,
                       child: SvgPicture.asset('assets/images/send.svg'),
                     ),
@@ -227,7 +236,7 @@ class AccountScreenState extends State<AccountScreen> {
   void _seeAll() {
     Navigator.push(
         context,
-        MaterialPageRoute<Null>(
+        MaterialPageRoute(
           builder: (BuildContext context) => TransactionsScreen(transactions),
           fullscreenDialog: true,
         ));
