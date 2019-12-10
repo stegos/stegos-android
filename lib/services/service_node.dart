@@ -344,9 +344,9 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
       log.fine('deleteAccount: ${account.id}');
     }
     await _checkConnected();
-    await _unsealAccount(account.id, force: true)
+    return _unsealAccount(account.id, force: true)
         .then((_) => client.sendAndAwait({'type': 'delete_account', 'account_id': '${account.id}'}))
-        .catchError(defaultErrorHandler(env));
+        .catchError(defaultErrorHandler<void>(env));
   }
 
   Future<void> createNewAccount([String name]) async {
@@ -430,7 +430,7 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
       {@required AccountStore account,
       @required String recipient,
       @required int amount,
-      PaymentMethod paymentMethod = PaymentMethod.SECURED,
+      PaymentMethod paymentMethod = PaymentMethod.SIMPLE,
       String comment,
       int fee,
       bool withCertificate,
@@ -504,8 +504,13 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
     }
   }
 
-  Future<void> _onAccountDeleted(StegosNodeMessage msg) =>
-      env.useDb((db) => db.delIgnoreNotFound(_accountsCollecton, msg.accountId)).whenComplete(() {
+  Future<void> _onAccountDeleted(StegosNodeMessage msg) => env.useDb((db) async {
+        await db
+            .createQuery('/[account_id = :?] | del | count', _txsCollection)
+            .setInt(0, msg.accountId)
+            .executeScalarInt();
+        await db.delIgnoreNotFound(_accountsCollecton, msg.accountId);
+      }).whenComplete(() {
         runInAction(() {
           final acc = accounts[msg.accountId];
           accounts.remove(msg.accountId);
@@ -588,10 +593,11 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
       return;
     }
     final doc = await env.useDb((db) => db
-        .createQuery('/tx_hash = :? | apply :?')
+        .createQuery('/tx_hash = :? | apply :?', _txsCollection)
         .setString(0, msg.json['tx_hash'] as String)
         .setJson(1, {'status': msg.json['status']}).first());
     if (!doc.isPresent) {
+      log.warning('Missing tx hash: ${msg.json['tx_hash']} in wallet db');
       return;
     }
     if (log.isFine) {
@@ -626,30 +632,45 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
         });
       });
 
+  Future<void> _syncAccountTransactions(AccountStore account) => env.useDb((db) async {
+        final list = await db
+            .createQuery('/[account_id = :?] | desc /_cts limit :?', _txsCollection)
+            .setInt(0, account.id)
+            .setInt(1, env.configMaxTransactionsPerAccount)
+            .execute()
+            .toList();
+        runInAction(() {
+          account.txList.clear();
+          account.txList.addAll(list.map((doc) => TxStore.fromJson(doc.id, doc.json)));
+        });
+      });
+
   Future<AccountStore> _syncAccountInfo(int id, {bool forceSealing = false}) async {
-    final acc = await _unsealAccount(id, force: forceSealing);
+    final account = await _unsealAccount(id, force: forceSealing);
     //try {
     final msg = await client.sendAndAwait({'type': 'balance_info', 'account_id': '$id'});
-    await env.useDb((db) {
-      acc._updateFromBalanceMessage(msg);
-      return db.patchOrPut(_accountsCollecton, acc, id);
+    await env.useDb((db) async {
+      account._updateFromBalanceMessage(msg);
+      await db.patchOrPut(_accountsCollecton, account, id);
+      // fixme: Lazy loading of account transactions
+      return _syncAccountTransactions(account);
     });
     // } finally {
     //   unawaited(_sealAccount(id, force: forceSealing));
     // }
     if (log.isFine) {
-      log.fine('Fetched account info: ${acc}');
+      log.fine('Fetched account info: ${account}');
     }
-    return acc;
+    return account;
   }
 
   Future<AccountStore> _sealAccount(int id, {bool force = false}) {
     if (log.isFine) {
       log.fine('Sealing account: #${id}');
     }
-    final acc = _account(id);
-    if (!force && acc.sealed) {
-      return Future.value(acc);
+    final account = _account(id);
+    if (!force && account.sealed) {
+      return Future.value(account);
     }
     return client.sendAndAwait({'type': 'seal', 'account_id': '$id'}).catchError((err) {
       if (err is StegosNodeErrorMessage && err.accountIsSealed) {
@@ -660,12 +681,12 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
       }
     }).then((_) {
       runInAction(() {
-        acc.sealed = true;
+        account.sealed = true;
       });
       if (log.isFine) {
         log.fine('Account#${id} is sealed');
       }
-      return acc;
+      return account;
     });
   }
 
