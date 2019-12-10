@@ -186,30 +186,37 @@ class _PayScreenState extends State<PayScreen> {
         return _withLabel(
             'Recepient address',
             Container(
-              padding: const EdgeInsets.only(bottom: 19),
               child: Column(
                 children: <Widget>[
-                  TextField(
-                    onChanged: (String value) {
-                      runInAction(() {
-                        _store.toAddress = value;
-                      });
-                    },
-                    focusNode: _recepientFocusNode,
-                    decoration: InputDecoration(
-                        focusedBorder: textFieldBorder,
-                        enabledBorder: textFieldBorder,
-                        suffix: Transform.translate(
-                          offset: const Offset(0, 4),
-                          child: GestureDetector(
-                            onTap: _scanQr,
-                            child: Image.asset(
-                              'assets/images/qr.png',
-                              height: 20,
-                              width: 20,
+                  Stack(
+                    children: <Widget>[
+                      TextField(
+                        onChanged: (String value) {
+                          runInAction(() {
+                            _store.toAddress = value;
+                          });
+                        },
+                        focusNode: _recepientFocusNode,
+                        decoration: InputDecoration(
+                            contentPadding: const EdgeInsets.only(
+                              right: 25,
                             ),
+                            focusedBorder: textFieldBorder,
+                            enabledBorder: textFieldBorder),
+                      ),
+                      Container(
+                        height: 34,
+                        alignment: Alignment.bottomRight,
+                        child: GestureDetector(
+                          onTap: _scanQr,
+                          child: Image.asset(
+                            'assets/images/qr.png',
+                            height: 20,
+                            width: 20,
                           ),
-                        )),
+                        ),
+                      ),
+                    ],
                   ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
