@@ -20,7 +20,7 @@ part 'service_node.g.dart';
 
 const stegosFeeStandard = 1000;
 
-const stagosFeeHigh = 5000;
+const stegosFeeHigh = 5000;
 
 StegosEnv _env;
 
