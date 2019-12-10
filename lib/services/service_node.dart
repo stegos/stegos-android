@@ -42,10 +42,15 @@ class TxStore extends _TxStore with _$TxStore {
   factory TxStore.fromJson(int id, dynamic json) {
     final type = json['type'] as String ?? '';
     // fixme: it is too empiric
-    final send = type.startsWith('transaction_') || type.contains('payment');
+    final send = type == 'outgoing' || type.startsWith('transaction_') || type.contains('payment');
     final recipient = json['recipient'] as String;
     final amount = json['amount'] as int ?? 0;
-    final cts = json['_cts'] as int ?? DateTime.now().toUtc().millisecondsSinceEpoch;
+    int cts;
+    if (json['timestamp'] is String) {
+      cts = DateTime.parse(json['timestamp'] as String).toUtc().millisecondsSinceEpoch;
+    } else {
+      cts = json['_cts'] as int ?? DateTime.now().toUtc().millisecondsSinceEpoch;
+    }
     final comment = json['comment'] as String ?? '';
     var fee = 0;
     var status = '';
@@ -644,11 +649,14 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
   Future<void> _syncAccountTransactions(AccountStore account) => env.useDb((db) async {
         // await db.removeCollection(_txsCollection);
         final list = await db
-            .createQuery('/[account_id = :?] | desc /_cts limit :?', _txsCollection)
+            .createQuery('/[account_id = :?] | limit :?', _txsCollection)
             .setInt(0, account.id)
             .setInt(1, env.configMaxTransactionsPerAccount)
             .execute()
             .toList();
+        if (log.isFine) {
+          list.forEach((doc) => log.fine('#${account.id} TX: ${doc}'));
+        }
         runInAction(() {
           account.txList.clear();
           account.txList.addAll(list.map((doc) => TxStore.fromJson(doc.id, doc.object)));
@@ -817,8 +825,9 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
     });
 
     unawaited(env.useDb((db) => Future.wait([
+          db.removeIntIndex(_txsCollection, '/_cts', true), // fixme:
           db.ensureStringIndex(_txsCollection, '/tx_hash', true),
-          db.ensureIntIndex(_txsCollection, '/_cts', true),
+          db.ensureStringIndex(_txsCollection, '/output_hash', true),
           db.ensureIntIndex(_txsCollection, '/account_id', false)
         ])));
 
