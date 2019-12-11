@@ -7,11 +7,11 @@ extension ExtendedString on String {
 extension ExtendedList<T> on List<T> {
   T get firstOrNull => isNotEmpty ? first : null;
 
+  T get lastOrNull => isNotEmpty ? last : null;
+
   List<T> sublistUpTo(int n) => sublist(0, n > length ? length : n);
 
   T removeFirst() => isNotEmpty ? removeAt(0) : null;
-
-  T get lastOrNull => isNotEmpty ? last : null;
 }
 
 extension ExtendedMap<K> on Map<K, dynamic> {

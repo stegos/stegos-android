@@ -45,10 +45,11 @@ class TxStore extends _TxStore with _$TxStore {
 
   factory TxStore.fromJson(AccountStore account, int id, dynamic json) {
     final type = json['type'] as String ?? '';
-    // fixme: it is too empiric
     final send = type == 'outgoing' || type.startsWith('transaction_') || type.contains('payment');
     final recipient = json['recipient'] as String;
     final amount = json['amount'] as int ?? 0;
+    final hash = json['tx_hash'] as String ?? json['output_hash'] as String;
+
     int cts;
     if (json['timestamp'] is String) {
       cts = DateTime.parse(json['timestamp'] as String).toUtc().millisecondsSinceEpoch;
@@ -56,23 +57,24 @@ class TxStore extends _TxStore with _$TxStore {
       cts = json['_cts'] as int ?? DateTime.now().toUtc().millisecondsSinceEpoch;
     }
     final comment = json['comment'] as String ?? '';
+
     var fee = 0;
     var status = '';
     var pending = false;
     if (send) {
       fee = json['fee'] as int ?? 0;
       status = json['status'] as String ?? status;
-      pending = !['committed', 'rejected', 'conflicted'].contains(status);
+      pending = !const ['committed', 'rejected', 'conflicted'].contains(status);
     }
-    return TxStore(account, id, send, recipient, amount, cts, comment, fee, pending, status,
-        json['tx_hash'] as String ?? json['output_hash'] as String);
+    return TxStore(account, id, send, recipient, amount, cts, comment, fee, pending, status, hash);
   }
 }
 
 abstract class _TxStore with Store {
   _TxStore(this.account, this.id, this.send, this.recipient, this.amount, this.cts, this.comment,
       this.fee, this.pending, this.status, this.hash)
-      : humanCreationTime = _txDateFormatter.format(DateTime.fromMillisecondsSinceEpoch(cts)),
+      : humanCreationTime =
+            _txDateFormatter.format(DateTime.fromMillisecondsSinceEpoch(cts, isUtc: false)),
         humanAmount = '${send ? '-' : ''}${(amount / 1e6).toStringAsFixed(3)}';
 
   final AccountStore account;
@@ -108,10 +110,10 @@ abstract class _TxStore with Store {
   bool get finished => !pending;
 
   /// todo:
-  bool get failed => false;
-
-  /// todo:
   String certificateURL;
+
+  /// Is transaction failed
+  bool get failed => const ['failed', 'rejected', 'conflicted'].contains(status);
 
   /// Transaction in pending state
   @observable
@@ -135,7 +137,7 @@ abstract class _TxStore with Store {
     if (send) {
       fee = json['fee'] as int ?? fee ?? 0;
       status = json['status'] as String ?? status;
-      pending = !['committed', 'rejected', 'conflicted'].contains(status);
+      pending = !const ['committed', 'failed', 'rejected', 'conflicted'].contains(status);
     }
   }
 }
@@ -174,7 +176,7 @@ abstract class _AccountStore with Store {
   @computed
   String get humanName => name ?? 'Account #${id}';
 
-  String get humanBalance => '${(balanceCurrent.toDouble() / 1e6).toStringAsFixed(3)}';
+  String get humanBalance => '${(balanceCurrent / 1e6).toStringAsFixed(3)}';
 
   @observable
   String name;
@@ -321,7 +323,7 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
   int get totalBalance =>
       accounts.values.fold(0, (s, a) => s + a.balanceCurrent); // todo: balanceCurrent?
 
-  String get totalBalanceSTG => (totalBalance.toDouble() / 1e6).toStringAsFixed(3);
+  String get totalBalanceSTG => (totalBalance / 1e6).toStringAsFixed(3);
 
   /// Is app is connected to network
   @computed
@@ -523,7 +525,11 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
     _disposers.addAll([
       reaction((_) => client.connected, _syncNodeStatus),
       reaction((_) => client.connected && !_env.securityService.needAppUnlock, (bool connected) {
-        if (connected) _syncAccounts();
+        if (connected) {
+          _syncAccounts();
+        } else {
+          _syncAccountsOffline();
+        }
       })
     ]);
     _nodeClientSubscription = client.stream.listen(_onNodeMessage);
@@ -686,10 +692,6 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
             .map((doc) => TxStore.fromJson(account, doc.id, doc.object))
             .toList();
 
-        if (log.isFine) {
-          list.forEach((doc) => log.fine('#${account.id} TX: ${doc}'));
-        }
-
         final hmap = <String, TxStore>{};
         list.forEach((tx) {
           if (tx.hash != null) {
@@ -708,10 +710,10 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
           'limit': 10 * 1024 // 10K
         });
 
-        final history = (msg.json['log'] as List ?? []).where(
-            (h) => h['is_change'] as bool ?? true == false || h['status'] as String == 'committed');
-
-        // log.info('HHHHH:  ${history.join('\n')}');
+        final history = (msg.json['log'] as List ?? []).where((h) {
+          return (h['is_change'] as bool ?? true) == false ||
+              const ['committed', 'rejected', 'conflicted'].contains(h['status'] as String);
+        });
 
         for (final h in history) {
           final hash = h['tx_hash'] as String ?? h['output_hash'] as String;
@@ -719,15 +721,20 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
             final tx = hmap[hash];
             if (tx == null) {
               final toadd = {'account_id': '${account.id}', ...h as Map};
-              // log.info('ADD: $toadd');
-              final id = await db.put(_txsCollection, toadd);
-              list.add(TxStore.fromJson(account, id, toadd));
-            } else if (tx.send && tx.status != 'committed') {
-              // log.info('UPD: committed');
-              runInAction(() {
-                tx.status = 'committed';
-              });
-              await db.patch(_txsCollection, {'status': 'committed'}, tx.id);
+              if (toadd['amount'] == null) {
+                final output = (toadd['outputs'] as List ?? [])
+                    .firstWhere((o) => o['output_type'] == 'payment' && o['is_change'] == false);
+                if (output != null) {
+                  toadd['amount'] = output['amount'];
+                }
+              }
+              if (toadd['amount'] != null) {
+                final id = await db.put(_txsCollection, toadd);
+                list.add(TxStore.fromJson(account, id, toadd));
+              }
+            } else if (tx.send && h['status'] != null && tx.status != h['status']) {
+              tx._updateFromJson(h);
+              await db.patch(_txsCollection, {'status': tx.status}, tx.id);
             }
           }
         }
@@ -911,6 +918,10 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
 
     log.info('Using Stegos network: ${network}');
     return nodeAccounts;
+  }
+
+  Future<void> _syncAccountsOffline() async {
+    // todo:
   }
 
   Future<void> _syncAccounts() async {

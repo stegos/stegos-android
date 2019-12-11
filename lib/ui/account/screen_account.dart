@@ -230,9 +230,13 @@ class _AccountScreenState extends State<AccountScreen> {
     ));
   }
 
-  Future<String> _showQRCode() => appShowDialog<String>(
-      builder: (context) => QrGenerator(
-            title: 'QR code for ${widget.account.humanName}',
-            qrData: widget.account.pkey,
-          ));
+  Future<String> _showQRCode() {
+    return StegosApp.navigatorState.push(MaterialPageRoute(
+      builder: (BuildContext context) => QrGenerator(
+        title: 'QR code for ${widget.account.humanName}',
+        qrData: widget.account.pkey,
+      ),
+      fullscreenDialog: true,
+    ));
+  }
 }
