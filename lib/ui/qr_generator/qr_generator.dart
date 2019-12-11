@@ -16,7 +16,6 @@ class QrGenerator extends StatefulWidget {
 }
 
 class _QrGeneratorState extends State<QrGenerator> {
-  static const _iconBackImage = AssetImage('assets/images/arrow_back.png');
   final _scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
@@ -30,11 +29,17 @@ class _QrGeneratorState extends State<QrGenerator> {
             icon: const SizedBox(
               width: 24,
               height: 24,
-              child: Image(image: _iconBackImage),
+              child: Image(image: AssetImage('assets/images/arrow_back.png')),
             ),
             onPressed: () => StegosApp.navigatorState.pop(null),
           ),
           title: Text(widget.title),
+          actions: <Widget>[
+            IconButton(
+              icon: Icon(Icons.close),
+              onPressed: () => StegosApp.navigatorState.pop(),
+            )
+          ],
         ),
         body: Center(
             child: LayoutBuilder(builder: (BuildContext context, BoxConstraints constraints) {
