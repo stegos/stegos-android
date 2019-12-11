@@ -118,6 +118,26 @@ abstract class _TxStore with Store {
   @computed
   bool get pending => !(!send || failed || status == 'committed');
 
+  /// Human readable tx status
+  @computed
+  String get humanStatus {
+    if (send) {
+      if (pending) {
+        if (status != null) {
+          return 'Sending ${status}...';
+        } else {
+          return 'Sending...';
+        }
+      } else if (failed) {
+        return 'Send ${status}';
+      } else {
+        return 'Sent';
+      }
+    } else {
+      return 'Received';
+    }
+  }
+
   @observable
   int fee;
 

@@ -61,23 +61,6 @@ class _TransactionsListState extends State<TransactionsList> with TickerProvider
     } else {
       prefixIcon = Icon(Icons.check, size: 16, color: const Color(0xff32ff6b));
     }
-    String status;
-    if (tx.send) {
-      if (tx.pending) {
-        if (tx.status != null) {
-          status = 'Sending ${tx.status}...';
-        } else {
-          status = 'Sending...';
-        }
-      } else if (tx.failed) {
-        status = 'Send ${tx.status}';
-      } else {
-        status = 'Sent';
-      }
-    } else {
-      status = 'Received';
-    }
-
     return Padding(
       padding: const EdgeInsets.only(left: 20, right: 10, top: 25, bottom: 25),
       child: Container(
@@ -93,7 +76,7 @@ class _TransactionsListState extends State<TransactionsList> with TickerProvider
                         child: prefixIcon,
                       ),
                       Text(
-                        status,
+                        tx.humanStatus,
                         style: const TextStyle(fontSize: 16, color: StegosColors.white),
                       )
                     ],
