@@ -8,6 +8,7 @@ import 'package:stegos_wallet/services/service_node.dart';
 import 'package:stegos_wallet/ui/app.dart';
 import 'package:stegos_wallet/ui/certificate/screen_certificate.dart';
 import 'package:stegos_wallet/ui/themes.dart';
+import 'package:stegos_wallet/ui/transaction-data/transaction_data.dart';
 
 class TransactionsList extends StatefulWidget {
   TransactionsList(this.account);
@@ -62,63 +63,75 @@ class _TransactionsListState extends State<TransactionsList> with TickerProvider
       prefixIcon = Icon(Icons.error_outline, size: 16, color: Colors.redAccent);
     }
 
-    return Padding(
-      padding: const EdgeInsets.only(left: 20, right: 10, top: 25, bottom: 25),
-      child: Container(
-          height: 39,
-          child: Stack(
-            children: <Widget>[
-              Container(
-                  alignment: Alignment.topLeft,
-                  child: Row(
-                    children: <Widget>[
-                      Padding(
-                        padding: const EdgeInsets.only(right: 5),
-                        child: prefixIcon,
-                      ),
-                      Text(
-                        transaction.send ? 'Sent' : 'Received',
-                        style: const TextStyle(fontSize: 16, color: StegosColors.white),
-                      )
-                    ],
-                  )),
-              Container(
-                  alignment: Alignment.bottomLeft,
-                  child: Text(
-                    transaction.humanCreationTime,
-                    style: const TextStyle(fontSize: 12, color: StegosColors.white),
-                  )),
-              Container(
-                alignment: Alignment.topRight,
-                margin: const EdgeInsets.only(right: 54),
-                child: Text(
-                  '${transaction.humanAmount} STG',
-                  style: TextStyle(
-                      fontSize: 16,
-                      color: !transaction.send ? const Color(0xff32ff6b) : Colors.white),
-                ),
-              ),
-              Container(
-                alignment: Alignment.topRight,
-                child: transaction.certificateURL != null
-                    ? InkResponse(
-                        onTap: _openCertificate,
-                        child: SvgPicture.asset(
-                          'assets/images/certificate.svg',
-                          width: 24,
-                          height: 24,
+    return InkWell(
+      onTap: () => _openTxDetails(transaction),
+      child: Padding(
+        padding: const EdgeInsets.only(left: 20, right: 10, top: 25, bottom: 25),
+        child: Container(
+            height: 39,
+            child: Stack(
+              children: <Widget>[
+                Container(
+                    alignment: Alignment.topLeft,
+                    child: Row(
+                      children: <Widget>[
+                        Padding(
+                          padding: const EdgeInsets.only(right: 5),
+                          child: prefixIcon,
                         ),
-                      )
-                    : null,
-              )
-            ],
-          )),
+                        Text(
+                          transaction.send ? 'Sent' : 'Received',
+                          style: const TextStyle(fontSize: 16, color: StegosColors.white),
+                        )
+                      ],
+                    )),
+                Container(
+                    alignment: Alignment.bottomLeft,
+                    child: Text(
+                      transaction.humanCreationTime,
+                      style: const TextStyle(fontSize: 12, color: StegosColors.white),
+                    )),
+                Container(
+                  alignment: Alignment.topRight,
+                  margin: const EdgeInsets.only(right: 54),
+                  child: Text(
+                    '${transaction.humanAmount} STG',
+                    style: TextStyle(
+                        fontSize: 16,
+                        color: !transaction.send ? const Color(0xff32ff6b) : Colors.white),
+                  ),
+                ),
+                Container(
+                  alignment: Alignment.topRight,
+                  child: transaction.certificateURL != null
+                      ? InkResponse(
+                          onTap: _openCertificate,
+                          child: SvgPicture.asset(
+                            'assets/images/certificate.svg',
+                            width: 24,
+                            height: 24,
+                          ),
+                        )
+                      : null,
+                )
+              ],
+            )),
+      ),
     );
   }
 
   void _openCertificate() {
     StegosApp.navigatorState.push(MaterialPageRoute(
       builder: (BuildContext context) => CertificateScreen(),
+      fullscreenDialog: true,
+    ));
+  }
+
+  Future<String> _openTxDetails(TxStore transaction) {
+    return StegosApp.navigatorState.push(MaterialPageRoute(
+      builder: (BuildContext context) => TransactionDataScreeen(
+        transaction: transaction,
+      ),
       fullscreenDialog: true,
     ));
   }
