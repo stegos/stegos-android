@@ -20,7 +20,7 @@ class _TransactionDataScreeenState extends State<TransactionDataScreeen> {
 
   @override
   Widget build(BuildContext context) {
-    const TextStyle verificationTextStyle = TextStyle(fontSize: 10);
+    final TxStore tx = widget.transaction;
     return Theme(
         data: StegosThemes.AccountTheme,
         child: Scaffold(
@@ -57,12 +57,12 @@ class _TransactionDataScreeenState extends State<TransactionDataScreeen> {
                               child: Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Text(widget.transaction.humanCreationTime, style: const TextStyle(fontSize: 14)),
-
+                                    Text(tx.humanCreationTime, style: const TextStyle(fontSize: 14)),
+                                    Text(tx.humanStatus,  style: const TextStyle(fontSize: 14)),
                                   ]),
                             ),
                             const SizedBox(height: 34),
-                            Text('${widget.transaction.humanAmount} STG', style: const TextStyle(fontSize: 32)),
+                            Text('${tx.humanAmount} STG', style: const TextStyle(fontSize: 32)),
                             const SizedBox(height: 22),
                           ],
                         ))),
@@ -70,23 +70,14 @@ class _TransactionDataScreeenState extends State<TransactionDataScreeen> {
               Expanded(
                 child: Stack(
                   children: <Widget>[
-                    Container(
-                      padding: const EdgeInsets.only(left: 10, right: 10),
-                      height: 57,
-                      alignment: Alignment.center,
-                      child: Text(
-                        'Transaction data',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
-                    ),
                     SingleChildScrollView(
                         padding: const EdgeInsets.only(top: 57, left: 30, right: 30),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: <Widget>[
-                            _buildTxValue('Comment', widget.transaction.comment),
-                            _buildTxValue('Fee', widget.transaction.fee.toString()),
-                            _buildTxValue('Hash', widget.transaction.hash),
+                            _buildTxValue('Comment', tx.comment),
+                            const SizedBox(height: 10),
+                            _buildTxValue('Hash', tx.hash),
                             const SizedBox(height: 10),
                           ],
                         ))
