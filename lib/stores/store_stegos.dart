@@ -90,13 +90,14 @@ abstract class _StegosStore extends MainStoreSupport with Store, Loggable<Stegos
   @action
   Future<void> activate() async {
     final env = this.env;
-    settings.clear();
     final db = await env.getDb();
     await db.getOptional('settings', DOC_SETTINGS_ID).then((ov) {
       if (ov.isPresent) {
-        final doc = ov.value.object as Map<dynamic, dynamic>;
-        doc.entries.forEach((e) {
-          settings[e.key.toString()] = e.value;
+        untracked(() {
+          final doc = ov.value.object as Map<dynamic, dynamic>;
+          doc.entries.forEach((e) {
+            settings[e.key.toString()] = e.value;
+          });
         });
         return ov.value.id;
       } else {
