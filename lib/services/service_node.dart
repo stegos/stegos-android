@@ -40,8 +40,8 @@ enum PaymentMethod {
 
 class TxStore extends _TxStore with _$TxStore {
   TxStore(AccountStore account, int id, bool send, String recipient, int amount, int cts,
-      String comment, int fee, bool pending, String status, String hash)
-      : super(account, id, send, recipient, amount, cts, comment, fee, pending, status, hash);
+      String comment, int fee, String status, String hash)
+      : super(account, id, send, recipient, amount, cts, comment, fee, status, hash);
 
   factory TxStore.fromJson(AccountStore account, int id, dynamic json) {
     final type = json['type'] as String ?? '';
@@ -64,15 +64,14 @@ class TxStore extends _TxStore with _$TxStore {
     if (send) {
       fee = json['fee'] as int ?? 0;
       status = json['status'] as String ?? status;
-      pending = !const ['committed', 'rejected', 'conflicted'].contains(status);
     }
-    return TxStore(account, id, send, recipient, amount, cts, comment, fee, pending, status, hash);
+    return TxStore(account, id, send, recipient, amount, cts, comment, fee, status, hash);
   }
 }
 
 abstract class _TxStore with Store {
   _TxStore(this.account, this.id, this.send, this.recipient, this.amount, this.cts, this.comment,
-      this.fee, this.pending, this.status, this.hash)
+      this.fee, this.status, this.hash)
       : humanCreationTime =
             _txDateFormatter.format(DateTime.fromMillisecondsSinceEpoch(cts, isUtc: false)),
         humanAmount = '${send ? '-' : ''}${(amount / 1e6).toStringAsFixed(3)}';
@@ -116,8 +115,28 @@ abstract class _TxStore with Store {
   bool get failed => const ['failed', 'rejected', 'conflicted'].contains(status);
 
   /// Transaction in pending state
-  @observable
-  bool pending;
+  @computed
+  bool get pending => !(!send || failed || status == 'committed');
+
+  /// Human readable tx status
+  @computed
+  String get humanStatus {
+    if (send) {
+      if (pending) {
+        if (status != null) {
+          return 'Sending ${status}...';
+        } else {
+          return 'Sending...';
+        }
+      } else if (failed) {
+        return 'Send ${status}';
+      } else {
+        return 'Sent';
+      }
+    } else {
+      return 'Received';
+    }
+  }
 
   @observable
   int fee;
@@ -137,7 +156,6 @@ abstract class _TxStore with Store {
     if (send) {
       fee = json['fee'] as int ?? fee ?? 0;
       status = json['status'] as String ?? status;
-      pending = !const ['committed', 'failed', 'rejected', 'conflicted'].contains(status);
     }
   }
 }
@@ -500,7 +518,7 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
       'account_id': '${account.id}',
       'with_certificate': withCertificate,
       'payment_fee': fee,
-      'locked_timestamp': lockedTimestamp?.toUtc()?.toIso8601String(),
+      'locked_timestamp': lockedTimestamp?.toUtc()?.toIso8601StringV2(),
     };
 
     final txdata = {...payload, '_cts': DateTime.now().toUtc().millisecondsSinceEpoch};
@@ -510,10 +528,19 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
     }
     account._updateTransaction(id, txdata);
 
-    final msg =
-        await client.sendAndAwait(payload).catchError(defaultErrorHandler<StegosNodeMessage>(_env));
-    if (log.isFine) {
-      log.fine('Payment accepted: ${msg}');
+    StegosNodeMessage msg;
+    try {
+      msg = await client
+          .sendAndAwait(payload)
+          .catchError(defaultErrorHandler<StegosNodeMessage>(_env));
+      if (log.isFine) {
+        log.fine('Payment accepted: ${msg}');
+      }
+    } catch (e) {
+      final patch = {'status': 'failed'};
+      await _env.useDb((db) => db.patch(_txsCollection, patch, id));
+      account._updateTransaction(id, patch);
+      rethrow;
     }
 
     await _env.useDb((db) => db.patch(_txsCollection, msg.json, id));
@@ -694,6 +721,9 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
 
         final hmap = <String, TxStore>{};
         list.forEach((tx) {
+          if (log.isFine) {
+            log.fine('Tx status: ${account.id} ${tx.status} ${tx.amount} ${tx.failed}');
+          }
           if (tx.hash != null) {
             hmap[tx.hash] = tx;
           }

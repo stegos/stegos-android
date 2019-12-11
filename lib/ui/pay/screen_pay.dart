@@ -364,12 +364,12 @@ class _PayScreenState extends State<PayScreen> {
       });
 
   Widget _buildSendButton() => Observer(builder: (context) {
+        final nodeService = Provider.of<StegosEnv>(context).nodeService;
         return RaisedButton(
           elevation: 8,
           disabledElevation: 8,
-          onPressed: _store.isValidForm
+          onPressed: _store.isValidForm && nodeService.operable
               ? () {
-                  final nodeService = Provider.of<StegosEnv>(context).nodeService;
                   unawaited(nodeService.pay(
                       account: _store.senderAccount,
                       recipient: _store.toAddress,
@@ -389,6 +389,7 @@ class _PayScreenState extends State<PayScreen> {
     }
     runInAction(() {
       _store.toAddress = toAddress;
+      _addressTextController.text = toAddress;
     });
   }
 }

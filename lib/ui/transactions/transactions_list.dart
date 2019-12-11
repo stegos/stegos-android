@@ -51,20 +51,19 @@ class _TransactionsListState extends State<TransactionsList> with TickerProvider
         ),
       );
 
-  Widget _buildTransactionRow(TxStore transaction) {
+  Widget _buildTransactionRow(TxStore tx) {
     Widget prefixIcon;
-    if (transaction.finished) {
-      prefixIcon = Icon(Icons.check, size: 16, color: const Color(0xff32ff6b));
-    } else if (transaction.pending) {
+    if (tx.failed) {
+      prefixIcon = Icon(Icons.error_outline, size: 16, color: Colors.redAccent);
+    } else if (tx.pending) {
       prefixIcon = RotationTransition(
           turns: Tween(begin: 0.0, end: 2 * pi).animate(_rotationController),
           child: Icon(Icons.autorenew, size: 16, color: StegosColors.accentColor));
-    } else if (transaction.failed) {
-      prefixIcon = Icon(Icons.error_outline, size: 16, color: Colors.redAccent);
+    } else {
+      prefixIcon = Icon(Icons.check, size: 16, color: const Color(0xff32ff6b));
     }
-
     return InkWell(
-      onTap: () => _openTxDetails(transaction),
+      onTap: () => _openTxDetails(tx),
       child: Padding(
         padding: const EdgeInsets.only(left: 20, right: 10, top: 25, bottom: 25),
         child: Container(
@@ -80,7 +79,7 @@ class _TransactionsListState extends State<TransactionsList> with TickerProvider
                           child: prefixIcon,
                         ),
                         Text(
-                          transaction.send ? 'Sent' : 'Received',
+                          tx.humanStatus,
                           style: const TextStyle(fontSize: 16, color: StegosColors.white),
                         )
                       ],
@@ -88,22 +87,21 @@ class _TransactionsListState extends State<TransactionsList> with TickerProvider
                 Container(
                     alignment: Alignment.bottomLeft,
                     child: Text(
-                      transaction.humanCreationTime,
+                      tx.humanCreationTime,
                       style: const TextStyle(fontSize: 12, color: StegosColors.white),
                     )),
                 Container(
                   alignment: Alignment.topRight,
                   margin: const EdgeInsets.only(right: 54),
                   child: Text(
-                    '${transaction.humanAmount} STG',
+                    '${tx.humanAmount} STG',
                     style: TextStyle(
-                        fontSize: 16,
-                        color: !transaction.send ? const Color(0xff32ff6b) : Colors.white),
+                        fontSize: 16, color: !tx.send ? const Color(0xff32ff6b) : Colors.white),
                   ),
                 ),
                 Container(
                   alignment: Alignment.topRight,
-                  child: transaction.certificateURL != null
+                  child: tx.certificateURL != null
                       ? InkResponse(
                           onTap: _openCertificate,
                           child: SvgPicture.asset(

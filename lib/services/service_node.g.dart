@@ -9,22 +9,11 @@ part of 'service_node.dart';
 // ignore_for_file: non_constant_identifier_names, unnecessary_lambdas, prefer_expression_function_bodies, lines_longer_than_80_chars, avoid_as, avoid_annotating_with_dynamic
 
 mixin _$TxStore on _TxStore, Store {
-  final _$pendingAtom = Atom(name: '_TxStore.pending');
+  Computed<bool> _$pendingComputed;
 
   @override
-  bool get pending {
-    _$pendingAtom.context.enforceReadPolicy(_$pendingAtom);
-    _$pendingAtom.reportObserved();
-    return super.pending;
-  }
-
-  @override
-  set pending(bool value) {
-    _$pendingAtom.context.conditionallyRunInAction(() {
-      super.pending = value;
-      _$pendingAtom.reportChanged();
-    }, _$pendingAtom, name: '${_$pendingAtom.name}_set');
-  }
+  bool get pending =>
+      (_$pendingComputed ??= Computed<bool>(() => super.pending)).value;
 
   final _$feeAtom = Atom(name: '_TxStore.fee');
 
