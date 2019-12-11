@@ -217,7 +217,7 @@ mixin StegosThemes {
 
   static final AccountTheme = baseTheme;
 
-  static final sendStgTheme = baseTheme.copyWith(
+  static final payScreenTheme = baseTheme.copyWith(
     buttonTheme: _defaults.buttonTheme.copyWith(
       shape: const RoundedRectangleBorder(),
       textTheme: ButtonTextTheme.accent,

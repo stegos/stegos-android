@@ -6,12 +6,6 @@ part 'store_screen_pay.g.dart';
 class PayScreenStore = _PayScreenStore with _$PayScreenStore;
 
 abstract class _PayScreenStore with Store {
-  static final RegExp _stegosAddressRegExp = RegExp(
-    r'^st[rgt]1[ac-hj-np-z02-9]{8,87}$',
-    caseSensitive: false,
-    multiLine: false,
-  );
-
   @observable
   AccountStore senderAccount;
 
@@ -39,7 +33,10 @@ abstract class _PayScreenStore with Store {
     if (toAddress == null) {
       return false;
     } else {
-      return _stegosAddressRegExp.hasMatch(toAddress);
+      return RegExp(
+        r'^st[rgt]1[ac-hj-np-z02-9]{8,87}$',
+        caseSensitive: false,
+      ).hasMatch(toAddress);
     }
   }
 

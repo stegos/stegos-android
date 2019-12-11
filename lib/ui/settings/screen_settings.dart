@@ -173,15 +173,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       activeColor: StegosColors.primaryColor,
                     )),
                 _buildListTile(
-                  onTap: () { _deleteAccount(acc)
-                  .then((bool value) {
-                    if (StegosApp.navigatorState.canPop()) {
-                      StegosApp.navigatorState.pop();
-                    }
-                    if (StegosApp.navigatorState.canPop()) {
-                      StegosApp.navigatorState.pop();
-                    }
-                  });},
+                  onTap: () {
+                    _deleteAccount().then((bool value) {
+                      if (StegosApp.navigatorState.canPop()) {
+                        StegosApp.navigatorState.pop();
+                      }
+                      if (StegosApp.navigatorState.canPop()) {
+                        StegosApp.navigatorState.pop();
+                      }
+                    });
+                  },
                   leading: SvgPicture.asset(
                     'assets/images/delete.svg',
                     width: 21,
@@ -194,29 +195,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Future<bool> _deleteAccount(AccountStore account) => appShowDialog<bool>(
-    barrierDismissible: false,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: Text('Delete account ${account.humanName}?'),
-        content: const Text('Please make an account backup if you with to restore it later.'),
-        actions: <Widget>[
-          FlatButton(
-            onPressed: () {
-              StegosApp.navigatorState.pop(false);
-            },
-            child: const Text('CANCEL'),
-          ),
-          FlatButton(
-            onPressed: () {
-              StegosApp.navigatorState.pop(true);
-              final env = Provider.of<StegosEnv>(context);
-              env.nodeService.deleteAccount(account);
-            },
-            child: const Text('DELETE'),
-          )
-        ],
+  Future<bool> _deleteAccount() => appShowDialog<bool>(
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Delete account ${widget.account.humanName}?'),
+            content: const Text('Please make an account backup if you with to restore it later.'),
+            actions: <Widget>[
+              FlatButton(
+                onPressed: () {
+                  StegosApp.navigatorState.pop(false);
+                },
+                child: const Text('CANCEL'),
+              ),
+              FlatButton(
+                onPressed: () {
+                  StegosApp.navigatorState.pop(true);
+                  final env = Provider.of<StegosEnv>(context);
+                  env.nodeService.deleteAccount(widget.account);
+                },
+                child: const Text('DELETE'),
+              )
+            ],
+          );
+        },
       );
-    },
-  );
 }

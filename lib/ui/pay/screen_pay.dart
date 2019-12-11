@@ -15,13 +15,6 @@ import 'package:stegos_wallet/utils/dialogs.dart';
 import 'package:stegos_wallet/widgets/widget_app_bar.dart';
 import 'package:stegos_wallet/widgets/widget_scaffold_body_wrapper.dart';
 
-class FeeType {
-  FeeType(this.name, this.amount);
-
-  final String name;
-  final double amount;
-}
-
 class PayScreen extends StatefulWidget {
   PayScreen({Key key, @required this.account}) : super(key: key);
 
@@ -32,15 +25,18 @@ class PayScreen extends StatefulWidget {
 }
 
 class _PayScreenState extends State<PayScreen> {
+  static final _store = PayScreenStore();
 
-  final _store = PayScreenStore();
+  final _recepientFocusNode = FocusNode();
 
-  final FocusNode _recepientFocusNode = FocusNode();
+  final _addressTextController = TextEditingController();
 
   Color _recepientFieldColor = StegosColors.primaryColorDark;
 
   @override
   void initState() {
+    _store.reset();
+    _store.senderAccount = widget.account;
     _recepientFocusNode.addListener(() => setState(() {
           _recepientFieldColor = _recepientFocusNode.hasFocus
               ? StegosColors.accentColor
@@ -52,7 +48,7 @@ class _PayScreenState extends State<PayScreen> {
   @override
   Widget build(BuildContext context) {
     return Theme(
-      data: StegosThemes.sendStgTheme,
+      data: StegosThemes.payScreenTheme,
       child: Scaffold(
         appBar: AppBarWidget(
           centerTitle: false,
@@ -110,7 +106,7 @@ class _PayScreenState extends State<PayScreen> {
 
   Widget _buildAccountDropdown() => Observer(builder: (context) {
         final env = Provider.of<StegosEnv>(context);
-        final List<AccountStore> accountsList = env.nodeService.accountsList;
+        final accountsList = env.nodeService.accountsList;
         return _withLabel(
             'Account to debit',
             Container(
@@ -126,6 +122,9 @@ class _PayScreenState extends State<PayScreen> {
                 onChanged: (AccountStore acc) {
                   runInAction(() {
                     _store.senderAccount = acc;
+                    if (_store.toAddress == acc.pkey) {
+                      _addressTextController.text = '';
+                    }
                   });
                 },
                 items: accountsList.map<DropdownMenuItem<AccountStore>>((AccountStore value) {
@@ -144,110 +143,113 @@ class _PayScreenState extends State<PayScreen> {
             ));
       });
 
-  Widget _buildMyAccountsDropdown() {
-    final env = Provider.of<StegosEnv>(context);
-    final List<AccountStore> accountsList = env.nodeService.accountsList;
-    return PopupMenuButton<String>(
-      elevation: 16,
-      onSelected: (String value) {
-        runInAction(() {
-          _store.toAddress = value;
-        });
-      },
-      itemBuilder: (context) => accountsList.map<PopupMenuItem<String>>((AccountStore value) {
-        return PopupMenuItem<String>(
-          value: value.pkey,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: <Widget>[
-              Text(value.humanName),
-              Text('${value.humanBalance} STG', style: const TextStyle(fontSize: 18))
-            ],
-          ),
-        );
-      }).toList(),
-      child: FlatButton.icon(
-        padding: const EdgeInsets.only(left: 10),
-        splashColor: StegosColors.primaryColorDark,
-        highlightColor: Colors.transparent,
-        icon: SvgPicture.asset(
-          'assets/images/accounts.svg',
-          height: 21,
-          color: _recepientFieldColor,
-        ),
-        label: Text(
-          'My accounts',
-          style: TextStyle(fontSize: 12, color: _recepientFieldColor),
-        ),
-        onPressed: null,
-      ),
-    );
-  }
-
-  Widget _buildToAddress() => Observer(builder: (context) {
-        final UnderlineInputBorder textFieldBorder = UnderlineInputBorder(
-            borderSide: BorderSide(
-                color: _store.isValidToAddress ? StegosColors.accentColor : Colors.redAccent,
-                width: 1));
-        return _withLabel(
-            'Recepient address',
-            Container(
-              child: Column(
+  Widget _buildMyAccountsDropdown() => Observer(builder: (context) {
+        final env = Provider.of<StegosEnv>(context);
+        final accountsList =
+            env.nodeService.accountsList.where((a) => a.id != _store.senderAccount?.id);
+        return PopupMenuButton<String>(
+          elevation: 16,
+          onSelected: (String value) {
+            runInAction(() {
+              _store.toAddress = value;
+              _addressTextController.text = value;
+            });
+          },
+          itemBuilder: (context) => accountsList.map<PopupMenuItem<String>>((AccountStore value) {
+            return PopupMenuItem<String>(
+              value: value.pkey,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: <Widget>[
-                  Stack(
-                    children: <Widget>[
-                      TextField(
-                        onChanged: (String value) {
-                          runInAction(() {
-                            _store.toAddress = value;
-                          });
-                        },
-                        focusNode: _recepientFocusNode,
-                        decoration: InputDecoration(
-                            contentPadding: const EdgeInsets.only(
-                              right: 25,
-                            ),
-                            focusedBorder: textFieldBorder,
-                            enabledBorder: textFieldBorder),
-                      ),
-                      Container(
-                        height: 34,
-                        alignment: Alignment.bottomRight,
-                        child: GestureDetector(
-                          onTap: _scanQr,
-                          child: Image.asset(
-                            'assets/images/qr.png',
-                            height: 20,
-                            width: 20,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: <Widget>[
-                      FlatButton.icon(
-                          padding: const EdgeInsets.only(right: 10),
-                          onPressed: () {},
-                          splashColor: StegosColors.primaryColorDark,
-                          highlightColor: Colors.transparent,
-                          icon: SvgPicture.asset(
-                            'assets/images/contacts.svg',
-                            height: 26,
-                            color: _recepientFieldColor,
-                          ),
-                          label: Text(
-                            'Open contacts',
-                            style: TextStyle(fontSize: 12, color: _recepientFieldColor),
-                          )),
-                      _buildMyAccountsDropdown()
-                    ],
-                  )
+                  Text(value.humanName),
+                  Text('${value.humanBalance} STG', style: const TextStyle(fontSize: 18))
                 ],
               ),
-            ));
+            );
+          }).toList(),
+          child: FlatButton.icon(
+            padding: const EdgeInsets.only(left: 10),
+            splashColor: StegosColors.primaryColorDark,
+            highlightColor: Colors.transparent,
+            icon: SvgPicture.asset(
+              'assets/images/accounts.svg',
+              height: 21,
+              color: _recepientFieldColor,
+            ),
+            label: Text(
+              'My accounts',
+              style: TextStyle(fontSize: 12, color: _recepientFieldColor),
+            ),
+            onPressed: null,
+          ),
+        );
       });
+
+  Widget _buildToAddress() {
+    final UnderlineInputBorder textFieldBorder = UnderlineInputBorder(
+        borderSide: BorderSide(
+            color: _store.isValidToAddress ? StegosColors.accentColor : Colors.redAccent,
+            width: 1));
+    return _withLabel(
+        'Recepient address',
+        Container(
+          child: Column(
+            children: <Widget>[
+              Stack(
+                children: <Widget>[
+                  TextField(
+                    controller: _addressTextController,
+                    onChanged: (String value) {
+                      runInAction(() {
+                        _store.toAddress = value;
+                      });
+                    },
+                    focusNode: _recepientFocusNode,
+                    decoration: InputDecoration(
+                        contentPadding: const EdgeInsets.only(
+                          right: 25,
+                        ),
+                        focusedBorder: textFieldBorder,
+                        enabledBorder: textFieldBorder),
+                  ),
+                  Container(
+                    height: 34,
+                    alignment: Alignment.bottomRight,
+                    child: GestureDetector(
+                      onTap: _scanQr,
+                      child: Image.asset(
+                        'assets/images/qr.png',
+                        height: 20,
+                        width: 20,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+                  FlatButton.icon(
+                      padding: const EdgeInsets.only(right: 10),
+                      onPressed: () {},
+                      splashColor: StegosColors.primaryColorDark,
+                      highlightColor: Colors.transparent,
+                      icon: SvgPicture.asset(
+                        'assets/images/contacts.svg',
+                        height: 26,
+                        color: _recepientFieldColor,
+                      ),
+                      label: Text(
+                        'Open contacts',
+                        style: TextStyle(fontSize: 12, color: _recepientFieldColor),
+                      )),
+                  _buildMyAccountsDropdown()
+                ],
+              )
+            ],
+          ),
+        ));
+  }
 
   Widget _buildAmount() => Observer(builder: (context) {
         final UnderlineInputBorder textFieldBorder = UnderlineInputBorder(
@@ -265,7 +267,7 @@ class _PayScreenState extends State<PayScreen> {
                       enabledBorder: textFieldBorder, focusedBorder: textFieldBorder),
                   keyboardType: TextInputType.number,
                   onChanged: (String value) {
-                    final v = double.tryParse(value);
+                    final v = double.tryParse(value.replaceAll(',', '.'));
                     if (v != null) {
                       runInAction(() {
                         _store.amount = v;
@@ -365,28 +367,14 @@ class _PayScreenState extends State<PayScreen> {
         return RaisedButton(
           elevation: 8,
           disabledElevation: 8,
-          onPressed: _store.isValidForm || true
-              ? () async {
-                  //final store = _store;
-                  final env = Provider.of<StegosEnv>(context);
-                  final nodeService = env.nodeService;
-
-                  // FIXME:
-                  // nodeService.pay(
-                  //     accountId: store.senderAccount.id,
-                  //     recipient: store.toAddress,
-                  //     amount: (store.amount * 1e6).ceil(),
-                  //     fee: (store.fee * 1e6).ceil(),
-                  //     withCertificate: store.generateCertificate);
-
-                  final account = nodeService.accounts[1];
+          onPressed: _store.isValidForm
+              ? () {
+                  final nodeService = Provider.of<StegosEnv>(context).nodeService;
                   unawaited(nodeService.pay(
-                      account: account,
-                      recipient: 'stt1zz6u5zlgh5292lz5nasykazdtsf65vptd8hg6uryhzcxr0ykyvxq4kk5a5',
-                      amount: (0.02 * 1e6).ceil(),
-                      fee: stegosFeeStandard,
-                      withCertificate: false));
-
+                      account: _store.senderAccount,
+                      recipient: _store.toAddress,
+                      amount: (_store.amount * 1e6).ceil(),
+                      withCertificate: _store.generateCertificate));
                   StegosApp.navigatorState.pop();
                 }
               : null,
