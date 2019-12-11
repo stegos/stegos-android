@@ -120,7 +120,7 @@ abstract class _TxStore with Store {
     if (send) {
       if (pending) {
         if (status != null) {
-          return 'Sending ${status}...';
+          return 'Transaction ${status}...';
         } else {
           return 'Sending...';
         }
