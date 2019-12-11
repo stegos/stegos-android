@@ -50,63 +50,71 @@ class _TransactionsListState extends State<TransactionsList> with TickerProvider
         ),
       );
 
-  Widget _buildTransactionRow(TxStore transaction) => Padding(
-        padding: const EdgeInsets.only(left: 20, right: 10, top: 25, bottom: 25),
-        child: Container(
-            height: 39,
-            child: Stack(
-              children: <Widget>[
-                Container(
-                    alignment: Alignment.topLeft,
-                    child: Row(
-                      children: <Widget>[
-                        Padding(
-                            padding: const EdgeInsets.only(right: 5),
-                            child: transaction.finished
-                                ? Icon(Icons.check, size: 16, color: const Color(0xff32ff6b))
-                                : RotationTransition(
-                                    turns:
-                                        Tween(begin: 0.0, end: 2 * pi).animate(_rotationController),
-                                    child: Icon(Icons.autorenew,
-                                        size: 16, color: StegosColors.accentColor))),
-                        Text(
-                          transaction.send ? 'Sent' : 'Received',
-                          style: const TextStyle(fontSize: 16, color: StegosColors.white),
-                        )
-                      ],
-                    )),
-                Container(
-                    alignment: Alignment.bottomLeft,
-                    child: Text(
-                      transaction.humanCreationTime,
-                      style: const TextStyle(fontSize: 12, color: StegosColors.white),
-                    )),
-                Container(
-                  alignment: Alignment.topRight,
-                  margin: const EdgeInsets.only(right: 54),
+  Widget _buildTransactionRow(TxStore transaction) {
+    Widget prefixIcon;
+    if (transaction.finished) {
+      prefixIcon = Icon(Icons.check, size: 16, color: const Color(0xff32ff6b));
+    } else if (transaction.pending) {
+      prefixIcon = RotationTransition(
+          turns: Tween(begin: 0.0, end: 2 * pi).animate(_rotationController),
+          child: Icon(Icons.autorenew, size: 16, color: StegosColors.accentColor));
+    } else if (transaction.failed) {
+      prefixIcon = Icon(Icons.error_outline, size: 16, color: Colors.redAccent);
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(left: 20, right: 10, top: 25, bottom: 25),
+      child: Container(
+          height: 39,
+          child: Stack(
+            children: <Widget>[
+              Container(
+                  alignment: Alignment.topLeft,
+                  child: Row(
+                    children: <Widget>[
+                      Padding(
+                        padding: const EdgeInsets.only(right: 5),
+                        child: prefixIcon,
+                      ),
+                      Text(
+                        transaction.send ? 'Sent' : 'Received',
+                        style: const TextStyle(fontSize: 16, color: StegosColors.white),
+                      )
+                    ],
+                  )),
+              Container(
+                  alignment: Alignment.bottomLeft,
                   child: Text(
-                    '${transaction.humanAmount} STG',
-                    style: TextStyle(
-                        fontSize: 16,
-                        color: !transaction.send ? const Color(0xff32ff6b) : Colors.white),
-                  ),
+                    transaction.humanCreationTime,
+                    style: const TextStyle(fontSize: 12, color: StegosColors.white),
+                  )),
+              Container(
+                alignment: Alignment.topRight,
+                margin: const EdgeInsets.only(right: 54),
+                child: Text(
+                  '${transaction.humanAmount} STG',
+                  style: TextStyle(
+                      fontSize: 16,
+                      color: !transaction.send ? const Color(0xff32ff6b) : Colors.white),
                 ),
-                Container(
-                  alignment: Alignment.topRight,
-                  child: transaction.certificateURL != null
-                      ? InkResponse(
-                          onTap: _openCertificate,
-                          child: SvgPicture.asset(
-                            'assets/images/certificate.svg',
-                            width: 24,
-                            height: 24,
-                          ),
-                        )
-                      : null,
-                )
-              ],
-            )),
-      );
+              ),
+              Container(
+                alignment: Alignment.topRight,
+                child: transaction.certificateURL != null
+                    ? InkResponse(
+                        onTap: _openCertificate,
+                        child: SvgPicture.asset(
+                          'assets/images/certificate.svg',
+                          width: 24,
+                          height: 24,
+                        ),
+                      )
+                    : null,
+              )
+            ],
+          )),
+    );
+  }
 
   void _openCertificate() {
     StegosApp.navigatorState.push(MaterialPageRoute(
