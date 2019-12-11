@@ -14,16 +14,15 @@ import 'package:stegos_wallet/widgets/widget_app_bar.dart';
 /// Main wallet screen with integrated TabBar.
 ///
 class SettingsScreen extends StatefulWidget {
-  SettingsScreen({Key key, this.id}) : super(key: key);
+  SettingsScreen({Key key, @required this.account}) : super(key: key);
 
-  final int id;
+  final AccountStore account;
 
   @override
   State<StatefulWidget> createState() => _SettingsScreenState();
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  @override
   Widget _buildListTile({
     Widget leading,
     String title,
@@ -106,9 +105,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final env = Provider.of<StegosEnv>(context);
-
-    final AccountStore acc =
-        env.nodeService.accountsList.firstWhere((AccountStore a) => a.id == widget.id);
     return Theme(
       data: StegosThemes.settingsTheme,
       child: Scaffold(
@@ -133,7 +129,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     Icons.navigate_next,
                     color: StegosColors.primaryColorDark,
                   ),
-                  onTap: () => Navigator.pushNamed(context, Routes.username, arguments: acc.id),
+                  onTap: () =>
+                      Navigator.pushNamed(context, Routes.username, arguments: widget.account),
                 ),
                 _buildListTile(
                   leading: SvgPicture.asset('assets/images/packet_main_account.svg'),

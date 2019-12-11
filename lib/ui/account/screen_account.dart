@@ -12,7 +12,6 @@ import 'package:stegos_wallet/ui/routes.dart';
 import 'package:stegos_wallet/ui/themes.dart';
 import 'package:stegos_wallet/ui/transactions/screen_transactions.dart';
 import 'package:stegos_wallet/ui/transactions/transactions_list.dart';
-import 'package:stegos_wallet/utils/dialogs.dart';
 import 'package:stegos_wallet/widgets/widget_app_bar.dart';
 import 'package:stegos_wallet/widgets/widget_scaffold_body_wrapper.dart';
 
@@ -67,7 +66,7 @@ class _AccountScreenState extends State<AccountScreen> {
                   height: 22,
                 ),
                 onPressed: () => StegosApp.navigatorState
-                    .pushNamed(Routes.settings, arguments: widget.account.id),
+                    .pushNamed(Routes.settings, arguments: widget.account),
               )
             ],
             title: Observer(builder: (context) => Text(widget.account.humanName))),
