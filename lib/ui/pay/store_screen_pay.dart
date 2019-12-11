@@ -23,6 +23,7 @@ abstract class _PayScreenStore with Store {
 
   @action
   void reset() {
+    amount = 0.0;
     fee = stegosFeeStandard / 1e6;
     senderAccount = null;
     toAddress = null;
