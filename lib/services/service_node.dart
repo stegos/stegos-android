@@ -724,9 +724,6 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
 
         final hmap = <String, TxStore>{};
         list.forEach((tx) {
-          if (log.isFine) {
-            log.fine('Tx status: ${account.id} ${tx.status} ${tx.amount} ${tx.failed}');
-          }
           if (tx.hash != null) {
             hmap[tx.hash] = tx;
           }
