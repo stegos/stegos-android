@@ -97,6 +97,23 @@ mixin _$PayScreenStore on _PayScreenStore, Store {
         name: '${_$generateCertificateAtom.name}_set');
   }
 
+  final _$commentAtom = Atom(name: '_PayScreenStore.comment');
+
+  @override
+  String get comment {
+    _$commentAtom.context.enforceReadPolicy(_$commentAtom);
+    _$commentAtom.reportObserved();
+    return super.comment;
+  }
+
+  @override
+  set comment(String value) {
+    _$commentAtom.context.conditionallyRunInAction(() {
+      super.comment = value;
+      _$commentAtom.reportChanged();
+    }, _$commentAtom, name: '${_$commentAtom.name}_set');
+  }
+
   final _$_PayScreenStoreActionController =
       ActionController(name: '_PayScreenStore');
 

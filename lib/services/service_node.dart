@@ -60,7 +60,6 @@ class TxStore extends _TxStore with _$TxStore {
 
     var fee = 0;
     var status = '';
-    var pending = false;
     if (send) {
       fee = json['fee'] as int ?? 0;
       status = json['status'] as String ?? status;
@@ -102,9 +101,6 @@ abstract class _TxStore with Store {
   /// Recipient address
   final String recipient;
 
-  /// tx hash / output_hash
-  final String hash;
-
   /// Transaction is finished. `!pending`
   bool get finished => !pending;
 
@@ -138,6 +134,10 @@ abstract class _TxStore with Store {
     }
   }
 
+  /// tx hash / output_hash
+  @observable
+  String hash;
+
   @observable
   int fee;
 
@@ -156,6 +156,7 @@ abstract class _TxStore with Store {
     if (send) {
       fee = json['fee'] as int ?? fee ?? 0;
       status = json['status'] as String ?? status;
+      hash ??= json['tx_hash'] as String ?? json['output_hash'] as String;
     }
   }
 }
@@ -539,7 +540,9 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
     } catch (e) {
       final patch = {'status': 'failed'};
       await _env.useDb((db) => db.patch(_txsCollection, patch, id));
-      account._updateTransaction(id, patch);
+      unawaited(Future(() {
+        account._updateTransaction(id, patch);
+      }));
       rethrow;
     }
 
@@ -821,6 +824,9 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
       return account;
     });
   }
+
+  Future<AccountStore> unsealAccount(AccountStore account, {bool force = false}) =>
+      _unsealAccount(account.id, force: force);
 
   Future<AccountStore> _unsealAccount(int id, {bool force = false}) async {
     final acc = _account(id);

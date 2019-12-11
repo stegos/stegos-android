@@ -14,6 +14,29 @@ mixin _$TxStore on _TxStore, Store {
   @override
   bool get pending =>
       (_$pendingComputed ??= Computed<bool>(() => super.pending)).value;
+  Computed<String> _$humanStatusComputed;
+
+  @override
+  String get humanStatus =>
+      (_$humanStatusComputed ??= Computed<String>(() => super.humanStatus))
+          .value;
+
+  final _$hashAtom = Atom(name: '_TxStore.hash');
+
+  @override
+  String get hash {
+    _$hashAtom.context.enforceReadPolicy(_$hashAtom);
+    _$hashAtom.reportObserved();
+    return super.hash;
+  }
+
+  @override
+  set hash(String value) {
+    _$hashAtom.context.conditionallyRunInAction(() {
+      super.hash = value;
+      _$hashAtom.reportChanged();
+    }, _$hashAtom, name: '${_$hashAtom.name}_set');
+  }
 
   final _$feeAtom = Atom(name: '_TxStore.fee');
 

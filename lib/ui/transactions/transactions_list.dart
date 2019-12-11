@@ -125,10 +125,10 @@ class _TransactionsListState extends State<TransactionsList> with TickerProvider
     ));
   }
 
-  Future<String> _openTxDetails(TxStore transaction) {
+  Future<String> _openTxDetails(TxStore tx) {
     return StegosApp.navigatorState.push(MaterialPageRoute(
       builder: (BuildContext context) => TransactionDataScreeen(
-        transaction: transaction,
+        transaction: tx,
       ),
       fullscreenDialog: true,
     ));

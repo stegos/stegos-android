@@ -21,9 +21,13 @@ abstract class _PayScreenStore with Store {
   @observable
   bool generateCertificate = false;
 
+  @observable
+  String comment = '';
+
   @action
   void reset() {
     amount = 0.0;
+    comment = '';
     fee = stegosFeeStandard / 1e6;
     senderAccount = null;
     toAddress = null;

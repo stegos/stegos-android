@@ -76,12 +76,12 @@ class StegosEnv extends Env<Widget> {
   int get configNodeMaxAwaitMessageResponseMs => 30 * 60 * 1000; // 30min
 
   /// Max number of recent transactions listed for
-  int get configMaxTransactionsPerAccount => 100;
+  int get configMaxTransactionsPerAccount => 120;
 
   /// Skip mobile app suspending:
   /// - Closing DB
   /// - Closing node WS connection
-  bool get configSkipAppSuspending => true;
+  bool get configSkipAppSuspending => false;
 
   /// Stegos node websocket endpoint
   String get configNodeWsEndpoint => 'ws://10.0.2.2:3145';

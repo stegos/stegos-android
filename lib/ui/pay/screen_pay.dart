@@ -349,7 +349,9 @@ class _PayScreenState extends State<PayScreen> {
           padding: const EdgeInsets.only(bottom: 19),
           child: TextField(
             onChanged: (v) {
-              // do something
+              runInAction(() {
+                _store.comment = v;
+              });
             },
           ),
         ),
@@ -377,16 +379,19 @@ class _PayScreenState extends State<PayScreen> {
       });
 
   Widget _buildSendButton() => Observer(builder: (context) {
-        final nodeService = Provider.of<StegosEnv>(context).nodeService;
+        final env = Provider.of<StegosEnv>(context);
+        final nodeService = env.nodeService;
         return RaisedButton(
           elevation: 8,
           disabledElevation: 8,
           onPressed: _store.isValidForm && nodeService.operable
-              ? () {
+              ? () async {
+                  await nodeService.unsealAccount(widget.account, force: true);
                   unawaited(nodeService.pay(
                       account: _store.senderAccount,
                       recipient: _store.toAddress,
                       amount: (_store.amount * 1e6).ceil(),
+                      comment: _store.comment,
                       withCertificate: _store.generateCertificate));
                   StegosApp.navigatorState.pop();
                 }
