@@ -116,7 +116,7 @@ class _TransactionDataScreeenState extends State<TransactionDataScreeen>
                               const SizedBox(height: 10),
                               _buildTxValue('Comment', tx.comment),
                               const SizedBox(height: 10),
-                              _buildTxValue('Hash', tx.hash),
+                              _buildTxValue(tx.send ? 'Tx Hash' : 'Output Hash', tx.hash),
                               const SizedBox(height: 10),
                             ],
                           ))
