@@ -24,7 +24,7 @@ const stegosFeeHigh = 5000;
 
 StegosEnv _env;
 
-final _txDateFormatter = DateFormat('yyyy-MM-dd hh:mm:ss');
+final _txDateFormatter = DateFormat('yyyy-MM-dd HH:mm:ss');
 
 /// Payment mode used in [_NodeService.pay]
 enum PaymentMethod {
@@ -112,7 +112,7 @@ abstract class _TxStore with Store {
 
   /// Transaction in pending state
   @computed
-  bool get pending => !(!send || failed || status == 'committed');
+  bool get pending => send && !failed && status != 'committed';
 
   /// Human readable tx status
   @computed

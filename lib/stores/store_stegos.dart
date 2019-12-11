@@ -90,8 +90,6 @@ abstract class _StegosStore extends MainStoreSupport with Store, Loggable<Stegos
   @action
   Future<void> activate() async {
     final env = this.env;
-    await env.activate();
-
     settings.clear();
     final db = await env.getDb();
     await db.getOptional('settings', DOC_SETTINGS_ID).then((ov) {
@@ -106,18 +104,15 @@ abstract class _StegosStore extends MainStoreSupport with Store, Loggable<Stegos
         return _flushSettings();
       }
     });
-
     if (settings.containsKey('lastRoute')) {
       final v = settings['lastRoute'];
       final routeSettings = RouteSettings(name: v['name'] as String, arguments: v['arguments']);
       runInAction(() => lastRoute.value = routeSettings);
     }
-
     if (log.isFine) {
       log.fine(
           '\n\t${settings.entries.map((e) => 'settings: ${e.key} => ${e.value}').join('\n\t')}');
     }
-
     // Activate substores
     return Future.forEach(<StoreLifecycle>[nodeService], (StoreLifecycle e) => e.activate());
   }

@@ -11,8 +11,5 @@ mixin StoreLifecycle implements Store {
 }
 
 abstract class MainStoreSupport with StoreLifecycle {
-  MainStoreSupport() {
-    activated = ObservableFuture<void>(activate());
-  }
   ObservableFuture<void> activated;
 }
