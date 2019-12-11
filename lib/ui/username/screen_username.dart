@@ -11,26 +11,22 @@ import 'package:stegos_wallet/widgets/widget_app_bar.dart';
 import 'package:stegos_wallet/widgets/widget_scaffold_body_wrapper.dart';
 
 class UsernameScreen extends StatefulWidget {
-  const UsernameScreen({Key key, @required this.id}) : super(key: key);
+  const UsernameScreen({Key key, @required this.account}) : super(key: key);
 
-  final int id;
+  final AccountStore account;
 
   @override
   State<StatefulWidget> createState() => _UsernameScreenState();
 }
 
 class _UsernameScreenState extends State<UsernameScreen> with Loggable<_UsernameScreenState> {
-  static const _iconBackImage = AssetImage('assets/images/arrow_back.png');
   TextEditingController usernameController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
     if (usernameController.text.isEmpty) {
-      final env = Provider.of<StegosEnv>(context);
-      final AccountStore acc = env.nodeService.accounts[widget.id];
-      usernameController.text = acc.name;
+      usernameController.text = widget.account.humanName;
     }
-
     return Theme(
       data: StegosThemes.passwordTheme,
       child: Scaffold(
@@ -41,7 +37,7 @@ class _UsernameScreenState extends State<UsernameScreen> with Loggable<_Username
             icon: const SizedBox(
               width: 24,
               height: 24,
-              child: Image(image: _iconBackImage),
+              child: Image(image: AssetImage('assets/images/arrow_back.png')),
             ),
             onPressed: _onCancel,
           ),
@@ -94,7 +90,7 @@ class _UsernameScreenState extends State<UsernameScreen> with Loggable<_Username
 
   void _onSubmit() {
     final env = Provider.of<StegosEnv>(context);
-    unawaited(env.nodeService.renameAccount(widget.id, usernameController.text).then((_) {
+    unawaited(env.nodeService.renameAccount(widget.account.id, usernameController.text).then((_) {
       StegosApp.navigatorState.pop();
     }).catchError(defaultErrorHandler(env)));
   }

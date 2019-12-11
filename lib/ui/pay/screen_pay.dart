@@ -23,15 +23,21 @@ class FeeType {
 }
 
 class PayScreen extends StatefulWidget {
+  PayScreen({Key key, @required this.account}) : super(key: key);
+
+  final AccountStore account;
+
   @override
   _PayScreenState createState() => _PayScreenState();
 }
 
 class _PayScreenState extends State<PayScreen> {
-  static const _iconBackImage = AssetImage('assets/images/arrow_back.png');
+
   final _store = PayScreenStore();
 
   final FocusNode _recepientFocusNode = FocusNode();
+
+  Color _recepientFieldColor = StegosColors.primaryColorDark;
 
   @override
   void initState() {
@@ -42,8 +48,6 @@ class _PayScreenState extends State<PayScreen> {
         }));
     super.initState();
   }
-
-  Color _recepientFieldColor = StegosColors.primaryColorDark;
 
   @override
   Widget build(BuildContext context) {
@@ -57,7 +61,7 @@ class _PayScreenState extends State<PayScreen> {
             icon: const SizedBox(
               width: 24,
               height: 24,
-              child: Image(image: _iconBackImage),
+              child: Image(image: AssetImage('assets/images/arrow_back.png')),
             ),
             onPressed: () => Navigator.pop(context),
           ),

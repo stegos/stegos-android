@@ -158,18 +158,21 @@ mixin Routes {
               maintainState: false,
               builder: (BuildContext context) => SplashScreen(nextRoute: welcomeRoute));
         case Routes.settings:
-          final arguments = settings.arguments as int;
+          final account = settings.arguments as AccountStore;
+          assert(account != null);
           return MaterialPageRoute(
-              builder: (BuildContext context) => SettingsScreen(id: arguments));
+              builder: (BuildContext context) => SettingsScreen(account: account));
         case Routes.username:
-          final arguments = settings.arguments as int;
+          final account = settings.arguments as AccountStore;
+          assert(account != null);
           return MaterialPageRoute(
-              builder: (BuildContext context) => UsernameScreen(id: arguments));
+              builder: (BuildContext context) => UsernameScreen(account: account));
         case Routes.devmenu:
           return MaterialPageRoute(builder: (BuildContext context) => DevMenuScreen());
         case pay:
           final account = settings.arguments as AccountStore;
-          return MaterialPageRoute(builder: (BuildContext context) => PayScreen());
+          assert(account != null);
+          return MaterialPageRoute(builder: (BuildContext context) => PayScreen(account: account));
         default:
           return MaterialPageRoute(
               maintainState: false,
