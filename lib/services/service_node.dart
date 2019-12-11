@@ -104,11 +104,14 @@ abstract class _TxStore with Store {
   /// tx hash / output_hash
   final String hash;
 
-  /// todo:
-  String certificateURL;
-
   /// Transaction is finished. `!pending`
   bool get finished => !pending;
+
+  /// todo:
+  bool get failed => false;
+
+  /// todo:
+  String certificateURL;
 
   /// Transaction in pending state
   @observable

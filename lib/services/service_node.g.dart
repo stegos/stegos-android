@@ -79,6 +79,12 @@ mixin _$AccountStore on _AccountStore, Store {
   @override
   String get humanName =>
       (_$humanNameComputed ??= Computed<String>(() => super.humanName)).value;
+  Computed<bool> _$hasPendingTransactionsComputed;
+
+  @override
+  bool get hasPendingTransactions => (_$hasPendingTransactionsComputed ??=
+          Computed<bool>(() => super.hasPendingTransactions))
+      .value;
 
   final _$nameAtom = Atom(name: '_AccountStore.name');
 
