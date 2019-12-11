@@ -112,6 +112,8 @@ class _TransactionDataScreeenState extends State<TransactionDataScreeen>
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: <Widget>[
+                              _buildTxValue('Recepient', tx.recipient),
+                              const SizedBox(height: 10),
                               _buildTxValue('Comment', tx.comment),
                               const SizedBox(height: 10),
                               _buildTxValue('Hash', tx.hash),
