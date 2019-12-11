@@ -77,6 +77,7 @@ class _PayScreenState extends State<PayScreen> {
                       _buildToAddress(),
                       _buildAmount(),
                       _buildFeeDropdown(),
+                      _buildCommentTextField(),
                       _buildCertificateCheckbox(),
                     ],
                   ),
@@ -341,6 +342,18 @@ class _PayScreenState extends State<PayScreen> {
               )
             ]));
       });
+
+  Widget _buildCommentTextField() => _withLabel(
+        'Comment',
+        Container(
+          padding: const EdgeInsets.only(bottom: 19),
+          child: TextField(
+            onChanged: (v) {
+              // do something
+            },
+          ),
+        ),
+      );
 
   Widget _buildCertificateCheckbox() => Observer(builder: (context) {
         return Transform.translate(
