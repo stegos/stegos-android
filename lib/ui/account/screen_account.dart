@@ -66,7 +66,7 @@ class _AccountScreenState extends State<AccountScreen> {
                   height: 22,
                 ),
                 onPressed: () => StegosApp.navigatorState
-                    .pushNamed(Routes.settings, arguments: widget.account),
+                    .pushNamed(Routes.accountSettings, arguments: widget.account),
               )
             ],
             title: Observer(builder: (context) => Text(widget.account.humanName))),

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:mobx/mobx.dart';
 import 'package:pedantic/pedantic.dart';
 import 'package:provider/provider.dart';
 import 'package:stegos_wallet/env_stegos.dart';
 import 'package:stegos_wallet/log/loggable.dart';
+import 'package:stegos_wallet/stores/store_stegos.dart';
 import 'package:stegos_wallet/ui/app.dart';
 import 'package:stegos_wallet/ui/pinprotect/store_screen_pinprotect.dart';
 import 'package:stegos_wallet/utils/cont.dart';
@@ -80,18 +80,17 @@ class _PinProtectScreenState extends State<PinProtectScreen> with Loggable<PinPr
 
   @override
   Widget build(BuildContext context) => Scaffold(
-          body: ScaffoldBodyWrapperWidget(
-        builder: (context) => Observer(
-          builder: (context) {
-            final env = Provider.of<StegosEnv>(context);
-            return PinpadWidget(
-              key: UniqueKey(),
-              digits: 6,
-              title: store.title,
-              fingerprint: env.configAllowFingerprintWalletProtection,
-              onPinReady: store.unlockAttempt > 0 ? _onUnlockPinready : _onPinReady,
-            );
-          },
-        ),
-      ));
+        body: ScaffoldBodyWrapperWidget(
+            wrapInObserver: true,
+            builder: (context) {
+              final env = Provider.of<StegosStore>(context);
+              return PinpadWidget(
+                key: UniqueKey(),
+                digits: 6,
+                title: store.title,
+                useFingerprint: env.configAllowFingerprintWalletProtection,
+                onPinReady: store.unlockAttempt > 0 ? _onUnlockPinready : _onPinReady,
+              );
+            }),
+      );
 }

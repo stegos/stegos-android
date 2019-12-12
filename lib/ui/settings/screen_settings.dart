@@ -5,19 +5,14 @@ import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 import 'package:stegos_wallet/env_stegos.dart';
 import 'package:stegos_wallet/services/service_node.dart';
-import 'package:stegos_wallet/ui/app.dart';
-import 'package:stegos_wallet/ui/routes.dart';
+import 'package:stegos_wallet/stores/store_stegos.dart';
 import 'package:stegos_wallet/ui/themes.dart';
-import 'package:stegos_wallet/utils/dialogs.dart';
 import 'package:stegos_wallet/widgets/widget_app_bar.dart';
+import 'package:stegos_wallet/widgets/widget_scaffold_body_wrapper.dart';
 
 /// Main wallet screen with integrated TabBar.
 ///
 class SettingsScreen extends StatefulWidget {
-  SettingsScreen({Key key, @required this.account}) : super(key: key);
-
-  final AccountStore account;
-
   @override
   State<StatefulWidget> createState() => _SettingsScreenState();
 }
@@ -104,120 +99,48 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final env = Provider.of<StegosEnv>(context);
+    final store = Provider.of<StegosStore>(context);
     return Theme(
       data: StegosThemes.settingsTheme,
       child: Scaffold(
-          appBar: AppBarWidget(
-            centerTitle: false,
-            leading: IconButton(
-              icon: Icon(Icons.arrow_back),
-              onPressed: () => {Navigator.pop(context)},
-            ),
-            title: const Text('Settings'),
+        appBar: AppBarWidget(
+          centerTitle: false,
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back),
+            onPressed: () => {Navigator.pop(context)},
           ),
-          body: SingleChildScrollView(
-            child: Column(
-              children: <Widget>[
-                _buildListTile(
-                  leading: SvgPicture.asset('assets/images/account_name.svg'),
-                  title: 'Account name',
-                  subtitle:
-                      'New contacts will see this name before saving to contacts your information',
-                  group: 'General',
-                  trailing: Icon(
-                    Icons.navigate_next,
-                    color: StegosColors.primaryColorDark,
-                  ),
-                  onTap: () =>
-                      Navigator.pushNamed(context, Routes.username, arguments: widget.account),
+          title: const Text('Settings'),
+        ),
+        body: ScaffoldBodyWrapperWidget(
+            wrapInObserver: true,
+            builder: (context) {
+              return SingleChildScrollView(
+                child: Column(
+                  children: <Widget>[
+                    _buildListTile(
+                        onTap: _onAllowPincodeChanged,
+                        leading: SvgPicture.asset(
+                          'assets/images/fingerprint.svg',
+                          width: 21,
+                        ),
+                        title: 'Fingerprint',
+                        subtitle: 'Allow to use fingerprint to unlock wallet',
+                        trailing: Switch(
+                          onChanged: _onAllowPincodeChanged,
+                          value: store.configAllowFingerprintWalletProtection,
+                          activeColor: StegosColors.primaryColor,
+                        )),
+                  ],
                 ),
-                _buildListTile(
-                  leading: SvgPicture.asset('assets/images/packet_main_account.svg'),
-                  title: 'Red packet main account',
-                  subtitle: 'STG from mining red packets enter in account automatically',
-                  trailing: Switch(
-                    onChanged: (bool value) {},
-                    value: true,
-                    activeColor: StegosColors.primaryColor,
-                  ),
-                ),
-                _buildListTile(
-                  leading: SvgPicture.asset('assets/images/backed_up.svg'),
-                  title: 'Account backed up',
-                  subtitle: 'Strongly recommend back up your account',
-                  group: 'Security',
-                  trailing: Icon(
-                    Icons.check,
-                    color: StegosColors.accentColor.withOpacity(0.54),
-                  ),
-                  onTap: () => Navigator.pushNamed(context, Routes.recover),
-                ),
-                _buildListTile(
-                    leading: SvgPicture.asset('assets/images/password.svg'),
-                    title: 'Password',
-                    trailing: Icon(
-                      Icons.navigate_next,
-                      color: StegosColors.primaryColorDark,
-                    )),
-                _buildListTile(
-                    leading: SvgPicture.asset(
-                      'assets/images/fingerprint.svg',
-                      width: 21,
-                    ),
-                    title: 'Fingerprint',
-                    subtitle: 'Allow to use fingerprint instead of password',
-                    trailing: Switch(
-                      onChanged: (bool value) {},
-                      value: true,
-                      activeColor: StegosColors.primaryColor,
-                    )),
-                _buildListTile(
-                  onTap: () {
-                    _deleteAccount().then((bool value) {
-                      if (StegosApp.navigatorState.canPop()) {
-                        StegosApp.navigatorState.pop();
-                      }
-                      if (StegosApp.navigatorState.canPop()) {
-                        StegosApp.navigatorState.pop();
-                      }
-                    });
-                  },
-                  leading: SvgPicture.asset(
-                    'assets/images/delete.svg',
-                    width: 21,
-                  ),
-                  title: 'Delete',
-                ),
-              ],
-            ),
-          )),
+              );
+            }),
+      ),
     );
   }
 
-  Future<bool> _deleteAccount() => appShowDialog<bool>(
-        barrierDismissible: false,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: Text('Delete account ${widget.account.humanName}?'),
-            content: const Text('Please make an account backup if you with to restore it later.'),
-            actions: <Widget>[
-              FlatButton(
-                onPressed: () {
-                  StegosApp.navigatorState.pop(false);
-                },
-                child: const Text('CANCEL'),
-              ),
-              FlatButton(
-                onPressed: () {
-                  StegosApp.navigatorState.pop(true);
-                  final env = Provider.of<StegosEnv>(context);
-                  env.nodeService.deleteAccount(widget.account);
-                },
-                child: const Text('DELETE'),
-              )
-            ],
-          );
-        },
-      );
+  void _onAllowPincodeChanged([bool val]) {
+    final store = Provider.of<StegosStore>(context);
+    final bool value = val ?? !store.configAllowFingerprintWalletProtection;
+    store.mergeSingle('configAllowFingerprintWalletProtection', value);
+  }
 }
