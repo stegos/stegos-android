@@ -39,6 +39,12 @@ class _PasswordScreenState extends State<PasswordScreen> {
     _titleStatus = widget.titleStatus;
   }
 
+
+
+
+
+
+
   @override
   Widget build(BuildContext context) => Theme(
         data: StegosThemes.passwordTheme,
