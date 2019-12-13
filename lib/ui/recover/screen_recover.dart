@@ -62,7 +62,7 @@ class _RecoverScreenState extends State<RecoverScreen> {
                       Expanded(
                         child: SingleChildScrollView(
                             child: SeedPhraze(
-                          words: _store.keys.asMap().entries.toList(),
+                          words: _store.keys.asMap(),
                           onChanged: _onTextFieldChanged,
                         )),
                       ),

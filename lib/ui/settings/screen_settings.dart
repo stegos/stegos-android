@@ -2,8 +2,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:pedantic/pedantic.dart';
 import 'package:provider/provider.dart';
 import 'package:stegos_wallet/env_stegos.dart';
+import 'package:stegos_wallet/log/loggable.dart';
 import 'package:stegos_wallet/services/service_node.dart';
 import 'package:stegos_wallet/ui/app.dart';
 import 'package:stegos_wallet/ui/backup/account_backup.dart';
@@ -11,6 +13,7 @@ import 'package:stegos_wallet/ui/routes.dart';
 import 'package:stegos_wallet/ui/themes.dart';
 import 'package:stegos_wallet/utils/dialogs.dart';
 import 'package:stegos_wallet/widgets/widget_app_bar.dart';
+import 'package:stegos_wallet/widgets/widget_scaffold_body_wrapper.dart';
 
 /// Main wallet screen with integrated TabBar.
 ///
@@ -23,7 +26,7 @@ class SettingsScreen extends StatefulWidget {
   State<StatefulWidget> createState() => _SettingsScreenState();
 }
 
-class _SettingsScreenState extends State<SettingsScreen> {
+class _SettingsScreenState extends State<SettingsScreen> with Loggable<_SettingsScreenState> {
   Widget _buildListTile({
     Widget leading,
     String title,
@@ -36,7 +39,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }) {
     const TextStyle titleStyle = TextStyle(fontSize: 18, letterSpacing: 0.3);
     const TextStyle subtitleStyle =
-    TextStyle(fontSize: 12, letterSpacing: 0.3, color: Color(0xff7d8b97));
+        TextStyle(fontSize: 12, letterSpacing: 0.3, color: Color(0xff7d8b97));
 
     final List<Widget> body = <Widget>[
       Text(
@@ -67,11 +70,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
               alignment: Alignment.topLeft,
               child: group != null
                   ? Padding(
-                  padding: const EdgeInsets.only(bottom: 20, top: 10),
-                  child: Text(
-                    group,
-                    style: subtitleStyle,
-                  ))
+                      padding: const EdgeInsets.only(bottom: 20, top: 10),
+                      child: Text(
+                        group,
+                        style: subtitleStyle,
+                      ))
                   : null,
             ),
             Row(
@@ -105,127 +108,137 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final env = Provider.of<StegosEnv>(context);
     return Theme(
-      data: StegosThemes.settingsTheme,
-      child: Scaffold(
-          appBar: AppBarWidget(
-            centerTitle: false,
-            leading: IconButton(
-              icon: Icon(Icons.arrow_back),
-              onPressed: () => {Navigator.pop(context)},
+        data: StegosThemes.settingsTheme,
+        child: Scaffold(
+            appBar: AppBarWidget(
+              centerTitle: false,
+              leading: IconButton(
+                icon: Icon(Icons.arrow_back),
+                onPressed: () => {Navigator.pop(context)},
+              ),
+              title: const Text('Settings'),
             ),
-            title: const Text('Settings'),
-          ),
-          body: SingleChildScrollView(
-            child: Column(
-              children: <Widget>[
-                _buildListTile(
-                  leading: SvgPicture.asset('assets/images/account_name.svg'),
-                  title: 'Account name',
-                  subtitle:
-                  'New contacts will see this name before saving to contacts your information',
-                  group: 'General',
-                  trailing: Icon(
-                    Icons.navigate_next,
-                    color: StegosColors.primaryColorDark,
-                  ),
-                  onTap: () =>
-                      Navigator.pushNamed(context, Routes.username, arguments: widget.account),
-                ),
-                _buildListTile(
-                  leading: SvgPicture.asset('assets/images/packet_main_account.svg'),
-                  title: 'Red packet main account',
-                  subtitle: 'STG from mining red packets enter in account automatically',
-                  trailing: Switch(
-                    onChanged: (bool value) {},
-                    value: true,
-                    activeColor: StegosColors.primaryColor,
-                  ),
-                ),
-                _buildListTile(
-                  leading: SvgPicture.asset('assets/images/backed_up.svg'),
-                  title: 'Account backed up',
-                  subtitle: 'Strongly recommend back up your account',
-                  group: 'Security',
-                  trailing: Icon(
-                    Icons.check,
-                    color: StegosColors.accentColor.withOpacity(0.54),
-                  ),
-                  onTap: _backupAccount,
-                ),
-                _buildListTile(
-                    leading: SvgPicture.asset('assets/images/password.svg'),
-                    title: 'Password',
-                    trailing: Icon(
-                      Icons.navigate_next,
-                      color: StegosColors.primaryColorDark,
-                    )),
-                _buildListTile(
-                    leading: SvgPicture.asset(
-                      'assets/images/fingerprint.svg',
-                      width: 21,
-                    ),
-                    title: 'Fingerprint',
-                    subtitle: 'Allow to use fingerprint instead of password',
-                    trailing: Switch(
-                      onChanged: (bool value) {},
-                      value: true,
-                      activeColor: StegosColors.primaryColor,
-                    )),
-                _buildListTile(
-                  onTap: () {
-                    _deleteAccount().then((bool value) {
-                      if (StegosApp.navigatorState.canPop()) {
-                        StegosApp.navigatorState.pop();
-                      }
-                      if (StegosApp.navigatorState.canPop()) {
-                        StegosApp.navigatorState.pop();
-                      }
-                    });
-                  },
-                  leading: SvgPicture.asset(
-                    'assets/images/delete.svg',
-                    width: 21,
-                  ),
-                  title: 'Delete',
-                ),
-              ],
-            ),
-          )),
-    );
+            body: ScaffoldBodyWrapperWidget(
+                wrapInObserver: true,
+                builder: (context) => SingleChildScrollView(
+                      child: Column(
+                        children: <Widget>[
+                          _buildListTile(
+                            leading: SvgPicture.asset('assets/images/account_name.svg'),
+                            title: 'Account name',
+                            subtitle:
+                                'New contacts will see this name before saving to contacts your information',
+                            group: 'General',
+                            trailing: Icon(
+                              Icons.navigate_next,
+                              color: StegosColors.primaryColorDark,
+                            ),
+                            onTap: () => Navigator.pushNamed(context, Routes.username,
+                                arguments: widget.account),
+                          ),
+                          _buildListTile(
+                            leading: SvgPicture.asset('assets/images/packet_main_account.svg'),
+                            title: 'Red packet main account',
+                            subtitle: 'STG from mining red packets enter in account automatically',
+                            trailing: Switch(
+                              onChanged: (bool value) {},
+                              value: true,
+                              activeColor: StegosColors.primaryColor,
+                            ),
+                          ),
+                          _buildListTile(
+                            leading: SvgPicture.asset('assets/images/backed_up.svg'),
+                            title: widget.account.backedUp ? 'Account backed up' : 'Backup account',
+                            subtitle: widget.account.backedUp
+                                ? ''
+                                : 'Strongly recommend back up your account',
+                            group: 'Security',
+                            trailing: Icon(
+                              Icons.check,
+                              color: StegosColors.accentColor
+                                  .withOpacity(widget.account.backedUp ? 1 : 0.54),
+                            ),
+                            onTap: _backupAccount,
+                          ),
+                          _buildListTile(
+                              leading: SvgPicture.asset('assets/images/password.svg'),
+                              title: 'Password',
+                              trailing: Icon(
+                                Icons.navigate_next,
+                                color: StegosColors.primaryColorDark,
+                              )),
+                          _buildListTile(
+                              leading: SvgPicture.asset(
+                                'assets/images/fingerprint.svg',
+                                width: 21,
+                              ),
+                              title: 'Fingerprint',
+                              subtitle: 'Allow to use fingerprint instead of password',
+                              trailing: Switch(
+                                onChanged: (bool value) {},
+                                value: true,
+                                activeColor: StegosColors.primaryColor,
+                              )),
+                          _buildListTile(
+                            onTap: () {
+                              _deleteAccount().then((bool value) {
+                                if (StegosApp.navigatorState.canPop()) {
+                                  StegosApp.navigatorState.pop();
+                                }
+                                if (StegosApp.navigatorState.canPop()) {
+                                  StegosApp.navigatorState.pop();
+                                }
+                              });
+                            },
+                            leading: SvgPicture.asset(
+                              'assets/images/delete.svg',
+                              width: 21,
+                            ),
+                            title: 'Delete',
+                          ),
+                        ],
+                      ),
+                    ))));
   }
 
   Future<bool> _deleteAccount() => appShowDialog<bool>(
-    barrierDismissible: false,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: Text('Delete account ${widget.account.humanName}?'),
-        content: const Text('Please make an account backup if you with to restore it later.'),
-        actions: <Widget>[
-          FlatButton(
-            onPressed: () {
-              StegosApp.navigatorState.pop(false);
-            },
-            child: const Text('CANCEL'),
-          ),
-          FlatButton(
-            onPressed: () {
-              StegosApp.navigatorState.pop(true);
-              final env = Provider.of<StegosEnv>(context);
-              env.nodeService.deleteAccount(widget.account);
-            },
-            child: const Text('DELETE'),
-          )
-        ],
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Delete account ${widget.account.humanName}?'),
+            content: const Text('Please make an account backup if you with to restore it later.'),
+            actions: <Widget>[
+              FlatButton(
+                onPressed: () {
+                  StegosApp.navigatorState.pop(false);
+                },
+                child: const Text('CANCEL'),
+              ),
+              FlatButton(
+                onPressed: () {
+                  StegosApp.navigatorState.pop(true);
+                  final env = Provider.of<StegosEnv>(context);
+                  env.nodeService.deleteAccount(widget.account);
+                },
+                child: const Text('DELETE'),
+              )
+            ],
+          );
+        },
       );
-    },
-  );
 
-  Future<String> _backupAccount() {
-    return StegosApp.navigatorState.push(MaterialPageRoute(
-      builder: (BuildContext context) => AccountBackup(),
+  void _backupAccount() async {
+    final env = Provider.of<StegosEnv>(context);
+    final List<String> words = await env.nodeService.getSeedWords(widget.account);
+    final bool backedUp = await StegosApp.navigatorState.push(MaterialPageRoute(
+      builder: (BuildContext context) => AccountBackup(words: words),
       fullscreenDialog: true,
     ));
+    if (backedUp) {
+      unawaited(env.nodeService.markAsBackedUp(widget.account.id).catchError((err, StackTrace st) {
+        log.warning('Failed to backup account: ', err, st);
+      }));
+    }
   }
 }

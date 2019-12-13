@@ -233,6 +233,9 @@ abstract class _AccountStore with Store {
   @observable
   int ordinal = 0;
 
+  @observable
+  bool backedUp = false;
+
   @computed
   bool get hasPendingTransactions =>
       txList.firstWhere((tx) => tx.pending, orElse: () => null) != null;
@@ -270,6 +273,7 @@ abstract class _AccountStore with Store {
   void _updateFromJson(dynamic json) {
     name = json['name'] as String ?? name;
     ordinal = json['ordinal'] as int ?? ordinal;
+    backedUp = json['backedUp'] as bool ?? backedUp;
     _password = json['password'] as String;
     _iv = json['iv'] as String;
   }
@@ -302,6 +306,7 @@ abstract class _AccountStore with Store {
         'id': id,
         'name': name,
         'ordinal': ordinal,
+        'backedUp': backedUp,
         'password': _password,
         'iv': _iv
       };
@@ -442,6 +447,20 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
     });
   }
 
+  Future<List<String>> getSeedWords(AccountStore account) async {
+    await _checkOperable();
+    await _unsealAccount(account.id, force: true);
+    final msg = await client.sendAndAwait({
+      'type': 'get_recovery',
+      'account_id': '${account.id}',
+    });
+    if (log.isFine) {
+      log.fine('Fetched account recovery keys: ${msg}');
+    }
+    final String wordsString = msg.json['recovery'].toString();
+    return wordsString.split(' ');
+  }
+
   Future<void> swapAccounts(int fromIndex, int toIndex) {
     if (log.isFine) {
       log.fine('Swap accounts from=$fromIndex to=$toIndex');
@@ -468,6 +487,18 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
       alist.forEach(
           (a) => dbPatches.add(db.patch(_accountsCollecton, {'ordinal': a.ordinal}, a.id)));
       return Future.wait(dbPatches);
+    });
+  }
+
+  Future<void> markAsBackedUp(int id) {
+    final account = accounts[id];
+    if (account == null) {
+      return Future.value();
+    }
+    return _env.useDb((db) => db.patch(_accountsCollecton, {'backedUp': true}, id)).then((_) {
+      runInAction(() {
+        account.backedUp = true;
+      });
     });
   }
 

@@ -4,7 +4,7 @@ import 'package:stegos_wallet/ui/themes.dart';
 class SeedPhraze extends StatefulWidget {
   SeedPhraze({Key key, this.words, this.onChanged, this.readOnly = false}) : super(key: key);
 
-  final List<MapEntry<int, String>> words;
+  final Map<int, String> words;
   final Function(int, String) onChanged;
   final bool readOnly;
 
@@ -13,7 +13,7 @@ class SeedPhraze extends StatefulWidget {
 }
 
 class _SeedPhrazeState extends State<SeedPhraze> {
-  List<MapEntry<int, String>> words;
+  Map<int, String> words;
   Function(int, String) onChanged;
   bool readOnly;
 
@@ -46,7 +46,7 @@ class _SeedPhrazeState extends State<SeedPhraze> {
 
   Widget _buildForm() => Form(
         child: Column(
-          children: words
+          children: words.entries
               .map((e) => Container(
                     height: 65,
                     padding: const EdgeInsets.symmetric(horizontal: 20),
