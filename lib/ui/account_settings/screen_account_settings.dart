@@ -14,16 +14,16 @@ import 'package:stegos_wallet/widgets/widget_app_bar.dart';
 
 /// Main wallet screen with integrated TabBar.
 ///
-class SettingsScreen extends StatefulWidget {
-  SettingsScreen({Key key, @required this.account}) : super(key: key);
+class AccountSettingsScreen extends StatefulWidget {
+  AccountSettingsScreen({Key key, @required this.account}) : super(key: key);
 
   final AccountStore account;
 
   @override
-  State<StatefulWidget> createState() => _SettingsScreenState();
+  State<StatefulWidget> createState() => _AccountSettingsScreenState();
 }
 
-class _SettingsScreenState extends State<SettingsScreen> {
+class _AccountSettingsScreenState extends State<AccountSettingsScreen> {
   Widget _buildListTile({
     Widget leading,
     String title,
@@ -36,7 +36,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }) {
     const TextStyle titleStyle = TextStyle(fontSize: 18, letterSpacing: 0.3);
     const TextStyle subtitleStyle =
-    TextStyle(fontSize: 12, letterSpacing: 0.3, color: Color(0xff7d8b97));
+        TextStyle(fontSize: 12, letterSpacing: 0.3, color: Color(0xff7d8b97));
 
     final List<Widget> body = <Widget>[
       Text(
@@ -67,11 +67,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
               alignment: Alignment.topLeft,
               child: group != null
                   ? Padding(
-                  padding: const EdgeInsets.only(bottom: 20, top: 10),
-                  child: Text(
-                    group,
-                    style: subtitleStyle,
-                  ))
+                      padding: const EdgeInsets.only(bottom: 20, top: 10),
+                      child: Text(
+                        group,
+                        style: subtitleStyle,
+                      ))
                   : null,
             ),
             Row(
@@ -124,7 +124,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   leading: SvgPicture.asset('assets/images/account_name.svg'),
                   title: 'Account name',
                   subtitle:
-                  'New contacts will see this name before saving to contacts your information',
+                      'New contacts will see this name before saving to contacts your information',
                   group: 'General',
                   trailing: Icon(
                     Icons.navigate_next,
@@ -197,30 +197,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<bool> _deleteAccount() => appShowDialog<bool>(
-    barrierDismissible: false,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: Text('Delete account ${widget.account.humanName}?'),
-        content: const Text('Please make an account backup if you with to restore it later.'),
-        actions: <Widget>[
-          FlatButton(
-            onPressed: () {
-              StegosApp.navigatorState.pop(false);
-            },
-            child: const Text('CANCEL'),
-          ),
-          FlatButton(
-            onPressed: () {
-              StegosApp.navigatorState.pop(true);
-              final env = Provider.of<StegosEnv>(context);
-              env.nodeService.deleteAccount(widget.account);
-            },
-            child: const Text('DELETE'),
-          )
-        ],
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Delete account ${widget.account.humanName}?'),
+            content: const Text('Please make an account backup if you with to restore it later.'),
+            actions: <Widget>[
+              FlatButton(
+                onPressed: () {
+                  StegosApp.navigatorState.pop(false);
+                },
+                child: const Text('CANCEL'),
+              ),
+              FlatButton(
+                onPressed: () {
+                  StegosApp.navigatorState.pop(true);
+                  final env = Provider.of<StegosEnv>(context);
+                  env.nodeService.deleteAccount(widget.account);
+                },
+                child: const Text('DELETE'),
+              )
+            ],
+          );
+        },
       );
-    },
-  );
 
   Future<String> _backupAccount() {
     return StegosApp.navigatorState.push(MaterialPageRoute(

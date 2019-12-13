@@ -16,6 +16,11 @@ abstract class _RecoverScreenStore with Store {
     keys[idx] = key;
   }
 
+  @action
+  void clearKeys() {
+    keys.forEach((k) => k = '');
+  }
+
   @computed
   bool get valid => keys.firstWhere((v) => v.isEmpty, orElse: () => null) == null;
 
