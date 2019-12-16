@@ -9,16 +9,27 @@ import 'package:stegos_wallet/services/service_node.dart';
 import 'package:stegos_wallet/ui/app.dart';
 import 'package:stegos_wallet/ui/pay/store_screen_pay.dart';
 import 'package:stegos_wallet/ui/themes.dart';
-import 'package:stegos_wallet/ui/wallet/qr_reader/qr_reader.dart';
+import 'package:stegos_wallet/ui/wallet/qr_reader/screen_qr_reader.dart';
 import 'package:stegos_wallet/utils/cont.dart';
 import 'package:stegos_wallet/utils/dialogs.dart';
 import 'package:stegos_wallet/widgets/widget_app_bar.dart';
 import 'package:stegos_wallet/widgets/widget_scaffold_body_wrapper.dart';
 
-class PayScreen extends StatefulWidget {
-  PayScreen({Key key, @required this.account}) : super(key: key);
+class PayScreenArguments {
+  PayScreenArguments({@required this.account, this.recepientAddress});
 
   final AccountStore account;
+  final String recepientAddress;
+}
+
+class PayScreen extends StatefulWidget {
+  PayScreen({Key key, PayScreenArguments args})
+      : account = args.account,
+        recepientAddress = args.recepientAddress,
+        super(key: key);
+
+  final AccountStore account;
+  final String recepientAddress;
 
   @override
   _PayScreenState createState() => _PayScreenState();
@@ -42,6 +53,11 @@ class _PayScreenState extends State<PayScreen> {
               ? StegosColors.accentColor
               : StegosColors.primaryColorDark;
         }));
+
+    if (widget.recepientAddress != null && widget.recepientAddress.isNotEmpty) {
+      _store.toAddress = widget.recepientAddress;
+      _addressTextController.text = widget.recepientAddress;
+    }
     super.initState();
   }
 
@@ -401,7 +417,7 @@ class _PayScreenState extends State<PayScreen> {
       });
 
   void _scanQr() async {
-    final toAddress = await appShowDialog<String>(builder: (context) => QrReader());
+    final toAddress = await appShowDialog<String>(builder: (context) => QrReaderScreen());
     if (toAddress == null) {
       return;
     }

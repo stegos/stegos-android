@@ -174,9 +174,9 @@ mixin Routes {
         case Routes.settings:
           return MaterialPageRoute(builder: (BuildContext context) => SettingsScreen());
         case pay:
-          final account = settings.arguments as AccountStore;
-          assert(account != null);
-          return MaterialPageRoute(builder: (BuildContext context) => PayScreen(account: account));
+          final args = settings.arguments as PayScreenArguments;
+          assert(args.account != null);
+          return MaterialPageRoute(builder: (BuildContext context) => PayScreen(args: args));
         default:
           return MaterialPageRoute(
               maintainState: false,

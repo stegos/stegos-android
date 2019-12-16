@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:provider/provider.dart';
+import 'package:stegos_wallet/env_stegos.dart';
+import 'package:stegos_wallet/ui/app.dart';
+import 'package:stegos_wallet/ui/pay/screen_pay.dart';
 import 'package:stegos_wallet/ui/routes.dart';
 import 'package:stegos_wallet/ui/themes.dart';
 import 'package:stegos_wallet/ui/wallet/qr_reader/qr_reader.dart';
@@ -21,11 +25,13 @@ class WalletScreen extends StatefulWidget {
 class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderStateMixin {
   final GlobalKey<ScaffoldState> _drawerKey = GlobalKey();
 
+  bool scanForAddress = false;
   int selectedItem = 0;
   TabController _tabController;
 
-  Widget _buildTabIcon(String assetName, bool selected) => SvgPicture.asset(assetName,
-      color: selected ? StegosColors.primaryColor : StegosColors.primaryColorDark);
+  Widget _buildTabIcon(String assetName, bool selected) =>
+      SvgPicture.asset(assetName,
+          color: selected ? StegosColors.primaryColor : StegosColors.primaryColorDark);
 
   @override
   void initState() {
@@ -34,6 +40,7 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
     _tabController.addListener(() {
       setState(() {
         selectedItem = _tabController.index;
+        scanForAddress = _tabController.index == 1;
       });
     });
   }
@@ -114,7 +121,21 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
             controller: _tabController,
             children: [
               AccountsScreen(),
-              Text('QR reader'),
+              QrReader(
+                isScanning: scanForAddress,
+                onStegosAddressFound: (String address) {
+                  final env = Provider.of<StegosEnv>(context);
+                  if (!env.nodeService.operable) {
+                    return;
+                  }
+                  final account = env.nodeService.accountsList[0];
+                  setState(() {
+                    scanForAddress = false;
+                  });
+                  StegosApp.navigatorState.pushNamed(Routes.pay,
+                      arguments: PayScreenArguments(account: account, recepientAddress: address));
+                },
+              ),
               Text('Chat'),
               Text('Contacts'),
             ],
