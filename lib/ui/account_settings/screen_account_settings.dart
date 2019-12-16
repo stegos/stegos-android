@@ -114,7 +114,11 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> with Logg
             appBar: AppBarWidget(
               centerTitle: false,
               leading: IconButton(
-                icon: Icon(Icons.arrow_back),
+                icon: const Image(
+                  image: AssetImage('assets/images/arrow_back.png'),
+                  width: 24,
+                  height: 24,
+                ),
                 onPressed: () => {Navigator.pop(context)},
               ),
               title: const Text('Settings'),
