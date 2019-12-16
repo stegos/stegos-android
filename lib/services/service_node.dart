@@ -502,6 +502,11 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
     });
   }
 
+
+  Future<void> setAccountPassword(AccountStore account, String password) {
+    // todo:
+  }
+
   Future<void> renameAccount(int id, String name) {
     final account = accounts[id];
     if (account == null) {
