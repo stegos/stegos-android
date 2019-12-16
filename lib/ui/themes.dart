@@ -235,5 +235,16 @@ mixin StegosThemes {
     ),
   );
 
-  static final ChantTheme = baseTheme;
+  static final ChatTheme = baseTheme.copyWith(
+    floatingActionButtonTheme: const FloatingActionButtonThemeData(
+        backgroundColor: Color(0xff2B2E3B), foregroundColor: StegosColors.primaryColor),
+    inputDecorationTheme: InputDecorationTheme(
+      border: InputBorder.none,
+        hintStyle: const TextStyle(
+          color: Color(0xff2B2E3B),
+          fontSize: 16,
+          height: 2
+        )
+    )
+  );
 }
