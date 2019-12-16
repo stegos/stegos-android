@@ -14,6 +14,7 @@ import 'package:stegos_wallet/services/service_security.dart';
 import 'package:stegos_wallet/stores/store_stegos.dart';
 import 'package:stegos_wallet/ui/app.dart';
 import 'package:stegos_wallet/widgets/widget_lifecycle.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class StegosUserException implements Exception {
   StegosUserException(this.message);
@@ -163,6 +164,9 @@ class StegosEnv extends Env<Widget> {
   /// Create initial application widget.
   @override
   Future<Widget> openWidget() async {
+    await PermissionHandler().requestPermissions(
+        [PermissionGroup.storage, PermissionGroup.camera, PermissionGroup.contacts]);
+
     securityService ??= SecurityService(this);
     biometricsAvailable = await securityService.canCheckBiometrics();
     biometricsPinStored = await securityService.biometricsPinStored();
