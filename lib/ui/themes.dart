@@ -234,4 +234,6 @@ mixin StegosThemes {
       splashColor: const Color(0xffe26e04),
     ),
   );
+
+  static final ChantTheme = baseTheme;
 }

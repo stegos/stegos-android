@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:stegos_wallet/ui/chat/chat_list/chat_list.dart';
 import 'package:stegos_wallet/ui/routes.dart';
 import 'package:stegos_wallet/ui/themes.dart';
-import 'package:stegos_wallet/ui/wallet/qr_reader/qr_reader.dart';
 import 'package:stegos_wallet/ui/wallet/wallet/screen_accounts.dart';
 import 'package:stegos_wallet/widgets/widget_app_bar.dart';
 
@@ -115,7 +115,7 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
             children: [
               AccountsScreen(),
               Text('QR reader'),
-              Text('Chat'),
+              ChatList(),
               Text('Contacts'),
             ],
           ),

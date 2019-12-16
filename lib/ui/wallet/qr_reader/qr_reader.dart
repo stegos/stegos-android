@@ -10,7 +10,6 @@ class QrReader extends StatefulWidget {
 }
 
 class _QrReaderState extends State<QrReader> {
-  static const _iconBackImage = AssetImage('assets/images/arrow_back.png');
   static final RegExp _stegosAddressRegExp = RegExp(
     r'^st[rgt]1[ac-hj-np-z02-9]{8,87}$',
     caseSensitive: false,
@@ -38,7 +37,7 @@ class _QrReaderState extends State<QrReader> {
           icon: const SizedBox(
             width: 24,
             height: 24,
-            child: Image(image: _iconBackImage),
+            child: Image(image: AssetImage('assets/images/arrow_back.png')),
           ),
           onPressed: () => StegosApp.navigatorState.pop(null),
         ),
