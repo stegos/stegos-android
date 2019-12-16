@@ -15,14 +15,14 @@ class PinpadWidget extends StatefulWidget {
       this.onFingerPrintButtonPressed,
       this.digits = 4,
       this.title = 'PIN CODE',
-      this.useFingerprint = true})
+      this.useBiometrics = false})
       : super(key: key);
 
   final int digits;
 
   final String title;
 
-  final bool useFingerprint;
+  final bool useBiometrics;
 
   final void Function(String) onPinReady;
 
@@ -144,7 +144,7 @@ class _PinpadWidgetState extends State<PinpadWidget> {
     final mapKeyToActions = <Widget>[
       ...List<Widget>.generate(
           9, (idx) => buildOutlineBtn(buildTextKey('${idx + 1}'), _addDigit('${idx + 1}'))),
-      if (widget.useFingerprint)
+      if (widget.useBiometrics)
         buildIcoBtn(_fingerprintIcon, _onFingerprint())
       else
         buildEmptyBtn(),

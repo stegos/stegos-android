@@ -28,7 +28,7 @@ packages:
       name: asn1lib
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.5.14"
+    version: "0.5.15"
   async:
     dependency: transitive
     description:
@@ -84,7 +84,7 @@ packages:
       name: build_runner_core
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "4.2.1"
+    version: "4.3.0"
   built_collection:
     dependency: transitive
     description:
@@ -584,7 +584,7 @@ packages:
       name: steel_crypt
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.5.1+1"
+    version: "1.5.1+2"
   stream_channel:
     dependency: transitive
     description:

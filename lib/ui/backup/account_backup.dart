@@ -41,7 +41,7 @@ class _AccountBackupState extends State<AccountBackup> {
             ),
             onPressed: _onBack,
           ),
-          title: const Text('Account back up'),
+          title: const Text('Account backup'),
         ),
         body: ScaffoldBodyWrapperWidget(
             builder: (context) => Column(
@@ -57,7 +57,7 @@ class _AccountBackupState extends State<AccountBackup> {
                           ),
                           const SizedBox(height: 10),
                           Text(
-                            'The field is case sensitive ',
+                            'All fields field are case sensitive ',
                             textAlign: TextAlign.center,
                             style: StegosThemes.defaultSubCaptionTextStyle,
                           ),
