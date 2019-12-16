@@ -8,6 +8,7 @@ import 'package:stegos_wallet/env_stegos.dart';
 import 'package:stegos_wallet/services/service_node.dart';
 import 'package:stegos_wallet/ui/app.dart';
 import 'package:stegos_wallet/ui/pay/store_screen_pay.dart';
+import 'package:stegos_wallet/ui/routes.dart';
 import 'package:stegos_wallet/ui/themes.dart';
 import 'package:stegos_wallet/ui/wallet/qr_reader/screen_qr_reader.dart';
 import 'package:stegos_wallet/utils/cont.dart';
@@ -409,7 +410,8 @@ class _PayScreenState extends State<PayScreen> {
                       amount: (_store.amount * 1e6).ceil(),
                       comment: _store.comment,
                       withCertificate: _store.generateCertificate));
-                  StegosApp.navigatorState.pop();
+                  await StegosApp.navigatorState
+                      .pushReplacementNamed(Routes.account, arguments: _store.senderAccount);
                 }
               : null,
           child: const Text('SEND'),
