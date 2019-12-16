@@ -5,6 +5,7 @@ import 'package:mobx/mobx.dart';
 import 'package:stegos_wallet/env_stegos.dart';
 import 'package:stegos_wallet/services/service_node.dart';
 import 'package:stegos_wallet/ui/account/screen_account.dart';
+import 'package:stegos_wallet/ui/account_settings/screen_account_settings.dart';
 import 'package:stegos_wallet/ui/dev/screen_dev_menu.dart';
 import 'package:stegos_wallet/ui/pay/screen_pay.dart';
 import 'package:stegos_wallet/ui/pinprotect/screen_pin_protect.dart';
@@ -90,6 +91,7 @@ mixin Routes {
   static const pay = 'pay';
   static const pinprotect = 'pinprotect';
   static const recover = 'recover';
+  static const accountSettings = 'accountSettings';
   static const settings = 'settings';
   static const splash = 'splash';
   static const unlock = 'unlock';
@@ -157,11 +159,11 @@ mixin Routes {
           return MaterialPageRoute(
               maintainState: false,
               builder: (BuildContext context) => SplashScreen(nextRoute: welcomeRoute));
-        case Routes.settings:
+        case Routes.accountSettings:
           final account = settings.arguments as AccountStore;
           assert(account != null);
           return MaterialPageRoute(
-              builder: (BuildContext context) => SettingsScreen(account: account));
+              builder: (BuildContext context) => AccountSettingsScreen(account: account));
         case Routes.username:
           final account = settings.arguments as AccountStore;
           assert(account != null);
@@ -169,6 +171,8 @@ mixin Routes {
               builder: (BuildContext context) => UsernameScreen(account: account));
         case Routes.devmenu:
           return MaterialPageRoute(builder: (BuildContext context) => DevMenuScreen());
+        case Routes.settings:
+          return MaterialPageRoute(builder: (BuildContext context) => SettingsScreen());
         case pay:
           final account = settings.arguments as AccountStore;
           assert(account != null);

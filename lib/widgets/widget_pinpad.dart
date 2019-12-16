@@ -12,18 +12,21 @@ class PinpadWidget extends StatefulWidget {
   PinpadWidget(
       {Key key,
       @required this.onPinReady,
+      this.onFingerPrintButtonPressed,
       this.digits = 4,
       this.title = 'PIN CODE',
-      this.fingerprint = true})
+      this.useFingerprint = true})
       : super(key: key);
 
   final int digits;
 
   final String title;
 
-  final bool fingerprint;
+  final bool useFingerprint;
 
   final void Function(String) onPinReady;
+
+  final void Function() onFingerPrintButtonPressed;
 
   @override
   State<StatefulWidget> createState() => _PinpadWidgetState();
@@ -69,7 +72,9 @@ class _PinpadWidgetState extends State<PinpadWidget> {
 
   void Function() _onFingerprint() => () {
         // todo
-        print('Scan fingerprint');
+        if (widget.onFingerPrintButtonPressed is Function()) {
+          widget.onFingerPrintButtonPressed();
+        }
       };
 
   @override
@@ -139,7 +144,10 @@ class _PinpadWidgetState extends State<PinpadWidget> {
     final mapKeyToActions = <Widget>[
       ...List<Widget>.generate(
           9, (idx) => buildOutlineBtn(buildTextKey('${idx + 1}'), _addDigit('${idx + 1}'))),
-      if (widget.fingerprint) buildIcoBtn(_fingerprintIcon, _onFingerprint()) else buildEmptyBtn(),
+      if (widget.useFingerprint)
+        buildIcoBtn(_fingerprintIcon, _onFingerprint())
+      else
+        buildEmptyBtn(),
       buildOutlineBtn(buildTextKey('0'), _addDigit('0')),
       buildIcoBtn(Icon(Icons.backspace, color: Colors.white, size: keySize / 2), _removeDigit()),
     ];

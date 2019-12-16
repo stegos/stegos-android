@@ -72,6 +72,12 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
                     Navigator.pushNamed(context, Routes.devmenu);
                   },
                 ),
+                ListTile(
+                  title: const Text('Settings'),
+                  onTap: () {
+                    Navigator.pushNamed(context, Routes.settings);
+                  },
+                ),
               ],
             ),
           ),
