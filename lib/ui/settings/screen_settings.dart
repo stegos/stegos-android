@@ -4,8 +4,10 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 import 'package:stegos_wallet/env_stegos.dart';
-import 'package:stegos_wallet/stores/store_stegos.dart';
+import 'package:stegos_wallet/ui/pinprotect/screen_pin_protect.dart';
 import 'package:stegos_wallet/ui/themes.dart';
+import 'package:stegos_wallet/utils/cont.dart';
+import 'package:stegos_wallet/utils/dialogs.dart';
 import 'package:stegos_wallet/widgets/widget_app_bar.dart';
 import 'package:stegos_wallet/widgets/widget_scaffold_body_wrapper.dart';
 
@@ -130,8 +132,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       title: 'Biometrics',
                       subtitle: 'Use biometrics to unlock wallet',
                       trailing: Switch(
-                        onChanged: _onToggleBiometricsProtection,
                         value: store.allowBiometricsProtection,
+                        onChanged: _onToggleBiometricsProtection,
                         activeColor: StegosColors.primaryColor,
                       )),
               ],
@@ -142,9 +144,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  void _onToggleBiometricsProtection([bool val]) {
-    final store = Provider.of<StegosStore>(context);
-    final bool value = val ?? !store.allowBiometricsProtection;
+  void _onToggleBiometricsProtection([bool val]) async {
+    final env = Provider.of<StegosEnv>(context);
+    if (!env.biometricsAvailable) {
+      return;
+    }
+    final store = env.store;
+    final value = val ?? !store.allowBiometricsProtection;
+    if (value) {
+      final pwp = await appShowDialog<Pair<String, String>>(
+          builder: (context) => const PinProtectScreen(
+              unlock: true, noBiometrics: true, caption: 'Wallet unlock required'));
+      final pin = pwp.second;
+      await env.securityService.setSecured('pin', pin);
+      env.biometricsPinStored = true;
+    }
     store.allowBiometricsProtection = value;
   }
 }

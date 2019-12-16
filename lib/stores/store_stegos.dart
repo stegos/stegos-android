@@ -39,7 +39,7 @@ abstract class _StegosStore extends MainStoreSupport with Store, Loggable<Stegos
   set allowBiometricsProtection(bool val) => mergeSingle('allowBiometricsProtection', val);
 
   @computed
-  String get nodeWsEndpoint => settings['wsEndpoint'] as String ?? env.configNodeWsEndpoint;
+  String get nodeWsEndpoint => settings['nodeWsEndpoint'] as String ?? env.configNodeWsEndpoint;
 
   set nodeWsEndpoint(String val) => mergeSingle('nodeWsEndpoint', val);
 

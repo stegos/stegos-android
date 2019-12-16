@@ -143,6 +143,7 @@ mixin Routes {
                 builder: (BuildContext context) => PinProtectScreen(
                       nextRoute: nextRoute,
                       unlock: unlock == name,
+                      noBiometrics: !env.biometricsCheckingAllowed,
                     ));
           }
         case welcome:
