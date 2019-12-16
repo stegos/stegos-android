@@ -17,6 +17,9 @@ class _ChatListState extends State<ChatList> {
           style: TextStyle(fontSize: 26),
         ),
       ),
+      title: Text('Anton Bucharin', style: TextStyle(fontSize: 18),),
+      subtitle: Text('i am still waiting for your message...',
+          style: TextStyle(color: StegosColors.primaryColorDark, fontWeight: FontWeight.w300)),
     );
   }
 
