@@ -116,10 +116,10 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen>
           centerTitle: false,
           leading: IconButton(
             icon: const Image(
-                  image: AssetImage('assets/images/arrow_back.png'),
-                  width: 24,
-                  height: 24,
-                ),
+              image: AssetImage('assets/images/arrow_back.png'),
+              width: 24,
+              height: 24,
+            ),
             onPressed: () => {Navigator.pop(context)},
           ),
           title: const Text('Settings'),
@@ -159,7 +159,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen>
                   subtitle: widget.account.backedUp ? '' : 'Strongly recommend backup your account',
                   group: 'Security',
                   trailing: Icon(
-                    Icons.check,
+                    widget.account.backedUp ? Icons.check : Icons.error,
                     color: StegosColors.accentColor.withOpacity(widget.account.backedUp ? 1 : 0.54),
                   ),
                   onTap: _backupAccount,
@@ -174,11 +174,13 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen>
                 _buildListTile(
                   onTap: () {
                     _deleteAccount().then((bool value) {
-                      if (StegosApp.navigatorState.canPop()) {
-                        StegosApp.navigatorState.pop();
-                      }
-                      if (StegosApp.navigatorState.canPop()) {
-                        StegosApp.navigatorState.pop();
+                      if (value) {
+                        if (StegosApp.navigatorState.canPop()) {
+                          StegosApp.navigatorState.pop();
+                        }
+                        if (StegosApp.navigatorState.canPop()) {
+                          StegosApp.navigatorState.pop();
+                        }
                       }
                     });
                   },
