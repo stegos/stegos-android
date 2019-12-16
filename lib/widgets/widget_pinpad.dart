@@ -71,8 +71,7 @@ class _PinpadWidgetState extends State<PinpadWidget> {
       };
 
   void Function() _onFingerprint() => () {
-        // todo
-        if (widget.onFingerPrintButtonPressed is Function()) {
+        if (widget.onFingerPrintButtonPressed != null) {
           widget.onFingerPrintButtonPressed();
         }
       };

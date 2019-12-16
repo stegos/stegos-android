@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:math' as Math;
 
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:local_auth/local_auth.dart';
 import 'package:mobx/mobx.dart';
 import 'package:random_string/random_string.dart';
 import 'package:stegos_wallet/env_stegos.dart';
@@ -26,6 +28,10 @@ abstract class _SecurityService with Store, Loggable<SecurityService> {
   final StegosEnv env;
 
   final _RandomStringProvider _provider;
+
+  final _secureStorage = const FlutterSecureStorage();
+
+  final _auth = LocalAuthentication();
 
   StegosStore get store => env.store;
 
@@ -114,6 +120,23 @@ abstract class _SecurityService with Store, Loggable<SecurityService> {
     });
     return _touchAppUnlockedPeriod().then((_) => pwp.first);
   }
+
+  Future<bool> canCheckBiometrics() => _auth.canCheckBiometrics;
+
+  Future<String> getSecured(String key) => _secureStorage.read(key: key);
+
+  Future<void> setSecured(String key, String value) => _secureStorage.write(key: key, value: value);
+
+  Future<void> deleteSecured(String key) => _secureStorage.delete(key: key);
+
+  Future<bool> authenticateWithBiometrics([String message]) {
+    if (!env.biometricsCheckingAllowed) {
+      return Future.value(false);
+    }
+    return _auth.authenticateWithBiometrics(
+        localizedReason: message ?? 'Please unlock Stegos wallet', stickyAuth: false);
+  }
+  Future<bool> biometricsPinStored() async => await getSecured('pin') != null;
 
   Future<void> _touchAppUnlockedPeriod({int touchTs}) =>
       store.mergeSingle('lastAppUnlockTs', touchTs ?? DateTime.now().millisecondsSinceEpoch);
