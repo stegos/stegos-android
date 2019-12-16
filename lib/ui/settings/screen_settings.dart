@@ -120,7 +120,6 @@ class _SettingsScreenState extends State<SettingsScreen> with Loggable<_Settings
               title: const Text('Settings'),
             ),
             body: ScaffoldBodyWrapperWidget(
-                wrapInObserver: true,
                 builder: (context) => SingleChildScrollView(
                       child: Column(
                         children: <Widget>[
