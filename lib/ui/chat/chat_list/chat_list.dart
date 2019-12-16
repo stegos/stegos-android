@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:stegos_wallet/ui/routes.dart';
 import 'package:stegos_wallet/ui/themes.dart';
 
 class ChatList extends StatefulWidget {
@@ -8,18 +9,33 @@ class ChatList extends StatefulWidget {
 
 class _ChatListState extends State<ChatList> {
   Widget _chatItemBuilder(BuildContext context, int index) {
-    return const ListTile(
-      contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      leading: CircleAvatar(
+    return ListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      leading: const CircleAvatar(
         radius: 35,
         child: Text(
           'AB',
           style: TextStyle(fontSize: 26),
         ),
       ),
-      title: Text('Anton Bucharin', style: TextStyle(fontSize: 18),),
+      title: const Text('Anton Bucharin', style: TextStyle(fontSize: 18)),
       subtitle: Text('i am still waiting for your message...',
           style: TextStyle(color: StegosColors.primaryColorDark, fontWeight: FontWeight.w300)),
+      trailing: Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: <Widget>[
+          Text('17:52', style: TextStyle(color: StegosColors.primaryColorDark)),
+          Container(
+            width: 22,
+            height: 22,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(11), color: StegosColors.accentColor),
+            child: Text(3.toString(), style: TextStyle(color: StegosColors.white, fontSize: 14)),
+          )
+        ],
+      ),
     );
   }
 
@@ -57,7 +73,7 @@ class _ChatListState extends State<ChatList> {
           ],
         ),
         floatingActionButton: FloatingActionButton(
-          onPressed: () {},
+          onPressed: () => Navigator.of(context).pushNamed(Routes.createChat),
           child: Icon(Icons.add),
         ),
       ),

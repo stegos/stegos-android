@@ -16,6 +16,7 @@ import 'package:stegos_wallet/ui/username/screen_username.dart';
 import 'package:stegos_wallet/ui/wallet/screen_wallet.dart';
 import 'package:stegos_wallet/ui/welcome/screen_welcome.dart';
 
+import 'chat/create_chat/screen_create_chat.dart';
 import 'error/screen_error.dart';
 
 // fixme: don't store external state for StatelessWidget except some rare cases
@@ -98,6 +99,7 @@ mixin Routes {
   static const username = 'username';
   static const wallet = 'wallet';
   static const welcome = 'welcome';
+  static const createChat = 'createChat';
 
   static RouteFactory createRouteFactory(StegosEnv env, bool showSplash) {
     MaterialPageRoute Function(RouteSettings settings) routeFactoryFn;
@@ -177,6 +179,8 @@ mixin Routes {
           final account = settings.arguments as AccountStore;
           assert(account != null);
           return MaterialPageRoute(builder: (BuildContext context) => PayScreen(account: account));
+        case createChat:
+          return MaterialPageRoute(builder: (BuildContext context) => CreateChatScreen());
         default:
           return MaterialPageRoute(
               maintainState: false,
