@@ -137,21 +137,22 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen>
                   onTap: () =>
                       Navigator.pushNamed(context, Routes.username, arguments: widget.account),
                 ),
-                _buildListTile(
-                  leading: SvgPicture.asset('assets/images/packet_main_account.svg'),
-                  title: 'Red packet main account',
-                  subtitle: 'STG from mining red packets enter in account automatically',
-                  trailing: Switch(
-                    onChanged: (bool value) {},
-                    value: true,
-                    activeColor: StegosColors.primaryColor,
-                  ),
-                ),
+
+                // _buildListTile(
+                //   leading: SvgPicture.asset('assets/images/packet_main_account.svg'),
+                //   title: 'Red packet main account',
+                //   subtitle: 'STG from mining red packets enter in account automatically',
+                //   trailing: Switch(
+                //     onChanged: (bool value) {},
+                //     value: true,
+                //     activeColor: StegosColors.primaryColor,
+                //   ),
+                // ),
+
                 _buildListTile(
                   leading: SvgPicture.asset('assets/images/backed_up.svg'),
                   title: widget.account.backedUp ? 'Account backed up' : 'Backup account',
-                  subtitle:
-                      widget.account.backedUp ? '' : 'Strongly recommend back up your account',
+                  subtitle: widget.account.backedUp ? '' : 'Strongly recommend backup your account',
                   group: 'Security',
                   trailing: Icon(
                     Icons.check,
