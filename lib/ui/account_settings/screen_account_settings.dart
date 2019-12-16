@@ -26,7 +26,8 @@ class AccountSettingsScreen extends StatefulWidget {
   State<StatefulWidget> createState() => _AccountSettingsScreenState();
 }
 
-class _AccountSettingsScreenState extends State<AccountSettingsScreen> with Loggable<_AccountSettingsScreenState> {
+class _AccountSettingsScreenState extends State<AccountSettingsScreen>
+    with Loggable<_AccountSettingsScreenState> {
   Widget _buildListTile({
     Widget leading,
     String title,
@@ -39,7 +40,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> with Logg
   }) {
     const TextStyle titleStyle = TextStyle(fontSize: 18, letterSpacing: 0.3);
     const TextStyle subtitleStyle =
-    TextStyle(fontSize: 12, letterSpacing: 0.3, color: Color(0xff7d8b97));
+        TextStyle(fontSize: 12, letterSpacing: 0.3, color: Color(0xff7d8b97));
 
     final List<Widget> body = <Widget>[
       Text(
@@ -70,11 +71,11 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> with Logg
               alignment: Alignment.topLeft,
               child: group != null
                   ? Padding(
-                  padding: const EdgeInsets.only(bottom: 20, top: 10),
-                  child: Text(
-                    group,
-                    style: subtitleStyle,
-                  ))
+                      padding: const EdgeInsets.only(bottom: 20, top: 10),
+                      child: Text(
+                        group,
+                        style: subtitleStyle,
+                      ))
                   : null,
             ),
             Row(
@@ -99,7 +100,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> with Logg
                   ),
                 )
               ],
-            )
+            ),
           ],
         ),
       ),
@@ -109,123 +110,112 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> with Logg
   @override
   Widget build(BuildContext context) {
     return Theme(
-        data: StegosThemes.settingsTheme,
-        child: Scaffold(
-            appBar: AppBarWidget(
-              centerTitle: false,
-              leading: IconButton(
-                icon: Icon(Icons.arrow_back),
-                onPressed: () => {Navigator.pop(context)},
-              ),
-              title: const Text('Settings'),
-            ),
-            body: ScaffoldBodyWrapperWidget(
-                builder: (context) => SingleChildScrollView(
-                  child: Column(
-                    children: <Widget>[
-                      _buildListTile(
-                        leading: SvgPicture.asset('assets/images/account_name.svg'),
-                        title: 'Account name',
-                        subtitle:
-                        'New contacts will see this name before saving to contacts your information',
-                        group: 'General',
-                        trailing: Icon(
-                          Icons.navigate_next,
-                          color: StegosColors.primaryColorDark,
-                        ),
-                        onTap: () => Navigator.pushNamed(context, Routes.username,
-                            arguments: widget.account),
-                      ),
-                      _buildListTile(
-                        leading: SvgPicture.asset('assets/images/packet_main_account.svg'),
-                        title: 'Red packet main account',
-                        subtitle: 'STG from mining red packets enter in account automatically',
-                        trailing: Switch(
-                          onChanged: (bool value) {},
-                          value: true,
-                          activeColor: StegosColors.primaryColor,
-                        ),
-                      ),
-                      _buildListTile(
-                        leading: SvgPicture.asset('assets/images/backed_up.svg'),
-                        title: widget.account.backedUp ? 'Account backed up' : 'Backup account',
-                        subtitle: widget.account.backedUp
-                            ? ''
-                            : 'Strongly recommend back up your account',
-                        group: 'Security',
-                        trailing: Icon(
-                          Icons.check,
-                          color: StegosColors.accentColor
-                              .withOpacity(widget.account.backedUp ? 1 : 0.54),
-                        ),
-                        onTap: _backupAccount,
-                      ),
-                      _buildListTile(
-                          leading: SvgPicture.asset('assets/images/password.svg'),
-                          title: 'Password',
-                          trailing: Icon(
-                            Icons.navigate_next,
-                            color: StegosColors.primaryColorDark,
-                          )),
-                      _buildListTile(
-                          leading: SvgPicture.asset(
-                            'assets/images/fingerprint.svg',
-                            width: 21,
-                          ),
-                          title: 'Fingerprint',
-                          subtitle: 'Allow to use fingerprint instead of password',
-                          trailing: Switch(
-                            onChanged: (bool value) {},
-                            value: true,
-                            activeColor: StegosColors.primaryColor,
-                          )),
-                      _buildListTile(
-                        onTap: () {
-                          _deleteAccount().then((bool value) {
-                            if (StegosApp.navigatorState.canPop()) {
-                              StegosApp.navigatorState.pop();
-                            }
-                            if (StegosApp.navigatorState.canPop()) {
-                              StegosApp.navigatorState.pop();
-                            }
-                          });
-                        },
-                        leading: SvgPicture.asset(
-                          'assets/images/delete.svg',
-                          width: 21,
-                        ),
-                        title: 'Delete',
-                      ),
-                    ],
+      data: StegosThemes.settingsTheme,
+      child: Scaffold(
+        appBar: AppBarWidget(
+          centerTitle: false,
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back),
+            onPressed: () => {Navigator.pop(context)},
+          ),
+          title: const Text('Settings'),
+        ),
+        body: ScaffoldBodyWrapperWidget(
+          builder: (context) => SingleChildScrollView(
+            child: Column(
+              children: <Widget>[
+                _buildListTile(
+                  leading: SvgPicture.asset('assets/images/account_name.svg'),
+                  title: 'Account name',
+                  subtitle:
+                      'New contacts will see this name before saving to contacts your information',
+                  group: 'General',
+                  trailing: Icon(
+                    Icons.navigate_next,
+                    color: StegosColors.primaryColorDark,
                   ),
-                ))));
+                  onTap: () =>
+                      Navigator.pushNamed(context, Routes.username, arguments: widget.account),
+                ),
+                _buildListTile(
+                  leading: SvgPicture.asset('assets/images/packet_main_account.svg'),
+                  title: 'Red packet main account',
+                  subtitle: 'STG from mining red packets enter in account automatically',
+                  trailing: Switch(
+                    onChanged: (bool value) {},
+                    value: true,
+                    activeColor: StegosColors.primaryColor,
+                  ),
+                ),
+                _buildListTile(
+                  leading: SvgPicture.asset('assets/images/backed_up.svg'),
+                  title: widget.account.backedUp ? 'Account backed up' : 'Backup account',
+                  subtitle:
+                      widget.account.backedUp ? '' : 'Strongly recommend back up your account',
+                  group: 'Security',
+                  trailing: Icon(
+                    Icons.check,
+                    color: StegosColors.accentColor.withOpacity(widget.account.backedUp ? 1 : 0.54),
+                  ),
+                  onTap: _backupAccount,
+                ),
+                _buildListTile(
+                    leading: SvgPicture.asset('assets/images/password.svg'),
+                    title: 'Password',
+                    trailing: Icon(
+                      Icons.navigate_next,
+                      color: StegosColors.primaryColorDark,
+                    )),
+                _buildListTile(
+                  onTap: () {
+                    _deleteAccount().then((bool value) {
+                      if (StegosApp.navigatorState.canPop()) {
+                        StegosApp.navigatorState.pop();
+                      }
+                      if (StegosApp.navigatorState.canPop()) {
+                        StegosApp.navigatorState.pop();
+                      }
+                    });
+                  },
+                  leading: SvgPicture.asset(
+                    'assets/images/delete.svg',
+                    width: 21,
+                  ),
+                  title: 'Delete',
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   Future<bool> _deleteAccount() => appShowDialog<bool>(
-    barrierDismissible: false,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: Text('Delete account ${widget.account.humanName}?'),
-        content: const Text('Please make an account backup if you with to restore it later.'),
-        actions: <Widget>[
-          FlatButton(
-            onPressed: () {
-              StegosApp.navigatorState.pop(false);
-            },
-            child: const Text('CANCEL'),
-          ),
-          FlatButton(
-            onPressed: () {
-              StegosApp.navigatorState.pop(true);
-              final env = Provider.of<StegosEnv>(context);
-              env.nodeService.deleteAccount(widget.account);
-            },
-            child: const Text('DELETE'),
-          )
-        ],
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Delete account ${widget.account.humanName}?'),
+            content: const Text('Please make an account backup if you with to restore it later.'),
+            actions: <Widget>[
+              FlatButton(
+                onPressed: () {
+                  StegosApp.navigatorState.pop(false);
+                },
+                child: const Text('CANCEL'),
+              ),
+              FlatButton(
+                onPressed: () {
+                  StegosApp.navigatorState.pop(true);
+                  final env = Provider.of<StegosEnv>(context);
+                  env.nodeService.deleteAccount(widget.account);
+                },
+                child: const Text('DELETE'),
+              )
+            ],
+          );
+        },
       );
-    },
-  );
 
   void _backupAccount() async {
     final env = Provider.of<StegosEnv>(context);
@@ -235,9 +225,13 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen> with Logg
       fullscreenDialog: true,
     ));
     if (backedUp) {
-      unawaited(env.nodeService.markAsBackedUp(widget.account.id).catchError((err, StackTrace st) {
-        log.warning('Failed to backup account: ', err, st);
-      }));
+      unawaited(
+        env.nodeService.markAsBackedUp(widget.account.id).catchError(
+          (err, StackTrace st) {
+            log.warning('Failed to backup account: ', err, st);
+          },
+        ),
+      );
     }
   }
 }

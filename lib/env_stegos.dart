@@ -14,6 +14,7 @@ import 'package:stegos_wallet/services/service_security.dart';
 import 'package:stegos_wallet/stores/store_stegos.dart';
 import 'package:stegos_wallet/ui/app.dart';
 import 'package:stegos_wallet/widgets/widget_lifecycle.dart';
+import 'package:local_auth/local_auth.dart';
 
 class StegosUserException implements Exception {
   StegosUserException(this.message);
@@ -95,6 +96,12 @@ class StegosEnv extends Env<Widget> {
 
   NodeService get nodeService => _store.nodeService;
 
+  /// Device is able to check Fingerprints/Face ID
+  bool biometricsAvailable = false;
+
+  /// True if FP/FaceID checking available and allowed by user
+  bool get biometricsCheckingAllowed => biometricsAvailable && store.allowBiometricsProtection;
+
   /// Use database in given [fn] function.
   /// This method don't leave database in open state
   /// if it was not opened before.
@@ -155,6 +162,10 @@ class StegosEnv extends Env<Widget> {
   /// Create initial application widget.
   @override
   Future<Widget> openWidget() async {
+    biometricsAvailable = await LocalAuthentication().canCheckBiometrics;
+    if (log.isFine) {
+      log.fine('canCheckBiometrics: ${biometricsAvailable}');
+    }
     return MultiProvider(
       providers: [
         Provider<StegosEnv>.value(value: this),

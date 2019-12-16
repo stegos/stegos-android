@@ -4,7 +4,6 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 import 'package:stegos_wallet/env_stegos.dart';
-import 'package:stegos_wallet/services/service_node.dart';
 import 'package:stegos_wallet/stores/store_stegos.dart';
 import 'package:stegos_wallet/ui/themes.dart';
 import 'package:stegos_wallet/widgets/widget_app_bar.dart';
@@ -99,7 +98,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final store = Provider.of<StegosStore>(context);
+    final env = Provider.of<StegosEnv>(context);
+    final store = env.store;
     return Theme(
       data: StegosThemes.settingsTheme,
       child: Scaffold(
@@ -112,35 +112,35 @@ class _SettingsScreenState extends State<SettingsScreen> {
           title: const Text('Settings'),
         ),
         body: ScaffoldBodyWrapperWidget(
-            wrapInObserver: true,
-            builder: (context) {
-              return SingleChildScrollView(
-                child: Column(
-                  children: <Widget>[
-                    _buildListTile(
-                        onTap: _onAllowPincodeChanged,
-                        leading: SvgPicture.asset(
-                          'assets/images/fingerprint.svg',
-                          width: 21,
-                        ),
-                        title: 'Fingerprint',
-                        subtitle: 'Allow to use fingerprint to unlock wallet',
-                        trailing: Switch(
-                          onChanged: _onAllowPincodeChanged,
-                          value: store.configAllowFingerprintWalletProtection,
-                          activeColor: StegosColors.primaryColor,
-                        )),
-                  ],
-                ),
-              );
-            }),
+          wrapInObserver: true,
+          builder: (context) => SingleChildScrollView(
+            child: Column(
+              children: <Widget>[
+                if (env.biometricsAvailable)
+                  _buildListTile(
+                      onTap: _onToggleBiometricsProtection,
+                      leading: SvgPicture.asset(
+                        'assets/images/fingerprint.svg',
+                        width: 21,
+                      ),
+                      title: 'Biometrics',
+                      subtitle: 'Use biometrics to unlock wallet',
+                      trailing: Switch(
+                        onChanged: _onToggleBiometricsProtection,
+                        value: store.allowBiometricsProtection,
+                        activeColor: StegosColors.primaryColor,
+                      )),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
 
-  void _onAllowPincodeChanged([bool val]) {
+  void _onToggleBiometricsProtection([bool val]) {
     final store = Provider.of<StegosStore>(context);
-    final bool value = val ?? !store.configAllowFingerprintWalletProtection;
-    store.mergeSingle('configAllowFingerprintWalletProtection', value);
+    final bool value = val ?? !store.allowBiometricsProtection;
+    store.allowBiometricsProtection = value;
   }
 }

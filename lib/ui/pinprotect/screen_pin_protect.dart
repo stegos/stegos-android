@@ -83,12 +83,12 @@ class _PinProtectScreenState extends State<PinProtectScreen> with Loggable<PinPr
         body: ScaffoldBodyWrapperWidget(
             wrapInObserver: true,
             builder: (context) {
-              final env = Provider.of<StegosStore>(context);
+              final env = Provider.of<StegosEnv>(context);
               return PinpadWidget(
                 key: UniqueKey(),
                 digits: 6,
                 title: store.title,
-                useFingerprint: env.configAllowFingerprintWalletProtection,
+                useBiometrics: env.biometricsAvailable,
                 onPinReady: store.unlockAttempt > 0 ? _onUnlockPinready : _onPinReady,
               );
             }),

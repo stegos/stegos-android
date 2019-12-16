@@ -48,7 +48,7 @@ class _DevMenuScreenState extends State<DevMenuScreen> {
                               ?.trim();
                           if (addr != null) {
                             if (!addr.startsWith('ws://')) addr = 'ws://${addr}';
-                            unawaited(store.mergeSingle('wsEndpoint', addr));
+                            store.nodeWsEndpoint = addr;
                           }
                         }),
                     ListTile(
