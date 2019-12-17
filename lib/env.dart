@@ -22,6 +22,12 @@ abstract class Env<W extends Widget> {
     ]);
   }
 
+  static Future<void> setPortrait() {
+    return SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp
+    ]);
+  }
+
   EnvType type = EnvType.DEVELOPMENT;
   Log log;
   Directory dataDirectory;
@@ -32,7 +38,7 @@ abstract class Env<W extends Widget> {
     await initLogging();
     dataDirectory = await getApplicationDocumentsDirectory();
     tempDirectory = await getTemporaryDirectory();
-    await Env.resetOrientation();
+    await Env.setPortrait();
     final widget = await openWidget();
     log.info('Application initialized');
     return widget;

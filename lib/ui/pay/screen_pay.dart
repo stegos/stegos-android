@@ -206,7 +206,7 @@ class _PayScreenState extends State<PayScreen> {
   Widget _buildToAddress() {
     final UnderlineInputBorder textFieldBorder = UnderlineInputBorder(
         borderSide: BorderSide(
-            color: _store.isValidToAddress ? StegosColors.accentColor : Colors.redAccent,
+            color: _store.isValidToAddress ? StegosColors.white : Colors.redAccent,
             width: 1));
     return _withLabel(
         'Recepient address',
@@ -272,7 +272,7 @@ class _PayScreenState extends State<PayScreen> {
   Widget _buildAmount() => Observer(builder: (context) {
         final UnderlineInputBorder textFieldBorder = UnderlineInputBorder(
             borderSide: BorderSide(
-                color: _store.amount > 0 ? StegosColors.accentColor : Colors.redAccent, width: 1));
+                color: _store.amount > 0 ? StegosColors.white : Colors.redAccent, width: 1));
         return _withLabel(
           'type amount',
           Row(

@@ -21,6 +21,8 @@ class _AccountBackupState extends State<AccountBackup> {
 
   bool isWritingPhrase = true;
 
+  final ScrollController scrollController = ScrollController();
+
   String get title => isWritingPhrase
       ? 'Please white down the phase in case to restore your account'
       : 'Please repeat your phrase to save it';
@@ -66,11 +68,12 @@ class _AccountBackupState extends State<AccountBackup> {
                     ),
                     Expanded(
                       child: SingleChildScrollView(
+                          controller: scrollController,
                           child: SeedPhraze(
-                        words: isWritingPhrase ? widget.words.asMap() : writtenWords,
-                        onChanged: _onTextFieldChanged,
-                        readOnly: isWritingPhrase,
-                      )),
+                            words: isWritingPhrase ? widget.words.asMap() : writtenWords,
+                            onChanged: _onTextFieldChanged,
+                            readOnly: isWritingPhrase,
+                          )),
                     ),
                     SizedBox(width: double.infinity, height: 50, child: _buildRecoverButton())
                   ],
@@ -84,12 +87,11 @@ class _AccountBackupState extends State<AccountBackup> {
   }
 
   Widget _buildRecoverButton() => RaisedButton(
-            elevation: 8,
-            disabledElevation: 8,
-            onPressed: isWritingPhrase ? _written : _verify,
-            child: Text(isWritingPhrase ? 'YES, I HAVE WRITTEN IT DOWN' : 'VERIFY'),
-          );
-
+        elevation: 8,
+        disabledElevation: 8,
+        onPressed: isWritingPhrase ? _written : _verify,
+        child: Text(isWritingPhrase ? 'YES, I HAVE WRITTEN IT DOWN' : 'VERIFY'),
+      );
 
   bool get _isValid {
     bool valid = true;
@@ -120,6 +122,7 @@ class _AccountBackupState extends State<AccountBackup> {
     if (!isWritingPhrase) {
       final env = Provider.of<StegosEnv>(context);
       env.resetError();
+      scrollController.animateTo(0, duration: const Duration(milliseconds: 500), curve: Curves.ease);
       setState(() {
         isWritingPhrase = true;
       });
