@@ -29,6 +29,8 @@ class AccountSettingsScreen extends StatefulWidget {
 
 class _AccountSettingsScreenState extends State<AccountSettingsScreen>
     with Loggable<_AccountSettingsScreenState> {
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
+
   Widget _buildListTile({
     Widget leading,
     String title,
@@ -113,6 +115,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen>
     return Theme(
       data: StegosThemes.settingsTheme,
       child: Scaffold(
+        key: _scaffoldKey,
         appBar: AppBarWidget(
           centerTitle: false,
           leading: IconButton(
@@ -236,7 +239,13 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen>
     ));
     if (password != null && password.isNotEmpty) {
       final env = Provider.of<StegosEnv>(context);
-      unawaited(env.nodeService.setAccountPassword(widget.account, password));
+      unawaited(env.nodeService.setAccountPassword(widget.account, password).then((_) {
+        _scaffoldKey.currentState?.removeCurrentSnackBar();
+        _scaffoldKey.currentState?.showSnackBar(SnackBar(
+          content: Text('Password for ${widget.account.humanName} was changed!'),
+          duration: const Duration(seconds: 2),
+        ));
+      }));
     }
   }
 
