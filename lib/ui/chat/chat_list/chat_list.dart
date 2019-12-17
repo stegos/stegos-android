@@ -10,6 +10,7 @@ class ChatList extends StatefulWidget {
 class _ChatListState extends State<ChatList> {
   Widget _chatItemBuilder(BuildContext context, int index) {
     return ListTile(
+      onTap: () => Navigator.of(context).pushNamed(Routes.chat),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       leading: const CircleAvatar(
         radius: 35,

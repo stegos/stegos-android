@@ -40,9 +40,7 @@ class _CreateChatScreenState extends State<CreateChatScreen> {
             onPressed: () => Navigator.of(context).pop(),
           ),
           title: const Text('Create new chat'),
-          actions: <Widget>[
-            FlatButton.icon(onPressed: () {}, icon: const Icon(Icons.search), label: Container())
-          ],
+          actions: <Widget>[IconButton(onPressed: () {}, icon: const Icon(Icons.search))],
         ),
         body: Stack(
           children: <Widget>[
@@ -58,65 +56,68 @@ class _CreateChatScreenState extends State<CreateChatScreen> {
   }
 
   Container _buildButtons() => Container(
-    color: StegosColors.backgroundColor,
-    child: Container(
-      height: 100,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: <Widget>[
-              SizedBox(
-                height: 65,
-                child: RaisedButton(
-                  padding: const EdgeInsets.all(10),
-                  onPressed: () {
-                  },
-                  color: StegosColors.splashBackground,
-                  child: Row(
-                    children: <Widget>[
-                      SvgPicture.asset('assets/images/new_group.svg'),
-                      const Text(
-                        'New\ngroup',
-                        style: TextStyle(fontSize: 18),
-                      )
-                    ],
+        height: 100,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: <Widget>[
+                  SizedBox(
+                    height: 65,
+                    child: RaisedButton(
+                      padding: const EdgeInsets.all(10),
+                      onPressed: () {},
+                      color: StegosColors.splashBackground,
+                      child: Row(
+                        children: <Widget>[
+                          SvgPicture.asset('assets/images/new_group.svg', height: 48),
+                          const SizedBox(width: 16),
+                          const Text(
+                            'New\ngroup',
+                            style: TextStyle(fontSize: 18),
+                          )
+                        ],
+                      ),
+                    ),
                   ),
-                ),
+                ],
               ),
-            ],
-          ),
-          const SizedBox(width: 8),
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: <Widget>[
-              SizedBox(
-                height: 65,
-                child: RaisedButton(
-                  padding: const EdgeInsets.all(10),
-                  onPressed: () {},
-                  color: StegosColors.splashBackground,
-                  child: Row(
-                    children: <Widget>[
-                      SvgPicture.asset('assets/images/new_channel.svg'),
-                      Container(
-                        child: const Text(
-                          'New\nchannel',
-                          style: TextStyle(fontSize: 18),
-                        ),
-                      )
-                    ],
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: <Widget>[
+                  SizedBox(
+                    height: 65,
+                    child: RaisedButton(
+                      padding: const EdgeInsets.all(10),
+                      onPressed: () {},
+                      color: StegosColors.splashBackground,
+                      child: Row(
+                        children: <Widget>[
+                          SvgPicture.asset('assets/images/new_channel.svg', height: 48),
+                          const SizedBox(width: 16),
+                          Container(
+                            child: const Text(
+                              'New\nchannel',
+                              style: TextStyle(fontSize: 18),
+                            ),
+                          )
+                        ],
+                      ),
+                    ),
                   ),
-                ),
+                ],
               ),
-            ],
-          ),
-        ],
-      ),
-    ),
-  );
+            ),
+          ],
+        ),
+      );
 }
