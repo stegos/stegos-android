@@ -27,8 +27,6 @@ class PasswordScreen extends StatefulWidget {
 }
 
 class _PasswordScreenState extends State<PasswordScreen> {
-  static const _iconBackImage = AssetImage('assets/images/arrow_back.png');
-
   String _titleStatus;
 
   String _password;
@@ -38,12 +36,6 @@ class _PasswordScreenState extends State<PasswordScreen> {
     super.initState();
     _titleStatus = widget.titleStatus;
   }
-
-
-
-
-
-
 
   @override
   Widget build(BuildContext context) => Theme(
@@ -56,7 +48,7 @@ class _PasswordScreenState extends State<PasswordScreen> {
               icon: const SizedBox(
                 width: 24,
                 height: 24,
-                child: Image(image: _iconBackImage),
+                child: Image(image: AssetImage('assets/images/arrow_back.png')),
               ),
               onPressed: _onCancel,
             ),
