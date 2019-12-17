@@ -39,6 +39,13 @@ dev_dependencies:
   test: any
   flutter_test:
     sdk: flutter
+  flutter_launcher_icons: ^0.7.0
+
+# run for update icon: flutter packages pub run flutter_launcher_icons:main
+flutter_icons:
+  ios: false
+  android: true
+  image_path: "assets/launcher/app_icon.png"
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
