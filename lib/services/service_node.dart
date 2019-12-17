@@ -502,9 +502,16 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
     });
   }
 
-
-  Future<void> setAccountPassword(AccountStore account, String password) {
-    // todo:
+  Future<void> setAccountPassword(AccountStore account, String password) async {
+    await _unsealAccount(account.id, force: true);
+    final pwp = await _env.securityService.acquirePasswordForApp();
+    final pp = _env.securityService.setupPinProtectedPassword(password, pwp.second);
+    await client.sendAndAwait(
+        {'type': 'change_password', 'account_id': '${account.id}', 'new_password': password});
+    account._password = pp.first;
+    account._iv = pp.second;
+    await _env.useDb((db) => db.patch(
+        _accountsCollecton, {'password': account._password, 'iv': account._iv}, account.id));
   }
 
   Future<void> renameAccount(int id, String name) {
@@ -912,7 +919,7 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
                 ));
         if (pw == null) {
           // User cannot unlock this account
-          throw Exception('Failed to unlock account: ${acc.humanName} skipping it');
+          throw StegosUserException('${acc.humanName} cannot be unlocked');
         }
       }
     }
