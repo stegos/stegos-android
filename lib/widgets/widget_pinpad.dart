@@ -15,14 +15,14 @@ class PinpadWidget extends StatefulWidget {
       this.onFingerPrintButtonPressed,
       this.digits = 4,
       this.title = 'PIN CODE',
-      this.useFingerprint = true})
+      this.useBiometrics = false})
       : super(key: key);
 
   final int digits;
 
   final String title;
 
-  final bool useFingerprint;
+  final bool useBiometrics;
 
   final void Function(String) onPinReady;
 
@@ -71,8 +71,7 @@ class _PinpadWidgetState extends State<PinpadWidget> {
       };
 
   void Function() _onFingerprint() => () {
-        // todo
-        if (widget.onFingerPrintButtonPressed is Function()) {
+        if (widget.onFingerPrintButtonPressed != null) {
           widget.onFingerPrintButtonPressed();
         }
       };
@@ -144,7 +143,7 @@ class _PinpadWidgetState extends State<PinpadWidget> {
     final mapKeyToActions = <Widget>[
       ...List<Widget>.generate(
           9, (idx) => buildOutlineBtn(buildTextKey('${idx + 1}'), _addDigit('${idx + 1}'))),
-      if (widget.useFingerprint)
+      if (widget.useBiometrics)
         buildIcoBtn(_fingerprintIcon, _onFingerprint())
       else
         buildEmptyBtn(),
@@ -156,8 +155,8 @@ class _PinpadWidgetState extends State<PinpadWidget> {
         data: StegosThemes.pinpadTheme,
         child: Container(
             decoration: BoxDecoration(
-                image: DecorationImage(
-              image: const AssetImage('assets/images/welcome_background.png'),
+                image: const DecorationImage(
+              image: AssetImage('assets/images/welcome_background.png'),
               fit: BoxFit.cover,
             )),
             child: ListView(

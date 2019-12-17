@@ -28,7 +28,7 @@ packages:
       name: asn1lib
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.5.14"
+    version: "0.5.15"
   async:
     dependency: transitive
     description:
@@ -84,7 +84,7 @@ packages:
       name: build_runner_core
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "4.2.1"
+    version: "4.3.0"
   built_collection:
     dependency: transitive
     description:
@@ -188,6 +188,13 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  flutter_launcher_icons:
+    dependency: "direct dev"
+    description:
+      name: flutter_launcher_icons
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.7.4"
   flutter_mobx:
     dependency: "direct main"
     description:
@@ -195,6 +202,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.3.3+3"
+  flutter_secure_storage:
+    dependency: "direct main"
+    description:
+      name: flutter_secure_storage
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "3.3.1+1"
   flutter_svg:
     dependency: "direct main"
     description:
@@ -431,6 +445,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.8.0+1"
+  permission_handler:
+    dependency: "direct main"
+    description:
+      name: permission_handler
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "4.0.0"
   petitparser:
     dependency: transitive
     description:
@@ -584,7 +605,7 @@ packages:
       name: steel_crypt
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.5.1+1"
+    version: "1.5.1+2"
   stream_channel:
     dependency: transitive
     description:

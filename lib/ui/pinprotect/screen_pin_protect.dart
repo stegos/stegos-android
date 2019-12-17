@@ -5,7 +5,6 @@ import 'package:pedantic/pedantic.dart';
 import 'package:provider/provider.dart';
 import 'package:stegos_wallet/env_stegos.dart';
 import 'package:stegos_wallet/log/loggable.dart';
-import 'package:stegos_wallet/stores/store_stegos.dart';
 import 'package:stegos_wallet/ui/app.dart';
 import 'package:stegos_wallet/ui/pinprotect/store_screen_pinprotect.dart';
 import 'package:stegos_wallet/utils/cont.dart';
@@ -23,11 +22,17 @@ Future<String> _unlockPassword(StegosEnv env, String pin) =>
     env.securityService.recoverAppPassword(pin);
 
 class PinProtectScreen extends StatefulWidget {
-  const PinProtectScreen({Key key, this.nextRoute, @required this.unlock}) : super(key: key);
+  const PinProtectScreen(
+      {Key key, @required this.unlock, this.nextRoute, this.noBiometrics = false, this.caption})
+      : super(key: key);
 
   final RouteSettings nextRoute;
 
   final bool unlock;
+
+  final bool noBiometrics;
+
+  final String caption;
 
   @override
   State<StatefulWidget> createState() => _PinProtectScreenState();
@@ -39,7 +44,7 @@ class _PinProtectScreenState extends State<PinProtectScreen> with Loggable<PinPr
   @override
   void initState() {
     super.initState();
-    store = PinprotectScreenStore(widget.unlock ? 1 : 0);
+    store = PinprotectScreenStore(unlockAttempt: widget.unlock ? 1 : 0, caption: widget.caption);
   }
 
   void _onDone(String password, String pin) {
@@ -78,17 +83,35 @@ class _PinProtectScreenState extends State<PinProtectScreen> with Loggable<PinPr
     }));
   }
 
+  void _onFingerPrintButtonPressed() async {
+    final env = Provider.of<StegosEnv>(context);
+    if (env.biometricsCheckingAllowed) {
+      final pin = await env.securityService.getSecured('pin');
+      if (pin != null) {
+        final success = await env.securityService.authenticateWithBiometrics();
+        if (log.isFine) {
+          log.fine('authenticateWithBiometrics result: ${success}');
+        }
+        if (success) {
+          _onUnlockPinready(pin);
+        }
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) => Scaffold(
         body: ScaffoldBodyWrapperWidget(
             wrapInObserver: true,
             builder: (context) {
-              final env = Provider.of<StegosStore>(context);
+              final env = Provider.of<StegosEnv>(context);
               return PinpadWidget(
                 key: UniqueKey(),
                 digits: 6,
                 title: store.title,
-                useFingerprint: env.configAllowFingerprintWalletProtection,
+                useBiometrics:
+                    store.unlockAttempt > 0 && !widget.noBiometrics && env.biometricsAvailable,
+                onFingerPrintButtonPressed: _onFingerPrintButtonPressed,
                 onPinReady: store.unlockAttempt > 0 ? _onUnlockPinready : _onPinReady,
               );
             }),

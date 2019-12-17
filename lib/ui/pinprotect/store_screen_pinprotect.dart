@@ -5,7 +5,9 @@ part 'store_screen_pinprotect.g.dart';
 class PinprotectScreenStore = _PinprotectScreenStore with _$PinprotectScreenStore;
 
 abstract class _PinprotectScreenStore with Store {
-  _PinprotectScreenStore([this.unlockAttempt = 0]);
+  _PinprotectScreenStore({this.unlockAttempt = 0, this.caption});
+
+  final String caption;
 
   @observable
   int unlockAttempt;
@@ -22,7 +24,7 @@ abstract class _PinprotectScreenStore with Store {
       if (unlockAttempt > 1) {
         return 'Wrong PIN entered. Please try again';
       }
-      return 'Please enter the PIN to unlock me';
+      return caption ?? 'Please enter the PIN to unlock me';
     } else {
       if (firstPin == null) {
         return 'Protect wallet by PIN code';

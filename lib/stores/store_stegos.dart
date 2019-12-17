@@ -34,10 +34,14 @@ abstract class _StegosStore extends MainStoreSupport with Store, Loggable<Stegos
 
   /// True if allow to unlock wallet with fingerprint
   @computed
-  bool get configAllowFingerprintWalletProtection => settings['configAllowFingerprintWalletProtection'] as bool ?? true;
+  bool get allowBiometricsProtection => settings['allowBiometricsProtection'] as bool ?? false;
+
+  set allowBiometricsProtection(bool val) => mergeSingle('allowBiometricsProtection', val);
 
   @computed
-  String get nodeWsEndpoint => settings['wsEndpoint'] as String ?? env.configNodeWsEndpoint;
+  String get nodeWsEndpoint => settings['nodeWsEndpoint'] as String ?? env.configNodeWsEndpoint;
+
+  set nodeWsEndpoint(String val) => mergeSingle('nodeWsEndpoint', val);
 
   @computed
   String get nodeWsEndpointApiToken =>

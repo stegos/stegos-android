@@ -2,8 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stegos_wallet/ui/chat/chat_list/chat_list.dart';
+import 'package:provider/provider.dart';
+import 'package:stegos_wallet/env_stegos.dart';
+import 'package:stegos_wallet/ui/app.dart';
+import 'package:stegos_wallet/ui/pay/screen_pay.dart';
 import 'package:stegos_wallet/ui/routes.dart';
 import 'package:stegos_wallet/ui/themes.dart';
+import 'package:stegos_wallet/ui/wallet/qr_reader/qr_reader.dart';
 import 'package:stegos_wallet/ui/wallet/wallet/screen_accounts.dart';
 import 'package:stegos_wallet/widgets/widget_app_bar.dart';
 
@@ -21,6 +26,7 @@ class WalletScreen extends StatefulWidget {
 class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderStateMixin {
   final GlobalKey<ScaffoldState> _drawerKey = GlobalKey();
 
+  bool scanForAddress = false;
   int selectedItem = 0;
   TabController _tabController;
 
@@ -34,6 +40,7 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
     _tabController.addListener(() {
       setState(() {
         selectedItem = _tabController.index;
+        scanForAddress = _tabController.index == 1;
       });
     });
   }
@@ -67,15 +74,15 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
                   child: const Text('Stegos'),
                 ),
                 ListTile(
-                  title: const Text('Development'),
-                  onTap: () {
-                    Navigator.pushNamed(context, Routes.devmenu);
-                  },
-                ),
-                ListTile(
                   title: const Text('Settings'),
                   onTap: () {
                     Navigator.pushNamed(context, Routes.settings);
+                  },
+                ),
+                ListTile(
+                  title: const Text('Development'),
+                  onTap: () {
+                    Navigator.pushNamed(context, Routes.devmenu);
                   },
                 ),
               ],
@@ -114,7 +121,21 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
             controller: _tabController,
             children: [
               AccountsScreen(),
-              Text('QR reader'),
+              QrReader(
+                isScanning: scanForAddress,
+                onStegosAddressFound: (String address) {
+                  final env = Provider.of<StegosEnv>(context);
+                  if (!env.nodeService.operable) {
+                    return;
+                  }
+                  final account = env.nodeService.accountsList[0];
+                  setState(() {
+                    scanForAddress = false;
+                  });
+                  StegosApp.navigatorState.pushNamed(Routes.pay,
+                      arguments: PayScreenArguments(account: account, recepientAddress: address));
+                },
+              ),
               ChatList(),
               Text('Contacts'),
             ],

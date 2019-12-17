@@ -14,6 +14,7 @@ import 'package:stegos_wallet/services/service_security.dart';
 import 'package:stegos_wallet/stores/store_stegos.dart';
 import 'package:stegos_wallet/ui/app.dart';
 import 'package:stegos_wallet/widgets/widget_lifecycle.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class StegosUserException implements Exception {
   StegosUserException(this.message);
@@ -95,6 +96,15 @@ class StegosEnv extends Env<Widget> {
 
   NodeService get nodeService => _store.nodeService;
 
+  /// Device is able to check Fingerprints/Face ID
+  bool biometricsAvailable = false;
+
+  bool biometricsPinStored = false;
+
+  /// True if FP/FaceID checking available and allowed by user
+  bool get biometricsCheckingAllowed =>
+      biometricsAvailable && biometricsPinStored && store.allowBiometricsProtection;
+
   /// Use database in given [fn] function.
   /// This method don't leave database in open state
   /// if it was not opened before.
@@ -144,17 +154,26 @@ class StegosEnv extends Env<Widget> {
 
   /// Bring environment to operational state
   Future<void> activate() async {
-    securityService ??= SecurityService(this);
     final status = _store?.activated?.status;
-    unawaited(nodeClient.ensureOpened());
     if (status != FutureStatus.pending) {
-      return _store.activate();
+      await _store.activate();
     }
+    unawaited(nodeClient.ensureOpened());
   }
 
   /// Create initial application widget.
   @override
   Future<Widget> openWidget() async {
+    await PermissionHandler().requestPermissions(
+        [PermissionGroup.storage, PermissionGroup.camera, PermissionGroup.contacts]);
+
+    securityService ??= SecurityService(this);
+    biometricsAvailable = await securityService.canCheckBiometrics();
+    biometricsPinStored = await securityService.biometricsPinStored();
+    if (log.isFine) {
+      log.fine('biometricsAvailable: ${biometricsAvailable}');
+      log.fine('biometricsPinStored: ${biometricsPinStored}');
+    }
     return MultiProvider(
       providers: [
         Provider<StegosEnv>.value(value: this),

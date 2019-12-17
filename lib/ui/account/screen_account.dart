@@ -7,6 +7,7 @@ import 'package:mobx/mobx.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:stegos_wallet/services/service_node.dart';
 import 'package:stegos_wallet/ui/app.dart';
+import 'package:stegos_wallet/ui/pay/screen_pay.dart';
 import 'package:stegos_wallet/ui/qr_generator/qr_generator.dart';
 import 'package:stegos_wallet/ui/routes.dart';
 import 'package:stegos_wallet/ui/themes.dart';
@@ -178,7 +179,8 @@ class _AccountScreenState extends State<AccountScreen> {
                     child: RaisedButton(
                       padding: const EdgeInsets.all(10),
                       onPressed: () {
-                        StegosApp.navigatorState.pushNamed(Routes.pay, arguments: widget.account);
+                        StegosApp.navigatorState.pushNamed(Routes.pay,
+                            arguments: PayScreenArguments(account: widget.account));
                       },
                       color: StegosColors.splashBackground,
                       child: SvgPicture.asset('assets/images/send.svg'),
@@ -191,32 +193,32 @@ class _AccountScreenState extends State<AccountScreen> {
                   )
                 ],
               ),
-              const SizedBox(width: 75),
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: <Widget>[
-                  SizedBox(
-                    width: 65,
-                    height: 65,
-                    child: RaisedButton(
-                      padding: const EdgeInsets.all(10),
-                      onPressed: () {},
-                      color: StegosColors.splashBackground,
-                      child: SvgPicture.asset('assets/images/red_packet.svg'),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Container(
-                    width: 71,
-                    child: const Text(
-                      'Generate Red Packet',
-                      style: TextStyle(fontSize: 12),
-                      textAlign: TextAlign.center,
-                    ),
-                  )
-                ],
-              ),
+              // const SizedBox(width: 75),
+              // Column(
+              //   mainAxisAlignment: MainAxisAlignment.center,
+              //   crossAxisAlignment: CrossAxisAlignment.center,
+              //   children: <Widget>[
+              //     SizedBox(
+              //       width: 65,
+              //       height: 65,
+              //       child: RaisedButton(
+              //         padding: const EdgeInsets.all(10),
+              //         onPressed: () {},
+              //         color: StegosColors.splashBackground,
+              //         child: SvgPicture.asset('assets/images/red_packet.svg'),
+              //       ),
+              //     ),
+              //     const SizedBox(height: 12),
+              //     Container(
+              //       width: 71,
+              //       child: const Text(
+              //         'Generate Red Packet',
+              //         style: TextStyle(fontSize: 12),
+              //         textAlign: TextAlign.center,
+              //       ),
+              //     )
+              //   ],
+              // ),
             ],
           ),
         ),

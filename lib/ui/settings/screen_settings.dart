@@ -4,9 +4,10 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 import 'package:stegos_wallet/env_stegos.dart';
-import 'package:stegos_wallet/services/service_node.dart';
-import 'package:stegos_wallet/stores/store_stegos.dart';
+import 'package:stegos_wallet/ui/pinprotect/screen_pin_protect.dart';
 import 'package:stegos_wallet/ui/themes.dart';
+import 'package:stegos_wallet/utils/cont.dart';
+import 'package:stegos_wallet/utils/dialogs.dart';
 import 'package:stegos_wallet/widgets/widget_app_bar.dart';
 import 'package:stegos_wallet/widgets/widget_scaffold_body_wrapper.dart';
 
@@ -99,48 +100,65 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final store = Provider.of<StegosStore>(context);
+    final env = Provider.of<StegosEnv>(context);
+    final store = env.store;
     return Theme(
       data: StegosThemes.settingsTheme,
       child: Scaffold(
         appBar: AppBarWidget(
           centerTitle: false,
           leading: IconButton(
-            icon: Icon(Icons.arrow_back),
+            icon: const Image(
+              image: AssetImage('assets/images/arrow_back.png'),
+              width: 24,
+              height: 24,
+            ),
             onPressed: () => {Navigator.pop(context)},
           ),
           title: const Text('Settings'),
         ),
         body: ScaffoldBodyWrapperWidget(
-            wrapInObserver: true,
-            builder: (context) {
-              return SingleChildScrollView(
-                child: Column(
-                  children: <Widget>[
-                    _buildListTile(
-                        onTap: _onAllowPincodeChanged,
-                        leading: SvgPicture.asset(
-                          'assets/images/fingerprint.svg',
-                          width: 21,
-                        ),
-                        title: 'Fingerprint',
-                        subtitle: 'Allow to use fingerprint to unlock wallet',
-                        trailing: Switch(
-                          onChanged: _onAllowPincodeChanged,
-                          value: store.configAllowFingerprintWalletProtection,
-                          activeColor: StegosColors.primaryColor,
-                        )),
-                  ],
-                ),
-              );
-            }),
+          wrapInObserver: true,
+          builder: (context) => SingleChildScrollView(
+            child: Column(
+              children: <Widget>[
+                if (env.biometricsAvailable)
+                  _buildListTile(
+                      onTap: _onToggleBiometricsProtection,
+                      leading: SvgPicture.asset(
+                        'assets/images/fingerprint.svg',
+                        width: 21,
+                      ),
+                      title: 'Biometrics',
+                      subtitle: 'Use biometrics to unlock wallet',
+                      trailing: Switch(
+                        value: store.allowBiometricsProtection,
+                        onChanged: _onToggleBiometricsProtection,
+                        activeColor: StegosColors.primaryColor,
+                      )),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
 
-  void _onAllowPincodeChanged([bool val]) {
-    final store = Provider.of<StegosStore>(context);
-    final bool value = val ?? !store.configAllowFingerprintWalletProtection;
-    store.mergeSingle('configAllowFingerprintWalletProtection', value);
+  void _onToggleBiometricsProtection([bool val]) async {
+    final env = Provider.of<StegosEnv>(context);
+    if (!env.biometricsAvailable) {
+      return;
+    }
+    final store = env.store;
+    final value = val ?? !store.allowBiometricsProtection;
+    if (value) {
+      final pwp = await appShowDialog<Pair<String, String>>(
+          builder: (context) => const PinProtectScreen(
+              unlock: true, noBiometrics: true, caption: 'Wallet unlock required'));
+      final pin = pwp.second;
+      await env.securityService.setSecured('pin', pin);
+      env.biometricsPinStored = true;
+    }
+    store.allowBiometricsProtection = value;
   }
 }

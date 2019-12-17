@@ -8,17 +8,29 @@ import 'package:stegos_wallet/env_stegos.dart';
 import 'package:stegos_wallet/services/service_node.dart';
 import 'package:stegos_wallet/ui/app.dart';
 import 'package:stegos_wallet/ui/pay/store_screen_pay.dart';
+import 'package:stegos_wallet/ui/routes.dart';
 import 'package:stegos_wallet/ui/themes.dart';
-import 'package:stegos_wallet/ui/wallet/qr_reader/qr_reader.dart';
+import 'package:stegos_wallet/ui/wallet/qr_reader/screen_qr_reader.dart';
 import 'package:stegos_wallet/utils/cont.dart';
 import 'package:stegos_wallet/utils/dialogs.dart';
 import 'package:stegos_wallet/widgets/widget_app_bar.dart';
 import 'package:stegos_wallet/widgets/widget_scaffold_body_wrapper.dart';
 
-class PayScreen extends StatefulWidget {
-  PayScreen({Key key, @required this.account}) : super(key: key);
+class PayScreenArguments {
+  PayScreenArguments({@required this.account, this.recepientAddress});
 
   final AccountStore account;
+  final String recepientAddress;
+}
+
+class PayScreen extends StatefulWidget {
+  PayScreen({Key key, PayScreenArguments args})
+      : account = args.account,
+        recepientAddress = args.recepientAddress,
+        super(key: key);
+
+  final AccountStore account;
+  final String recepientAddress;
 
   @override
   _PayScreenState createState() => _PayScreenState();
@@ -42,6 +54,11 @@ class _PayScreenState extends State<PayScreen> {
               ? StegosColors.accentColor
               : StegosColors.primaryColorDark;
         }));
+
+    if (widget.recepientAddress != null && widget.recepientAddress.isNotEmpty) {
+      _store.toAddress = widget.recepientAddress;
+      _addressTextController.text = widget.recepientAddress;
+    }
     super.initState();
   }
 
@@ -189,7 +206,7 @@ class _PayScreenState extends State<PayScreen> {
   Widget _buildToAddress() {
     final UnderlineInputBorder textFieldBorder = UnderlineInputBorder(
         borderSide: BorderSide(
-            color: _store.isValidToAddress ? StegosColors.accentColor : Colors.redAccent,
+            color: _store.isValidToAddress ? StegosColors.white : Colors.redAccent,
             width: 1));
     return _withLabel(
         'Recepient address',
@@ -255,7 +272,7 @@ class _PayScreenState extends State<PayScreen> {
   Widget _buildAmount() => Observer(builder: (context) {
         final UnderlineInputBorder textFieldBorder = UnderlineInputBorder(
             borderSide: BorderSide(
-                color: _store.amount > 0 ? StegosColors.accentColor : Colors.redAccent, width: 1));
+                color: _store.amount > 0 ? StegosColors.white : Colors.redAccent, width: 1));
         return _withLabel(
           'type amount',
           Row(
@@ -393,7 +410,8 @@ class _PayScreenState extends State<PayScreen> {
                       amount: (_store.amount * 1e6).ceil(),
                       comment: _store.comment,
                       withCertificate: _store.generateCertificate));
-                  StegosApp.navigatorState.pop();
+                  await StegosApp.navigatorState
+                      .pushReplacementNamed(Routes.account, arguments: _store.senderAccount);
                 }
               : null,
           child: const Text('SEND'),
@@ -401,7 +419,7 @@ class _PayScreenState extends State<PayScreen> {
       });
 
   void _scanQr() async {
-    final toAddress = await appShowDialog<String>(builder: (context) => QrReader());
+    final toAddress = await appShowDialog<String>(builder: (context) => QrReaderScreen());
     if (toAddress == null) {
       return;
     }
