@@ -624,8 +624,6 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
     if (client.connected) {
       await _syncNodeStatus(true)
           .catchError((err, StackTrace st) => log.warning('Failed to sync node status', err, st));
-      await _syncAccounts().catchError(
-          (err, StackTrace st) => log.warning('Failed to initial sync accounts', err, st));
     }
     // Track connection status changes
     _disposers.addAll([
