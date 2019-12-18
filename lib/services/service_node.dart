@@ -621,16 +621,18 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
       await _syncAccountsOffline().catchError((err, StackTrace st) =>
           log.warning('Failed to sync accounts for offline usage', err, st));
     }
-    if (client.connected) {
-      await _syncNodeStatus(true)
-          .catchError((err, StackTrace st) => log.warning('Failed to sync node status', err, st));
-    }
     // Track connection status changes
     _disposers.addAll([
-      reaction((_) => client.connected, _syncNodeStatus),
-      reaction((_) => client.connected && !_env.securityService.needAppUnlock, (bool connected) {
-        if (connected) {
-          _syncAccounts();
+      autorun((_) {
+        if (client.connected) {
+          untracked(() {
+            _syncNodeStatus(client.connected);
+          });
+        }
+      }),
+      autorun((_) {
+        if (client.connected && !_env.securityService.needAppUnlock) {
+          untracked(_syncAccounts);
         }
       })
     ]);
