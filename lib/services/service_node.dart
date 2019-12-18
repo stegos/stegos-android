@@ -418,6 +418,9 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
   @computed
   String get _txsCollection => 'txs_$network';
 
+  @computed
+  bool get _syncAllowed => client.connected && !_env.securityService.needAppUnlock;
+
   final _disposers = <ReactionDisposer>[];
 
   // ignore: cancel_subscriptions
@@ -631,7 +634,7 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
         }
       }),
       autorun((_) {
-        if (client.connected && !_env.securityService.needAppUnlock) {
+        if (_syncAllowed) {
           untracked(_syncAccounts);
         }
       })

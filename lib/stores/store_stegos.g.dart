@@ -14,6 +14,12 @@ mixin _$StegosStore on _StegosStore, Store {
   @override
   bool get needWelcome =>
       (_$needWelcomeComputed ??= Computed<bool>(() => super.needWelcome)).value;
+  Computed<bool> _$allowBiometricsProtectionComputed;
+
+  @override
+  bool get allowBiometricsProtection => (_$allowBiometricsProtectionComputed ??=
+          Computed<bool>(() => super.allowBiometricsProtection))
+      .value;
   Computed<String> _$nodeWsEndpointComputed;
 
   @override

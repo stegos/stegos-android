@@ -40,8 +40,8 @@ FutureOr<T> Function(Object, StackTrace) silentWarnLogErrorHandler<T>(StegosEnv 
 class StegosEnv extends Env<Widget> {
   StegosEnv() : super() {
     // fixme:
-    Log('StegosStore').level = Level.FINE;
     Log('StegosNodeClient').level = Level.FINE;
+    Log('StegosStore').level = Level.FINE;
     Log('NodeService').level = Level.FINE;
   }
 
