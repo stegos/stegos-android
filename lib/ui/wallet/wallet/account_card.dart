@@ -7,36 +7,28 @@ import 'package:stegos_wallet/ui/qr_generator/qr_generator.dart';
 import 'package:stegos_wallet/ui/routes.dart';
 import 'package:stegos_wallet/ui/themes.dart';
 
-class AccountCard extends StatefulWidget {
-  AccountCard({@required ValueKey<AccountStore> key, @required this.collapsed}) : super(key: key);
+class AccountCard extends StatelessWidget {
+  AccountCard({
+    @required ValueKey<AccountStore> key,
+    @required this.collapsed,
+    this.onTap,
+    this.backgroundAlignment,
+  }) : super(key: key);
   final bool collapsed;
+  final void Function() onTap;
+  final Alignment backgroundAlignment;
 
   AccountStore get account => (key as ValueKey<AccountStore>).value;
 
-  @override
-  AccountCardState createState() => AccountCardState();
-}
-
-class AccountCardState extends State<AccountCard> {
-  double get aspectRation => widget.collapsed ? 302 / 48 : 302 / 174.06;
+  double get aspectRation => collapsed ? 302 / 48 : 302 / 174.06;
 
   @override
   Widget build(BuildContext context) => Observer(builder: (context) {
-        final account = widget.account;
-        final bgAlignment = (() {
-          switch (account.ordinal % 3) {
-            case 1:
-              return Alignment.topCenter;
-            case 2:
-              return Alignment.center;
-            default:
-              return Alignment.bottomCenter;
-          }
-        })();
-
+        final bgAlignment =
+            backgroundAlignment ?? Alignment(0, (account.ordinal % 3 - 1).toDouble());
         return Container(
           width: MediaQuery.of(context).size.width - 60,
-          margin: EdgeInsets.symmetric(vertical: widget.collapsed ? 4 : 15),
+          margin: EdgeInsets.symmetric(vertical: collapsed ? 4 : 15),
           color: StegosColors.backgroundColor,
           child: Material(
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(3.0)),
@@ -48,20 +40,21 @@ class AccountCardState extends State<AccountCard> {
               alignment: bgAlignment,
               child: InkWell(
                 borderRadius: BorderRadius.circular(3.0),
-                onTap: () => Navigator.pushNamed(context, Routes.account, arguments: account),
+                onTap:
+                    onTap ?? () => Navigator.pushNamed(context, Routes.account, arguments: account),
                 child: AspectRatio(
                     aspectRatio: aspectRation,
                     child: Stack(
                       children: <Widget>[
                         Container(
                             alignment: Alignment.centerRight,
-                            padding: EdgeInsets.only(right: widget.collapsed ? 52 : 19),
+                            padding: EdgeInsets.only(right: collapsed ? 52 : 19),
                             child: Text('${account.humanBalance} STG',
-                                style: TextStyle(fontSize: widget.collapsed ? 18 : 32))),
+                                style: TextStyle(fontSize: collapsed ? 18 : 32))),
                         Container(
                             padding: EdgeInsets.only(
                               left: 15,
-                              bottom: widget.collapsed ? 13 : 10,
+                              bottom: collapsed ? 13 : 10,
                               right: 20,
                             ),
                             alignment: Alignment.bottomCenter,
@@ -89,8 +82,8 @@ class AccountCardState extends State<AccountCard> {
   Future<String> _showQRCode() {
     return StegosApp.navigatorState.push(MaterialPageRoute(
       builder: (BuildContext context) => QrGenerator(
-        title: 'QR code for ${widget.account.humanName}',
-        qrData: widget.account.pkey,
+        title: 'QR code for ${account.humanName}',
+        qrData: account.pkey,
       ),
       fullscreenDialog: true,
     ));

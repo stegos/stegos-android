@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:stegos_wallet/ui/themes.dart';
 import 'package:stegos_wallet/widgets/widget_app_bar.dart';
+import 'package:stegos_wallet/widgets/widget_scaffold_body_wrapper.dart';
 
 class CreateChatScreen extends StatefulWidget {
   @override
@@ -42,14 +43,16 @@ class _CreateChatScreenState extends State<CreateChatScreen> {
           title: const Text('Create new chat'),
           actions: <Widget>[IconButton(onPressed: () {}, icon: const Icon(Icons.search))],
         ),
-        body: Stack(
-          children: <Widget>[
-            _buildButtons(),
-            Padding(
-              padding: const EdgeInsets.only(top: 100),
-              child: ListView.builder(itemBuilder: _chatItemBuilder),
-            )
-          ],
+        body: ScaffoldBodyWrapperWidget(
+          builder: (context) => Stack(
+            children: <Widget>[
+              _buildButtons(),
+              Padding(
+                padding: const EdgeInsets.only(top: 100),
+                child: ListView.builder(itemBuilder: _chatItemBuilder),
+              )
+            ],
+          ),
         ),
       ),
     );
