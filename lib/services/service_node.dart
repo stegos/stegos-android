@@ -620,10 +620,7 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
   }
 
   Future<void> _onAccountDeleted(StegosNodeMessage msg) => _env.useDb((db) async {
-        await db
-            .createQuery('/[account_id = :?] | del | count', _txsCollection)
-            .setInt(0, msg.accountId)
-            .executeScalarInt();
+        await _clearAccountTransactions(msg.accountId);
         await db.delIgnoreNotFound(_accountsCollecton, msg.accountId);
       }).whenComplete(() {
         runInAction(() {
@@ -827,6 +824,7 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
     await _env.useDb((db) async {
       account._updateFromBalanceMessage(msg);
       await db.patchOrPut(_accountsCollecton, account, id);
+
       // fixme: Lazy loading of account transactions
       return _syncAccountTransactions(account);
     });
@@ -1000,6 +998,16 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
     // todo:
   }
 
+  Future<int> _clearAccountTransactions(int accountId) {
+    if (log.isFine) {
+      log.fine('Clearing account ${accountId} transactions');
+    }
+    return _env.useDb((db) => db
+        .createQuery('/[account_id = :?] | del | count', _txsCollection)
+        .setInt(0, accountId)
+        .executeScalarInt());
+  }
+
   Future<void> _syncAccounts() async {
     final nodeAccounts = await _detectNetworkAndSetupInitialAccounts();
     final ids = nodeAccounts.keys.map(int.parse).toList();
@@ -1023,20 +1031,21 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
           acc._updateFromJBDOC(doc);
         }
       }
-      runInAction(() {
-        ids.forEach((id) {
-          AccountStore acc = accounts[id];
-          if (acc == null) {
-            acc = AccountStore.empty(id);
-            accounts[id] = acc;
-          }
-          final ainfo = nodeAccounts['$id'];
-          if (ainfo != null) {
-            acc.pkey = ainfo['account_pkey'] as String;
-            acc.networkPkey = ainfo['network_pkey'] as String;
-          }
-        });
-      });
+      await Future.wait(ids.map((id) {
+        final acc = runInAction(() => accounts.putIfAbsent(id, () => AccountStore.empty(id)));
+        final ainfo = nodeAccounts['$id'];
+        final pkey = ainfo['account_pkey'] as String;
+        final networkPKey = ainfo['network_pkey'] as String;
+        final keysChanged = (acc.pkey != null && acc.pkey != pkey) ||
+            (acc.networkPkey != null && acc.networkPkey != networkPKey);
+        acc.pkey = pkey;
+        acc.networkPkey = networkPKey;
+        if (keysChanged) {
+          return _clearAccountTransactions(acc.id);
+        } else {
+          return Future.value();
+        }
+      }));
     }).then((_) {
       return _syncAccountsInfos(ids, forceSealing: true);
     });
