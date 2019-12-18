@@ -206,8 +206,7 @@ class _PayScreenState extends State<PayScreen> {
   Widget _buildToAddress() {
     final UnderlineInputBorder textFieldBorder = UnderlineInputBorder(
         borderSide: BorderSide(
-            color: _store.isValidToAddress ? StegosColors.white : Colors.redAccent,
-            width: 1));
+            color: _store.isValidToAddress ? StegosColors.white : Colors.redAccent, width: 1));
     return _withLabel(
         'Recepient address',
         Container(
@@ -425,7 +424,9 @@ class _PayScreenState extends State<PayScreen> {
     }
     runInAction(() {
       _store.toAddress = toAddress;
-      _addressTextController.text = toAddress;
+      setState(() {
+        _addressTextController.text = toAddress;
+      });
     });
   }
 }
