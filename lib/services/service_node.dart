@@ -164,12 +164,21 @@ abstract class _TxStore with Store {
 class AccountStore extends _AccountStore with _$AccountStore {
   AccountStore.empty(int id) : super(id);
 
-  AccountStore._(int id, String name, String password, String iv, int ordinal)
-      : super(id, name, password, iv, ordinal);
+  AccountStore._(
+      int id, String name, String password, String iv, int ordinal, String pkey, String networkPKey)
+      : super(id, name, password, iv, ordinal, pkey, networkPKey);
 
   factory AccountStore._fromJBDOC(JBDOC doc) {
-    return AccountStore._(doc.object['id'] as int, doc.object['name'] as String,
-        doc.object['password'] as String, doc.object['iv'] as String, doc.object['ordinal'] as int);
+    final ret = AccountStore._(
+        doc.object['id'] as int,
+        doc.object['name'] as String,
+        doc.object['password'] as String,
+        doc.object['iv'] as String,
+        doc.object['ordinal'] as int,
+        doc.object['pkey'] as String,
+        doc.object['networkPKey'] as String);
+    ret._setBalanceFromJBDOC(doc);
+    return ret;
   }
 
   @override
@@ -180,7 +189,8 @@ class AccountStore extends _AccountStore with _$AccountStore {
 }
 
 abstract class _AccountStore with Store {
-  _AccountStore(this.id, [this.name, this._password, this._iv, this.ordinal]) {
+  _AccountStore(this.id,
+      [this.name, this._password, this._iv, this.ordinal, this.pkey, this.networkPKey]) {
     ordinal ??= id > 0 ? id - 1 : 0;
   }
 
@@ -190,7 +200,7 @@ abstract class _AccountStore with Store {
 
   String pkey;
 
-  String networkPkey;
+  String networkPKey;
 
   @computed
   String get humanName => name ?? 'Account #${id}';
@@ -301,6 +311,10 @@ abstract class _AccountStore with Store {
         msg.at('/stake/available').transform((v) => v as int).or(balanceStakeAvailable ?? 0);
   }
 
+  void _setBalanceFromJBDOC(JBDOC doc) {
+    balanceCurrent = doc.object['balanceCurrent'] as int ?? 0;
+  }
+
   dynamic toJson() => {
         // Note: Sensitive info is not stored in db
         'id': id,
@@ -308,7 +322,10 @@ abstract class _AccountStore with Store {
         'ordinal': ordinal,
         'backedUp': backedUp,
         'password': _password,
-        'iv': _iv
+        'iv': _iv,
+        'pkey': pkey,
+        'networkPKey': networkPKey,
+        'balanceCurrent': balanceCurrent
       };
 
   @override
@@ -331,6 +348,11 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
   _NodeService(this.parent) {
     // Set global env
     _env = parent.env;
+    unawaited(_env.useDb((db) => Future.wait([
+          db.ensureStringIndex(_txsCollection, '/tx_hash', true),
+          db.ensureStringIndex(_txsCollection, '/output_hash', true),
+          db.ensureIntIndex(_txsCollection, '/account_id', false)
+        ])));
   }
 
   final StegosStore parent;
@@ -502,9 +524,16 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
     });
   }
 
-
-  Future<void> setAccountPassword(AccountStore account, String password) {
-    // todo:
+  Future<void> setAccountPassword(AccountStore account, String password) async {
+    await _unsealAccount(account.id, force: true);
+    final pwp = await _env.securityService.acquirePasswordForApp();
+    final pp = _env.securityService.setupPinProtectedPassword(password, pwp.second);
+    await client.sendAndAwait(
+        {'type': 'change_password', 'account_id': '${account.id}', 'new_password': password});
+    account._password = pp.first;
+    account._iv = pp.second;
+    await _env.useDb((db) => db.patch(
+        _accountsCollecton, {'password': account._password, 'iv': account._iv}, account.id));
   }
 
   Future<void> renameAccount(int id, String name) {
@@ -588,13 +617,20 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
 
   @override
   Future<void> activate() async {
+    if (!client.connected) {
+      await _syncAccountsOffline().catchError((err, StackTrace st) =>
+          log.warning('Failed to sync accounts for offline usage', err, st));
+    }
+    if (client.connected) {
+      await _syncNodeStatus(true)
+          .catchError((err, StackTrace st) => log.warning('Failed to sync node status', err, st));
+    }
+    // Track connection status changes
     _disposers.addAll([
       reaction((_) => client.connected, _syncNodeStatus),
       reaction((_) => client.connected && !_env.securityService.needAppUnlock, (bool connected) {
         if (connected) {
           _syncAccounts();
-        } else {
-          _syncAccountsOffline();
         }
       })
     ]);
@@ -613,10 +649,7 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
   }
 
   Future<void> _onAccountDeleted(StegosNodeMessage msg) => _env.useDb((db) async {
-        await db
-            .createQuery('/[account_id = :?] | del | count', _txsCollection)
-            .setInt(0, msg.accountId)
-            .executeScalarInt();
+        await _clearAccountTransactions(msg.accountId);
         await db.delIgnoreNotFound(_accountsCollecton, msg.accountId);
       }).whenComplete(() {
         runInAction(() {
@@ -723,11 +756,11 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
     account._updateTransaction(doc.value.id, json);
   }
 
-  void _syncNodeStatus(bool connected) {
+  Future<void> _syncNodeStatus(bool connected) async {
     if (!connected) {
       return;
     }
-    unawaited(client.sendAndAwait({'type': 'status_info'}).then((msg) {
+    return client.sendAndAwait({'type': 'status_info'}).then((msg) {
       runInAction(() {
         synchronized = msg.json['is_synchronized'] as bool ?? false;
         if (synchronized == false) {
@@ -735,10 +768,10 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
           Timer(const Duration(seconds: 10), () => _syncNodeStatus(this.connected));
         }
       });
-    }));
+    });
   }
 
-  Future<void> _syncAccountsInfos(Iterable<int> ids, {bool forceSealing = false}) =>
+  Future<void> _syncAccountsByIds(Iterable<int> ids, {bool forceSealing = false}) =>
       Future.forEach(ids, (int id) {
         if (!accounts.containsKey(id)) {
           return Future.value();
@@ -749,7 +782,7 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
         });
       });
 
-  Future<void> _syncAccountTransactions(AccountStore account) => _env.useDb((db) async {
+  Future<List<TxStore>> _fetchAccountTransactions(AccountStore account) => _env.useDb((db) async {
         final list = await db
             .createQuery('/[account_id = :?] | noidx limit :?', _txsCollection)
             .setInt(0, account.id)
@@ -757,7 +790,12 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
             .execute()
             .map((doc) => TxStore.fromJson(account, doc.id, doc.object))
             .toList();
+        list.sort((s1, s2) => s2.cts.compareTo(s1.cts));
+        return list;
+      });
 
+  Future<void> _syncAccountTransactions(AccountStore account) => _env.useDb((db) async {
+        final list = await _fetchAccountTransactions(account);
         final hmap = <String, TxStore>{};
         list.forEach((tx) {
           if (tx.hash != null) {
@@ -820,6 +858,7 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
     await _env.useDb((db) async {
       account._updateFromBalanceMessage(msg);
       await db.patchOrPut(_accountsCollecton, account, id);
+
       // fixme: Lazy loading of account transactions
       return _syncAccountTransactions(account);
     });
@@ -912,7 +951,7 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
                 ));
         if (pw == null) {
           // User cannot unlock this account
-          throw Exception('Failed to unlock account: ${acc.humanName} skipping it');
+          throw StegosUserException('${acc.humanName} cannot be unlocked');
         }
       }
     }
@@ -976,30 +1015,53 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
     runInAction(() {
       network = pkey.substring(0, 3);
     });
-
-    // await _env.useDb((db) => db.removeCollection(_txsCollection));
-
-    unawaited(_env.useDb((db) => Future.wait([
-          db.ensureStringIndex(_txsCollection, '/tx_hash', true),
-          db.ensureStringIndex(_txsCollection, '/output_hash', true),
-          db.ensureIntIndex(_txsCollection, '/account_id', false)
-        ])));
-
     log.info('Using Stegos network: ${network}');
     return nodeAccounts;
   }
 
-  Future<void> _syncAccountsOffline() async {
-    // todo:
+  Future<void> _syncAccountsOffline() async => _env.useDb((db) async {
+        if (log.isFine) {
+          log.fine('syncAccountsOffline...');
+        }
+        for (final checknet in ['stg', 'stt', 'str', 'dev']) {
+          final cnt = await db.createQuery('/* | count', 'accounts_$checknet').executeScalarInt();
+          if (cnt == 0) {
+            continue;
+          }
+          network = checknet;
+          runInAction(accounts.clear);
+          final accList = await db
+              .createQuery('/*', _accountsCollecton)
+              .execute()
+              .map((doc) => AccountStore._fromJBDOC(doc))
+              .asyncMap((acc) async {
+            acc.txList.addAll(await _fetchAccountTransactions(acc));
+            return acc;
+          }).toList();
+          runInAction(() {
+            for (final acc in accList) {
+              accounts[acc.id] = acc;
+            }
+          });
+          break;
+        }
+      });
+
+  Future<int> _clearAccountTransactions(int accountId) {
+    if (log.isFine) {
+      log.fine('Clearing account ${accountId} transactions');
+    }
+    return _env.useDb((db) => db
+        .createQuery('/[account_id = :?] | del | count', _txsCollection)
+        .setInt(0, accountId)
+        .executeScalarInt());
   }
 
   Future<void> _syncAccounts() async {
     final nodeAccounts = await _detectNetworkAndSetupInitialAccounts();
     final ids = nodeAccounts.keys.map(int.parse).toList();
     // Cleanup not matched accounts
-    runInAction(() {
-      accounts.removeWhere((k, v) => !ids.contains(k));
-    });
+    runInAction(() => accounts.removeWhere((k, v) => !ids.contains(k)));
     if (ids.isEmpty) {
       return Future.value();
     }
@@ -1009,29 +1071,24 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
         final id = doc.object['id'] as int;
         final acc = accounts[id];
         if (acc == null) {
-          runInAction(() {
-            accounts[id] = AccountStore._fromJBDOC(doc);
-          });
+          runInAction(() => accounts[id] = AccountStore._fromJBDOC(doc));
         } else {
           acc._updateFromJBDOC(doc);
         }
       }
-      runInAction(() {
-        ids.forEach((id) {
-          AccountStore acc = accounts[id];
-          if (acc == null) {
-            acc = AccountStore.empty(id);
-            accounts[id] = acc;
-          }
-          final ainfo = nodeAccounts['$id'];
-          if (ainfo != null) {
-            acc.pkey = ainfo['account_pkey'] as String;
-            acc.networkPkey = ainfo['network_pkey'] as String;
-          }
-        });
-      });
+      await Future.wait(ids.map((id) {
+        final acc = runInAction(() => accounts.putIfAbsent(id, () => AccountStore.empty(id)));
+        final nacc = nodeAccounts['$id'];
+        final pkey = nacc['account_pkey'] as String;
+        final networkPKey = nacc['network_pkey'] as String;
+        final keysChanged = (acc.pkey != null && acc.pkey != pkey) ||
+            (acc.networkPKey != null && acc.networkPKey != networkPKey);
+        acc.pkey = pkey;
+        acc.networkPKey = networkPKey;
+        return keysChanged ? _clearAccountTransactions(acc.id) : Future.value();
+      }));
     }).then((_) {
-      return _syncAccountsInfos(ids, forceSealing: true);
+      return _syncAccountsByIds(ids, forceSealing: true);
     });
   }
 }

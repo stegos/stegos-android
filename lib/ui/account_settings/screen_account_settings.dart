@@ -9,6 +9,7 @@ import 'package:stegos_wallet/log/loggable.dart';
 import 'package:stegos_wallet/services/service_node.dart';
 import 'package:stegos_wallet/ui/app.dart';
 import 'package:stegos_wallet/ui/backup/account_backup.dart';
+import 'package:stegos_wallet/ui/password/screen_password_set.dart';
 import 'package:stegos_wallet/ui/routes.dart';
 import 'package:stegos_wallet/ui/themes.dart';
 import 'package:stegos_wallet/utils/dialogs.dart';
@@ -28,6 +29,8 @@ class AccountSettingsScreen extends StatefulWidget {
 
 class _AccountSettingsScreenState extends State<AccountSettingsScreen>
     with Loggable<_AccountSettingsScreenState> {
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
+
   Widget _buildListTile({
     Widget leading,
     String title,
@@ -112,6 +115,7 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen>
     return Theme(
       data: StegosThemes.settingsTheme,
       child: Scaffold(
+        key: _scaffoldKey,
         appBar: AppBarWidget(
           centerTitle: false,
           leading: IconButton(
@@ -170,7 +174,8 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen>
                     trailing: Icon(
                       Icons.navigate_next,
                       color: StegosColors.primaryColorDark,
-                    )),
+                    ),
+                    onTap: _setAccountPassword),
                 _buildListTile(
                   onTap: () {
                     _deleteAccount().then((bool value) {
@@ -223,6 +228,26 @@ class _AccountSettingsScreenState extends State<AccountSettingsScreen>
           );
         },
       );
+
+  void _setAccountPassword() async {
+    final password = await StegosApp.navigatorState.push<String>(MaterialPageRoute(
+      builder: (BuildContext context) => PasswordSetScreen(
+        title: '${widget.account.humanName} password',
+        titleSubmitButton: 'Set account password',
+      ),
+      fullscreenDialog: true,
+    ));
+    if (password != null && password.isNotEmpty) {
+      final env = Provider.of<StegosEnv>(context);
+      unawaited(env.nodeService.setAccountPassword(widget.account, password).then((_) {
+        _scaffoldKey.currentState?.removeCurrentSnackBar();
+        _scaffoldKey.currentState?.showSnackBar(SnackBar(
+          content: Text('Password for ${widget.account.humanName} was changed!'),
+          duration: const Duration(seconds: 2),
+        ));
+      }));
+    }
+  }
 
   void _backupAccount() async {
     final env = Provider.of<StegosEnv>(context);
