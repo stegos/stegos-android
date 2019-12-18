@@ -11,28 +11,39 @@ class ChatScreen extends StatefulWidget {
   _ChatScreenState createState() => _ChatScreenState();
 }
 
-final List<MessageBubble> messages = [
-  const MessageBubble(
-    'Hey, i heard you\'ve sent a red packet',
-    senderName: 'Bill',
-  ),
-  const MessageBubble(
-    'hello! What\'s up? yeah, it was yesterday.',
-    side: DialogSide.right,
-  ),
-  const MessageBubble(
-    'How was it?',
-    senderName: 'Konstantine',
-  ),
-  const MessageBubble(
-    'It was awesome actually. It became empty in 3 hours. I didn\'t expect it. Probably i was good idea to creare a channel from my Quara followers',
-    side: DialogSide.left,
-  ),
-];
-
 class _ChatScreenState extends State<ChatScreen> {
   Widget _chatItemBuilder(BuildContext context, int index) {
-    return messages[index % 3];
+    return messages.length > index ? messages[index] : null;
+  }
+
+  final FocusNode messageInputFocusNode = FocusNode();
+  final TextEditingController messageController = TextEditingController();
+  final List<MessageBubble> messages = [];
+  bool messageInputHasFocus = false;
+
+  @override
+  void initState() {
+    messageInputFocusNode.addListener(() {
+      setState(() {
+        messageInputHasFocus = messageInputFocusNode.hasFocus;
+      });
+    });
+    super.initState();
+  }
+
+  void onSubminMessage(String value) {
+    setState(() {
+      messages.insert(
+        0,
+        MessageBubble(
+          messageController.text,
+          side: DialogSide.right,
+        ),
+      );
+    });
+
+    messageController.text = '';
+    messageInputFocusNode.unfocus();
   }
 
   @override
@@ -51,7 +62,18 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
             onPressed: () => Navigator.of(context).pop(),
           ),
-          title: const Text('Lucky team'),
+          title: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              const Text('Lucky team'),
+              Text('2 members',
+                  style: TextStyle(
+                    color: StegosColors.primaryColorDark,
+                    fontWeight: FontWeight.w300,
+                    fontSize: 14,
+                  )),
+            ],
+          ),
           actions: <Widget>[IconButton(onPressed: () {}, icon: const Icon(Icons.more_vert))],
         ),
         body: Stack(
@@ -67,43 +89,75 @@ class _ChatScreenState extends State<ChatScreen> {
             Container(
               height: 65,
               color: const Color(0xff0f0f1a),
-              child: Stack(
-                children: <Widget>[
-                  Container(
-                    width: 48,
-                    alignment: Alignment.center,
-                    child: IconButton(
-                      icon: Transform.rotate(
-                        angle: pi + pi / 4,
-                        child: Icon(Icons.attach_file),
-                      ),
-                      onPressed: () {},
-                    ),
-                  ),
-                  Container(
-                    width: 48,
-                    alignment: Alignment.center,
-                    margin: const EdgeInsets.only(left: 48),
-                    child: IconButton(
-                      icon: Icon(Icons.insert_emoticon),
-                      onPressed: () {},
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.only(left: 96, right: 20, top: 10),
-                    alignment: Alignment.center,
-                    child: TextField(
-                      maxLines: 2,
-                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w300),
-                      cursorColor: StegosColors.accentColor,
-                      decoration: InputDecoration(
-                        border: InputBorder.none,
-                        hintText: 'Message',
-                        hintStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.w300),
+              child: Material(
+                color: Colors.transparent,
+                child: Stack(
+                  children: <Widget>[
+                    Container(
+                      width: 48,
+                      alignment: Alignment.center,
+                      child: IconButton(
+                        icon: Transform.rotate(
+                          angle: pi + pi / 4,
+                          child: Icon(Icons.attach_file),
+                        ),
+                        onPressed: () {},
                       ),
                     ),
-                  ),
-                ],
+                    Container(
+                      width: 48,
+                      alignment: Alignment.center,
+                      margin: const EdgeInsets.only(left: 48),
+                      child: IconButton(
+                        icon: Icon(Icons.insert_emoticon),
+                        onPressed: () {},
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.only(left: 102, right: 64, top: 10),
+                      alignment: Alignment.center,
+                      child: TextField(
+                        onSubmitted: onSubminMessage,
+                        controller: messageController,
+                        focusNode: messageInputFocusNode,
+                        maxLines: 2,
+                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w300),
+                        cursorColor: StegosColors.accentColor,
+                        decoration: InputDecoration(
+                          border: InputBorder.none,
+                          hintText: 'Message',
+                          hintStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.w300),
+                        ),
+                      ),
+                    ),
+                    Container(
+                      alignment: Alignment.centerRight,
+                      child: Container(
+                        width: 64,
+                        alignment: Alignment.center,
+                        margin: const EdgeInsets.only(left: 48),
+                        child: messageInputHasFocus
+                            ? IconButton(
+                                icon: Container(
+                                  width: 32,
+                                  height: 32,
+                                  alignment: Alignment.center,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(16),
+                                    color: StegosColors.accentColor,
+                                  ),
+                                  child: Icon(
+                                    Icons.arrow_upward,
+                                    color: const Color(0xff0f0f1a),
+                                  ),
+                                ),
+                                onPressed: () => onSubminMessage(''),
+                              )
+                            : null,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             )
           ],
