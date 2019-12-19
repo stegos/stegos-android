@@ -159,7 +159,11 @@ mixin Routes {
           return MaterialPageRoute(
               builder: (BuildContext context) => AccountScreen(account: account));
         case wallet:
-          return MaterialPageRoute(builder: (BuildContext context) => WalletScreen());
+          final initialTab = settings.arguments as int;
+          return MaterialPageRoute(
+              builder: (BuildContext context) => WalletScreen(
+                    initialTab: initialTab,
+                  ));
         case recover:
           return MaterialPageRoute(builder: (BuildContext context) => RecoverScreen());
         case splash:

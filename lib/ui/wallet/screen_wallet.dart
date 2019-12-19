@@ -36,12 +36,16 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(vsync: this, length: 4, initialIndex: widget.initialTab);
-    _tabController.addListener(() {
-      setState(() {
-        selectedItem = _tabController.index;
-        scanForAddress = _tabController.index == 1;
-      });
+    _tabController = TabController(vsync: this, length: 4);
+    _tabController.index = widget.initialTab ?? 0;
+    updateTabParams();
+    _tabController.addListener(updateTabParams);
+  }
+
+  void updateTabParams() {
+    setState(() {
+      selectedItem = _tabController.index;
+      scanForAddress = _tabController.index == 1;
     });
   }
 
@@ -50,7 +54,6 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
     return Theme(
       data: StegosThemes.walletTheme,
       child: DefaultTabController(
-        initialIndex: 2,
         length: 4,
         child: Scaffold(
           key: _drawerKey,
