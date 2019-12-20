@@ -40,8 +40,8 @@ enum PaymentMethod {
 
 class TxStore extends _TxStore with _$TxStore {
   TxStore(AccountStore account, int id, bool send, String recipient, int amount, int cts,
-      String comment, int fee, String status, String hash, bool hasCert)
-      : super(account, id, send, recipient, amount, cts, comment, fee, status, hash, hasCert);
+      String comment, int fee, String status, String hash, dynamic certOutput)
+      : super(account, id, send, recipient, amount, cts, comment, fee, status, hash, certOutput);
 
   factory TxStore.fromJson(AccountStore account, int id, dynamic json) {
     final type = json['type'] as String ?? '';
@@ -49,7 +49,7 @@ class TxStore extends _TxStore with _$TxStore {
     final recipient = json['recipient'] as String;
     final amount = json['amount'] as int ?? 0;
     final hash = json['tx_hash'] as String ?? json['output_hash'] as String;
-    var hasCert = false;
+    dynamic certOutput;
 
     int cts;
     if (json['timestamp'] is String) {
@@ -64,18 +64,18 @@ class TxStore extends _TxStore with _$TxStore {
     if (send) {
       fee = json['fee'] as int ?? 0;
       status = json['status'] as String ?? status;
-      hasCert = (json['outputs'] as List ?? []).firstWhere(
-              (o) => o['output_type'] == 'payment' && o['rvalue'] != null,
-              orElse: () => null) !=
-          null;
+      certOutput = (json['outputs'] as List ?? []).firstWhere(
+          (o) => o['output_type'] == 'payment' && o['rvalue'] != null,
+          orElse: () => null);
     }
-    return TxStore(account, id, send, recipient, amount, cts, comment, fee, status, hash, hasCert);
+    return TxStore(
+        account, id, send, recipient, amount, cts, comment, fee, status, hash, certOutput);
   }
 }
 
 abstract class _TxStore with Store {
   _TxStore(this.account, this.id, this.send, this.recipient, this.amount, this.cts, this.comment,
-      this.fee, this.status, this.hash, this.hasCert)
+      this.fee, this.status, this.hash, this.certOutput)
       : humanCreationTime =
             _txDateFormatter.format(DateTime.fromMillisecondsSinceEpoch(cts, isUtc: false)),
         humanAmount = '${send ? '-' : ''}${(amount / 1e6).toStringAsFixed(3)}';
@@ -141,8 +141,10 @@ abstract class _TxStore with Store {
   String hash;
 
   /// Transaction has certificate
-  @observable
-  bool hasCert = false;
+  bool get hasCert => certOutput != null;
+
+  /// Transaction certificate output
+  dynamic certOutput;
 
   @observable
   int fee;
@@ -163,12 +165,9 @@ abstract class _TxStore with Store {
       fee = json['fee'] as int ?? fee ?? 0;
       status = json['status'] as String ?? status;
       hash ??= json['tx_hash'] as String ?? json['output_hash'] as String;
-      if (!hasCert) {
-        hasCert = (json['outputs'] as List ?? []).firstWhere(
-                (o) => o['output_type'] == 'payment' && o['rvalue'] != null,
-                orElse: () => null) !=
-            null;
-      }
+      certOutput ??= (json['outputs'] as List ?? []).firstWhere(
+          (o) => o['output_type'] == 'payment' && o['rvalue'] != null,
+          orElse: () => null);
     }
   }
 }
@@ -352,6 +351,22 @@ class _UnsealAccountStatus {
 
   @override
   String toString() => 'usealed=${unsealed}, invalidPassword=${invalidPassword}';
+}
+
+class TxValidationInfo {
+  TxValidationInfo(this.epoch, this.blockHash, this.isFinal, this.timestamp, this.amount);
+  factory TxValidationInfo.fromJson(dynamic json) => TxValidationInfo(
+      json['epoch'] as int ?? 0,
+      json['block_hash'] as String ?? '',
+      json['is_final'] as bool ?? false,
+      json['timestamp'] as String ?? '',
+      json['amount'] as int ?? 0);
+
+  final int epoch;
+  final String blockHash;
+  final bool isFinal;
+  final String timestamp;
+  final int amount;
 }
 
 class NodeService = _NodeService with _$NodeService;
@@ -628,6 +643,21 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
 
     await _env.useDb((db) => db.patch(_txsCollection, msg.json, id));
     account._updateTransaction(id, msg.json);
+  }
+
+  Future<TxValidationInfo> validateTxCertificate(TxStore tx) async {
+    if (!operable || tx.certOutput == null) {
+      return null;
+    }
+    final certOutput = tx.certOutput;
+    final msg = await client.sendAndAwait({
+      'type': 'validate_certificate',
+      'spender': tx.account.pkey,
+      'output_hash': certOutput['output_hash'],
+      'recipient': certOutput['recipient'],
+      'rvalue': certOutput['rvalue']
+    });
+    return TxValidationInfo.fromJson(msg.json);
   }
 
   @override

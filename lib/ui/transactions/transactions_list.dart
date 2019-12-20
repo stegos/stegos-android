@@ -103,7 +103,7 @@ class _TransactionsListState extends State<TransactionsList> with TickerProvider
                   alignment: Alignment.topRight,
                   child: tx.hasCert
                       ? InkResponse(
-                          onTap: _openCertificate,
+                          onTap: () => _openCertificate(tx),
                           child: SvgPicture.asset(
                             'assets/images/certificate.svg',
                             width: 24,
@@ -118,10 +118,9 @@ class _TransactionsListState extends State<TransactionsList> with TickerProvider
     );
   }
 
-  void _openCertificate() {
+  void _openCertificate(TxStore tx) {
     StegosApp.navigatorState.push(MaterialPageRoute(
-      builder: (BuildContext context) => CertificateScreen(),
-      fullscreenDialog: true,
+      builder: (BuildContext context) => CertificateScreen(transaction: tx),
     ));
   }
 
@@ -130,7 +129,6 @@ class _TransactionsListState extends State<TransactionsList> with TickerProvider
       builder: (BuildContext context) => TransactionDataScreeen(
         transaction: tx,
       ),
-      fullscreenDialog: true,
     ));
   }
 }

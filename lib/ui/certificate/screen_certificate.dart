@@ -2,22 +2,37 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:provider/provider.dart';
+import 'package:stegos_wallet/env_stegos.dart';
+import 'package:stegos_wallet/services/service_node.dart';
 import 'package:stegos_wallet/ui/themes.dart';
 import 'package:stegos_wallet/widgets/widget_app_bar.dart';
 
 class CertificateScreen extends StatefulWidget {
-  CertificateScreen({Key key, this.id}) : super(key: key);
+  CertificateScreen({Key key, this.transaction}) : super(key: key);
 
-  final int id;
+  final TxStore transaction;
 
   @override
   CertificateScreenState createState() => CertificateScreenState();
 }
 
 class CertificateScreenState extends State<CertificateScreen> {
-  static const _iconBackImage = AssetImage('assets/images/arrow_back.png');
+  TxValidationInfo txvInfo;
 
-  final EdgeInsets defaultPadding = const EdgeInsets.all(16.0);
+  @override
+  void didChangeDependencies() async {
+    super.didChangeDependencies();
+    if (txvInfo == null) {
+      final env = Provider.of<StegosEnv>(context);
+      final info = await env.nodeService.validateTxCertificate(widget.transaction);
+      if (info != null) {
+        setState(() {
+          txvInfo = info;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +45,7 @@ class CertificateScreenState extends State<CertificateScreen> {
             backgroundColor: Theme.of(context).colorScheme.primary,
             leading: IconButton(
               icon: const Image(
-                image: _iconBackImage,
+                image: AssetImage('assets/images/arrow_back.png'),
                 width: 24,
                 height: 24,
               ),
@@ -55,72 +70,74 @@ class CertificateScreenState extends State<CertificateScreen> {
                           children: <Widget>[
                             Container(
                               padding: const EdgeInsets.only(left: 15, right: 15),
-                              child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: const [
-                                    Text('06-10-19', style: TextStyle(fontSize: 14)),
-                                    Text('17:30:15', style: TextStyle(fontSize: 14))
-                                  ]),
+                              child:
+                                  Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                                Text(widget.transaction.humanCreationTime,
+                                    style: const TextStyle(fontSize: 14)),
+                                Text(widget.transaction.humanStatus,
+                                    style: const TextStyle(fontSize: 14))
+                              ]),
                             ),
                             const SizedBox(height: 34),
-                            const Text('-10943 STG', style: TextStyle(fontSize: 32)),
+                            Text('${widget.transaction.humanAmount} STG',
+                                style: const TextStyle(fontSize: 32)),
                             const SizedBox(height: 22),
-                            _buildButtons()
+                            if (txvInfo != null) _buildButtons()
                           ],
                         ))),
               ]),
               Expanded(
-                child: Stack(
-                  children: <Widget>[
-                    Container(
-                      padding: const EdgeInsets.only(left: 10, right: 10),
-                      height: 57,
-                      alignment: Alignment.center,
-                      child: Text(
-                        'Transaction data',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.only(top: 27, left: 30, right: 30),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: <Widget>[
+                      Container(
+                        padding: const EdgeInsets.only(left: 10, right: 10),
+                        alignment: Alignment.center,
+                        child: Text(
+                          'Transaction data',
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
                       ),
-                    ),
-                    SingleChildScrollView(
-                        padding: const EdgeInsets.only(top: 57, left: 30, right: 30),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: <Widget>[
-                            _buildTxValue('Sender', '0xf7da9EFFF07539840CF329B71De91'),
-                            _buildTxValue('Recepient', '0xf7da9EFFF07539840CF329B71De91'),
-                            _buildTxValue('r-value', '0xf7da9EFFF07539840CF329B71De91'),
-                            _buildTxValue('UTXO ID', '0xf7da9EFFF07539840CF329B71De91'),
-                            const SizedBox(height: 10),
-                            Text(
-                              'Transaction verification',
-                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                              textAlign: TextAlign.center,
+                      _buildTxValue('Sender', '${widget.transaction.account.pkey}'),
+                      _buildTxValue('Recepient', '${widget.transaction.certOutput['recipient']}'),
+                      _buildTxValue('R-value', '${widget.transaction.certOutput['rvalue']}'),
+                      _buildTxValue('UTXO ID', '${widget.transaction.certOutput['output_hash']}'),
+                      if (txvInfo != null) ...[
+                        const SizedBox(height: 10),
+                        Text(
+                          'Transaction verification',
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 22),
+                        Row(
+                          children: const [
+                            Expanded(
+                              child: Text('Sender: Valid', style: verificationTextStyle),
                             ),
-                            const SizedBox(height: 22),
-                            Row(
-                              children: const [
-                                Expanded(
-                                  child: Text('Sender: Valid', style: verificationTextStyle),
-                                ),
-                                Expanded(
-                                  child: Text('UTXO ID: Valid', style: verificationTextStyle),
-                                ),
-                              ],
+                            Expanded(
+                              child: Text('UTXO ID: Valid', style: verificationTextStyle),
                             ),
-                            const SizedBox(height: 6),
-                            Row(
-                              children: const [
-                                Expanded(
-                                  child: Text('Recipient: Valid', style: verificationTextStyle),
-                                ),
-                                Expanded(
-                                  child: Text('UTXO Block № : 18219', style: verificationTextStyle),
-                                ),
-                              ],
-                            )
                           ],
-                        ))
-                  ],
+                        ),
+                        const SizedBox(height: 6),
+                        Row(
+                          children: [
+                            const Expanded(
+                              child: Text('Recipient: Valid', style: verificationTextStyle),
+                            ),
+                            Expanded(
+                              child: Text('UTXO Block: #${txvInfo.epoch}',
+                                  style: verificationTextStyle),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                      ]
+                    ],
+                  ),
                 ),
               )
             ],
@@ -132,14 +149,17 @@ class CertificateScreenState extends State<CertificateScreen> {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
-        border: Border(bottom: BorderSide(width: 1, color: StegosColors.white.withOpacity(0.5)))
-      ),
+          border: Border(bottom: BorderSide(width: 1, color: StegosColors.white.withOpacity(0.5)))),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          Text(label, style: TextStyle(fontSize: 12, color: StegosColors.white.withOpacity(0.54)),),
+          Text(
+            label,
+            style: TextStyle(fontSize: 12, color: StegosColors.white.withOpacity(0.54)),
+          ),
           const SizedBox(height: 10),
-          SelectableText(value, style: TextStyle(fontSize: 12, color: StegosColors.white.withOpacity(0.87))),
+          SelectableText(value,
+              style: TextStyle(fontSize: 12, color: StegosColors.white.withOpacity(0.87))),
           const SizedBox(height: 8),
         ],
       ),
