@@ -38,21 +38,25 @@ class _SelectUsersState extends State<SelectUsers> {
   }
 
   Widget buildSelectedUsersChips() {
+    final List<User> users = selectedUsers;
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
-          children: selectedUsers
+          children: users
               .map(
                 (User user) => FlatButton.icon(
                   onPressed: () => setState(() {
                     user.selected = !user.selected;
+                    if (widget.onUsersSelect != null) {
+                      widget.onUsersSelect(selectedUsers);
+                    }
                   }),
                   icon: Icon(
                     Icons.close,
                     color: StegosColors.primaryColorDark,
                   ),
                   label: Text(
-                    user.name,
+                    '${user.name}${user == users.last ? '' : ','}',
                     style: TextStyle(
                         color: StegosColors.primaryColorDark, fontWeight: FontWeight.w300),
                   ),
@@ -130,7 +134,11 @@ class _SelectUsersState extends State<SelectUsers> {
           ),
         ),
         Padding(
-          padding: const EdgeInsets.only(top: 90),
+          padding: const EdgeInsets.only(top: 75),
+          child: buildSelectedUsersChips(),
+        ),
+        Padding(
+          padding: EdgeInsets.only(top: selectedUsers.isNotEmpty ? 128 : 90),
           child: ListView.builder(itemBuilder: userBuilder),
         )
       ],

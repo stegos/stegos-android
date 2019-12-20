@@ -1,9 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:stegos_wallet/services/service_node.dart';
 import 'package:stegos_wallet/ui/chat/create_group/name_group.dart';
+import 'package:stegos_wallet/ui/chat/create_group/select_account.dart';
 import 'package:stegos_wallet/ui/chat/create_group/select_users.dart';
 import 'package:stegos_wallet/ui/themes.dart';
 import 'package:stegos_wallet/widgets/widget_app_bar.dart';
 import 'package:stegos_wallet/widgets/widget_scaffold_body_wrapper.dart';
+
+class Group {
+  String name = '';
+  String description = '';
+  List<User> members = [];
+  AccountStore account;
+}
 
 class CreateGroupScreen extends StatefulWidget {
   @override
@@ -12,19 +21,7 @@ class CreateGroupScreen extends StatefulWidget {
 
 class _CreateGroupScreenState extends State<CreateGroupScreen> {
   int step = 0;
-  List<User> members = [];
-  List<Widget> steps = [];
-
-  @override
-  void initState() {
-    steps.add(SelectUsers(
-      onUsersSelect: (List<User> users) => setState(() {
-        members = users;
-      }),
-    ));
-    steps.add(NameGroup());
-    super.initState();
-  }
+  Group group = Group();
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +37,15 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
               height: 24,
               child: Image(image: AssetImage('assets/images/arrow_back.png')),
             ),
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () {
+              if (step > 0) {
+                setState(() {
+                  step--;
+                });
+              } else {
+                Navigator.of(context).pop();
+              }
+            },
           ),
           title: const Text('Create new group'),
         ),
@@ -49,7 +54,29 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
             children: <Widget>[
               Padding(
                 padding: const EdgeInsets.only(bottom: 50),
-                child: steps[step],
+                child: [
+                  SelectUsers(
+                    onUsersSelect: (List<User> users) {
+                      setState(() {
+                        group.members = users;
+                      });
+                    },
+                  ),
+                  NameGroup(
+                    onDescriptionChanged: (String description) => setState(() {
+                      group.description = description;
+                    }),
+                    onNameChanged: (String name) => setState(() {
+                      group.name = name;
+                    }),
+                    groupMembers: group.members,
+                  ),
+                  SelectAccount(
+                    onAccountSelected: (AccountStore account) => setState(() {
+                      group.account = account;
+                    }),
+                  )
+                ][step],
               ),
               Container(
                   alignment: Alignment.bottomCenter,
@@ -61,12 +88,37 @@ class _CreateGroupScreenState extends State<CreateGroupScreen> {
     );
   }
 
+  Function() onNextPressed() {
+    switch (step) {
+      case 0:
+        if (group.members.isNotEmpty) {
+          return () => setState(() {
+                step++;
+              });
+        }
+        break;
+      case 1:
+        if (group.name.isNotEmpty) {
+          return () => setState(() {
+                step++;
+              });
+        }
+        break;
+      case 2:
+        if (group.account != null) {
+          return () => setState(() {
+//            create group
+              });
+        }
+        break;
+    }
+    return null;
+  }
+
   Widget _buildRecoverButton() => RaisedButton(
         elevation: 8,
         disabledElevation: 8,
-        onPressed: () => setState(() {
-          step = step + 1;
-        }),
+        onPressed: onNextPressed(),
         child: const Text('NEXT'),
       );
 }
