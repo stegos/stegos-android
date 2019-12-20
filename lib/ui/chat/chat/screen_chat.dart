@@ -42,6 +42,13 @@ class _ChatScreenState extends State<ChatScreen> {
           side: DialogSide.right,
         ),
       );
+      messages.insert(
+        0,
+        MessageBubble(
+          messageController.text.split('').reversed.join(),
+          side: DialogSide.left,
+        ),
+      );
     });
 
     messageController.text = '';

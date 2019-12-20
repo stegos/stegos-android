@@ -8,6 +8,7 @@ import 'package:stegos_wallet/ui/account/screen_account.dart';
 import 'package:stegos_wallet/ui/account_settings/screen_account_settings.dart';
 import 'package:stegos_wallet/ui/chat/chat/screen_chat.dart';
 import 'package:stegos_wallet/ui/chat/chat_settings/screen_chat_settings.dart';
+import 'package:stegos_wallet/ui/chat/create_group/screen_create_group.dart';
 import 'package:stegos_wallet/ui/dev/screen_dev_menu.dart';
 import 'package:stegos_wallet/ui/pay/screen_pay.dart';
 import 'package:stegos_wallet/ui/pinprotect/screen_pin_protect.dart';
@@ -104,6 +105,7 @@ mixin Routes {
   static const createChat = 'createChat';
   static const chat = 'chat';
   static const chatSettings = 'chatSettings';
+  static const createGroup = 'createGroup';
 
   static RouteFactory createRouteFactory(StegosEnv env, bool showSplash) {
     MaterialPageRoute Function(RouteSettings settings) routeFactoryFn;
@@ -194,6 +196,8 @@ mixin Routes {
           return MaterialPageRoute(builder: (BuildContext context) => ChatScreen());
         case chatSettings:
           return MaterialPageRoute(builder: (BuildContext context) => ChatSettingsScreen());
+        case createGroup:
+          return MaterialPageRoute(builder: (BuildContext context) => CreateGroupScreen());
         default:
           return MaterialPageRoute(
               maintainState: false,

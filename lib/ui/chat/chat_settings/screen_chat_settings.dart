@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import 'package:stegos_wallet/env_stegos.dart';
 import 'package:stegos_wallet/services/service_node.dart';
 import 'package:stegos_wallet/ui/app.dart';
-import 'package:stegos_wallet/ui/qr_generator/qr_generator.dart';
 import 'package:stegos_wallet/ui/routes.dart';
 import 'package:stegos_wallet/ui/themes.dart';
 import 'package:stegos_wallet/ui/wallet/wallet/account_card.dart';
@@ -17,12 +16,24 @@ class ChatSettingsScreen extends StatefulWidget {
 
 class _ChatSettingsScreenState extends State<ChatSettingsScreen> {
   final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey();
-  final bool isChannel = true;
+  final bool isChannel = false;
+  final int membersAmount = 2;
+  String chatName = 'Lucky team';
 
-  final TextEditingController channelAddressController = TextEditingController.fromValue(
-      const TextEditingValue(text: '0xf7da9EFFF07539840CF329B71De91'));
-  final TextEditingController chatNameController =
-      TextEditingController.fromValue(const TextEditingValue(text: 'Lucky team'));
+  TextEditingController channelAddressController;
+  TextEditingController chatNameController;
+
+  @override
+  void initState() {
+    channelAddressController = TextEditingController.fromValue(
+        const TextEditingValue(text: '0xf7da9EFFF07539840CF329B71De91'));
+    chatNameController = TextEditingController.fromValue(TextEditingValue(text: chatName));
+    super.initState();
+  }
+
+  bool get isDialogue => !isChannel && membersAmount == 2;
+
+  bool get isChat => !isChannel && membersAmount > 2;
 
   Widget get delimiter => Container(
         height: 15,
@@ -35,106 +46,108 @@ class _ChatSettingsScreenState extends State<ChatSettingsScreen> {
         color: StegosColors.white,
       );
 
-  Dialog deleteDialog = Dialog(
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(3.0)),
-    child: Container(
-      width: 320,
-      height: 211,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: <Widget>[
-          Padding(
-            padding: const EdgeInsets.only(top: 40, left: 30, right: 30, bottom: 10),
-            child: Text(
-              'Are you sure you want to delete Group Lucky team?',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: StegosColors.white, fontSize: 18),
-            ),
+  Dialog get deleteDialog => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(3.0)),
+        child: Container(
+          width: 320,
+          height: 211,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              Padding(
+                padding: const EdgeInsets.only(top: 40, left: 30, right: 30, bottom: 10),
+                child: Text(
+                  'Are you sure you want to delete Group $chatName?',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: StegosColors.white, fontSize: 18),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(left: 45, right: 45, bottom: 20),
+                child: Text(
+                  'This chat will be deleted only for you.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: StegosColors.primaryColorDark, fontSize: 14),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(left: 16, right: 16, bottom: 19),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    FlatButton(
+                        onPressed: () {
+                          StegosApp.navigatorState
+                              .pushReplacementNamed(Routes.wallet, arguments: 2);
+                        },
+                        child: Text(
+                          'Delete',
+                          style: TextStyle(
+                              color: const Color(0xffff6363),
+                              fontSize: 18.0,
+                              fontWeight: FontWeight.bold),
+                        )),
+                    FlatButton(
+                        onPressed: () => StegosApp.navigatorState.pop(false),
+                        child: Text(
+                          'No, Cancell',
+                          style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
+                        )),
+                  ],
+                ),
+              )
+            ],
           ),
-          Padding(
-            padding: const EdgeInsets.only(left: 45, right: 45, bottom: 20),
-            child: Text(
-              'This chat will be deleted only for you. ',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: StegosColors.primaryColorDark, fontSize: 14),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(left: 16, right: 16, bottom: 19),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                FlatButton(
-                    onPressed: () {
-                      StegosApp.navigatorState.pushReplacementNamed(Routes.wallet, arguments: 2);
-                    },
-                    child: Text(
-                      'Delete',
-                      style: TextStyle(
-                          color: const Color(0xffff6363),
-                          fontSize: 18.0,
-                          fontWeight: FontWeight.bold),
-                    )),
-                FlatButton(
-                    onPressed: () => StegosApp.navigatorState.pop(false),
-                    child: Text(
-                      'No, Cancell',
-                      style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
-                    )),
-              ],
-            ),
-          )
-        ],
-      ),
-    ),
-  );
+        ),
+      );
 
-  Dialog leaveDialog = Dialog(
-    backgroundColor: const Color(0xff343946),
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(3.0)),
-    child: Container(
-      width: 320,
-      height: 211,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: <Widget>[
-          Padding(
-            padding: const EdgeInsets.only(top: 40, left: 30, right: 30, bottom: 10),
-            child: Text(
-              'Are you sure you want to leave Group Lucky team?',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: StegosColors.white, fontSize: 18),
-            ),
+  Dialog get leaveDialog => Dialog(
+        backgroundColor: const Color(0xff343946),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(3.0)),
+        child: Container(
+          width: 320,
+          height: 211,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              Padding(
+                padding: const EdgeInsets.only(top: 40, left: 30, right: 30, bottom: 10),
+                child: Text(
+                  'Are you sure you want to leave Group $chatName?',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: StegosColors.white, fontSize: 18),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(left: 16, right: 16, bottom: 19),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    FlatButton(
+                        onPressed: () {
+                          StegosApp.navigatorState
+                              .pushReplacementNamed(Routes.wallet, arguments: 2);
+                        },
+                        child: Text(
+                          'Leave',
+                          style: TextStyle(
+                              color: const Color(0xffff6363),
+                              fontSize: 18.0,
+                              fontWeight: FontWeight.bold),
+                        )),
+                    FlatButton(
+                        onPressed: () => StegosApp.navigatorState.pop(false),
+                        child: Text(
+                          'No, Stay',
+                          style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
+                        )),
+                  ],
+                ),
+              )
+            ],
           ),
-          Padding(
-            padding: const EdgeInsets.only(left: 16, right: 16, bottom: 19),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                FlatButton(
-                    onPressed: () {
-                      StegosApp.navigatorState.pushReplacementNamed(Routes.wallet, arguments: 2);
-                    },
-                    child: Text(
-                      'Leave',
-                      style: TextStyle(
-                          color: const Color(0xffff6363),
-                          fontSize: 18.0,
-                          fontWeight: FontWeight.bold),
-                    )),
-                FlatButton(
-                    onPressed: () => StegosApp.navigatorState.pop(false),
-                    child: Text(
-                      'No, Stay',
-                      style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
-                    )),
-              ],
-            ),
-          )
-        ],
-      ),
-    ),
-  );
+        ),
+      );
 
   Widget buildListItem({@required Widget text, Widget tailing, Function() onTap}) {
     return InkWell(
@@ -263,15 +276,21 @@ class _ChatSettingsScreenState extends State<ChatSettingsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                TextField(
-                  controller: chatNameController,
-                  style: const TextStyle(fontSize: 20),
-                  decoration: InputDecoration(
-                      border: UnderlineInputBorder(
-                          borderSide: BorderSide(width: 2, color: StegosColors.primaryColorDark)),
-                      contentPadding:
-                          const EdgeInsets.only(top: 3, bottom: 5, left: 13, right: 13)),
-                ),
+                isDialogue
+                    ? const Text(
+                        'Petr Petterson',
+                        style: TextStyle(fontSize: 20),
+                      )
+                    : TextField(
+                        controller: chatNameController,
+                        style: const TextStyle(fontSize: 20),
+                        decoration: InputDecoration(
+                            border: UnderlineInputBorder(
+                                borderSide:
+                                    BorderSide(width: 2, color: StegosColors.primaryColorDark)),
+                            contentPadding:
+                                const EdgeInsets.only(top: 3, bottom: 5, left: 13, right: 13)),
+                      ),
                 const Padding(
                     padding: EdgeInsets.only(left: 13, top: 9),
                     child: Text(

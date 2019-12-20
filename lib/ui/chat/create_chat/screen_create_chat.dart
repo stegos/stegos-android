@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:stegos_wallet/ui/routes.dart';
 import 'package:stegos_wallet/ui/themes.dart';
 import 'package:stegos_wallet/widgets/widget_app_bar.dart';
 import 'package:stegos_wallet/widgets/widget_scaffold_body_wrapper.dart';
@@ -10,17 +11,18 @@ class CreateChatScreen extends StatefulWidget {
 }
 
 class _CreateChatScreenState extends State<CreateChatScreen> {
-  Widget _chatItemBuilder(BuildContext context, int index) {
-    return const ListTile(
-      contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      leading: CircleAvatar(
+  Widget _userBuilder(BuildContext context, int index) {
+    return ListTile(
+      onTap: () => Navigator.of(context).pushNamed(Routes.chat),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      leading: const CircleAvatar(
         radius: 35,
         child: Text(
           'AB',
           style: TextStyle(fontSize: 26),
         ),
       ),
-      title: Text('Anton Bucharin', style: TextStyle(fontSize: 18)),
+      title: const Text('Anton Bucharin', style: TextStyle(fontSize: 18)),
     );
   }
 
@@ -49,7 +51,7 @@ class _CreateChatScreenState extends State<CreateChatScreen> {
               _buildButtons(),
               Padding(
                 padding: const EdgeInsets.only(top: 100),
-                child: ListView.builder(itemBuilder: _chatItemBuilder),
+                child: ListView.builder(itemBuilder: _userBuilder),
               )
             ],
           ),
@@ -74,7 +76,9 @@ class _CreateChatScreenState extends State<CreateChatScreen> {
                     height: 65,
                     child: RaisedButton(
                       padding: const EdgeInsets.all(10),
-                      onPressed: () {},
+                      onPressed: () {
+                        Navigator.of(context).pushNamed(Routes.createGroup);
+                      },
                       color: StegosColors.splashBackground,
                       child: Row(
                         children: <Widget>[

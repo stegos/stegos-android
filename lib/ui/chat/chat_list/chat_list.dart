@@ -62,7 +62,7 @@ class _ChatListState extends State<ChatList> {
                       color: Color(0xff2B2E3B),
                       size: 29,
                     ),
-                    hintText: 'Search  for messages or users',
+                    hintText: 'Search for messages or users',
                   ),
                 ),
               ),

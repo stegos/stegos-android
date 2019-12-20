@@ -236,15 +236,24 @@ mixin StegosThemes {
   );
 
   static final ChatTheme = baseTheme.copyWith(
-    floatingActionButtonTheme: const FloatingActionButtonThemeData(
-        backgroundColor: Color(0xff2B2E3B), foregroundColor: StegosColors.primaryColor),
-    inputDecorationTheme: InputDecorationTheme(
-      border: InputBorder.none,
-        hintStyle: const TextStyle(
-          color: Color(0xff2B2E3B),
-          fontSize: 16,
-          height: 2
-        )
-    )
-  );
+      floatingActionButtonTheme: const FloatingActionButtonThemeData(
+          backgroundColor: Color(0xff2B2E3B), foregroundColor: StegosColors.primaryColor),
+      buttonTheme: _defaults.buttonTheme.copyWith(
+        shape: const RoundedRectangleBorder(),
+        textTheme: ButtonTextTheme.accent,
+        colorScheme: ColorScheme.fromSwatch(
+            primaryColorDark: StegosColors.primaryColorDark,
+            accentColor: StegosColors.white,
+            backgroundColor: StegosColors.primaryColorDark,
+            brightness: Brightness.dark),
+        disabledColor: StegosColors.primaryColorDark,
+        buttonColor: StegosColors.primaryColor,
+        focusColor: StegosColors.white,
+        highlightColor: StegosColors.primaryColor,
+        hoverColor: StegosColors.primaryColor,
+        splashColor: const Color(0xffe26e04),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+          border: InputBorder.none,
+          hintStyle: const TextStyle(color: Color(0xff2B2E3B), fontSize: 16, height: 2)));
 }
