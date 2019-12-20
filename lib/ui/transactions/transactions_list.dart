@@ -101,7 +101,7 @@ class _TransactionsListState extends State<TransactionsList> with TickerProvider
                 ),
                 Container(
                   alignment: Alignment.topRight,
-                  child: tx.certificateURL != null
+                  child: tx.hasCert
                       ? InkResponse(
                           onTap: _openCertificate,
                           child: SvgPicture.asset(

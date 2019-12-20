@@ -40,8 +40,8 @@ enum PaymentMethod {
 
 class TxStore extends _TxStore with _$TxStore {
   TxStore(AccountStore account, int id, bool send, String recipient, int amount, int cts,
-      String comment, int fee, String status, String hash)
-      : super(account, id, send, recipient, amount, cts, comment, fee, status, hash);
+      String comment, int fee, String status, String hash, bool hasCert)
+      : super(account, id, send, recipient, amount, cts, comment, fee, status, hash, hasCert);
 
   factory TxStore.fromJson(AccountStore account, int id, dynamic json) {
     final type = json['type'] as String ?? '';
@@ -49,6 +49,7 @@ class TxStore extends _TxStore with _$TxStore {
     final recipient = json['recipient'] as String;
     final amount = json['amount'] as int ?? 0;
     final hash = json['tx_hash'] as String ?? json['output_hash'] as String;
+    var hasCert = false;
 
     int cts;
     if (json['timestamp'] is String) {
@@ -63,14 +64,18 @@ class TxStore extends _TxStore with _$TxStore {
     if (send) {
       fee = json['fee'] as int ?? 0;
       status = json['status'] as String ?? status;
+      hasCert = (json['outputs'] as List ?? []).firstWhere(
+              (o) => o['output_type'] == 'payment' && o['rvalue'] != null,
+              orElse: () => null) !=
+          null;
     }
-    return TxStore(account, id, send, recipient, amount, cts, comment, fee, status, hash);
+    return TxStore(account, id, send, recipient, amount, cts, comment, fee, status, hash, hasCert);
   }
 }
 
 abstract class _TxStore with Store {
   _TxStore(this.account, this.id, this.send, this.recipient, this.amount, this.cts, this.comment,
-      this.fee, this.status, this.hash)
+      this.fee, this.status, this.hash, this.hasCert)
       : humanCreationTime =
             _txDateFormatter.format(DateTime.fromMillisecondsSinceEpoch(cts, isUtc: false)),
         humanAmount = '${send ? '-' : ''}${(amount / 1e6).toStringAsFixed(3)}';
@@ -104,9 +109,6 @@ abstract class _TxStore with Store {
   /// Transaction is finished. `!pending`
   bool get finished => !pending;
 
-  /// todo:
-  String certificateURL;
-
   /// Is transaction failed
   bool get failed => const ['failed', 'rejected', 'conflicted'].contains(status);
 
@@ -138,6 +140,10 @@ abstract class _TxStore with Store {
   @observable
   String hash;
 
+  /// Transaction has certificate
+  @observable
+  bool hasCert = false;
+
   @observable
   int fee;
 
@@ -157,6 +163,12 @@ abstract class _TxStore with Store {
       fee = json['fee'] as int ?? fee ?? 0;
       status = json['status'] as String ?? status;
       hash ??= json['tx_hash'] as String ?? json['output_hash'] as String;
+      if (!hasCert) {
+        hasCert = (json['outputs'] as List ?? []).firstWhere(
+                (o) => o['output_type'] == 'payment' && o['rvalue'] != null,
+                orElse: () => null) !=
+            null;
+      }
     }
   }
 }
@@ -564,7 +576,7 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
     fee ??= stegosFeeStandard;
     withCertificate ??= false;
     if (withCertificate) {
-      paymentMethod = PaymentMethod.SECURED;
+      paymentMethod = PaymentMethod.SIMPLE;
     }
     String type;
     switch (paymentMethod) {
@@ -831,8 +843,9 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
             if (tx == null) {
               final toadd = {'account_id': '${account.id}', ...h as Map};
               if (toadd['amount'] == null) {
-                final output = (toadd['outputs'] as List ?? [])
-                    .firstWhere((o) => o['output_type'] == 'payment' && o['is_change'] == false);
+                final output = (toadd['outputs'] as List ?? []).firstWhere(
+                    (o) => o['output_type'] == 'payment' && o['is_change'] == false,
+                    orElse: () => null);
                 if (output != null) {
                   toadd['amount'] = output['amount'];
                 }
