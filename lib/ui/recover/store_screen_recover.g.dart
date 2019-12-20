@@ -44,4 +44,14 @@ mixin _$RecoverScreenStore on _RecoverScreenStore, Store {
       _$_RecoverScreenStoreActionController.endAction(_$actionInfo);
     }
   }
+
+  @override
+  void clearKeys() {
+    final _$actionInfo = _$_RecoverScreenStoreActionController.startAction();
+    try {
+      return super.clearKeys();
+    } finally {
+      _$_RecoverScreenStoreActionController.endAction(_$actionInfo);
+    }
+  }
 }

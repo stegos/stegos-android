@@ -320,6 +320,23 @@ mixin _$AccountStore on _AccountStore, Store {
     }, _$ordinalAtom, name: '${_$ordinalAtom.name}_set');
   }
 
+  final _$backedUpAtom = Atom(name: '_AccountStore.backedUp');
+
+  @override
+  bool get backedUp {
+    _$backedUpAtom.context.enforceReadPolicy(_$backedUpAtom);
+    _$backedUpAtom.reportObserved();
+    return super.backedUp;
+  }
+
+  @override
+  set backedUp(bool value) {
+    _$backedUpAtom.context.conditionallyRunInAction(() {
+      super.backedUp = value;
+      _$backedUpAtom.reportChanged();
+    }, _$backedUpAtom, name: '${_$backedUpAtom.name}_set');
+  }
+
   final _$_AccountStoreActionController =
       ActionController(name: '_AccountStore');
 
@@ -405,6 +422,12 @@ mixin _$NodeService on _NodeService, Store {
   String get _txsCollection => (_$_txsCollectionComputed ??=
           Computed<String>(() => super._txsCollection))
       .value;
+  Computed<bool> _$_syncAllowedComputed;
+
+  @override
+  bool get _syncAllowed =>
+      (_$_syncAllowedComputed ??= Computed<bool>(() => super._syncAllowed))
+          .value;
 
   final _$synchronizedAtom = Atom(name: '_NodeService.synchronized');
 

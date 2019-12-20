@@ -169,8 +169,10 @@ class _PayScreenState extends State<PayScreen> {
           elevation: 16,
           onSelected: (String value) {
             runInAction(() {
-              _store.toAddress = value;
-              _addressTextController.text = value;
+              setState(() {
+                _store.toAddress = value;
+                _addressTextController.text = value;
+              });
             });
           },
           itemBuilder: (context) => accountsList.map<PopupMenuItem<String>>((AccountStore value) {
