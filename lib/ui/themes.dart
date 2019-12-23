@@ -234,4 +234,10 @@ mixin StegosThemes {
       splashColor: const Color(0xffe26e04),
     ),
   );
+
+  static final contactsTheme = baseTheme.copyWith(
+    floatingActionButtonTheme: const FloatingActionButtonThemeData(
+        backgroundColor: Color(0xff15151f), foregroundColor: StegosColors.primaryColor),
+    buttonTheme: payScreenTheme.buttonTheme,
+  );
 }
