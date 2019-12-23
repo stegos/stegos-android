@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:mobx/mobx.dart';
 import 'package:stegos_wallet/ui/app.dart';
 import 'package:stegos_wallet/ui/themes.dart';
 import 'package:stegos_wallet/ui/wallet/qr_reader/screen_qr_reader.dart';
@@ -10,13 +9,12 @@ import 'package:stegos_wallet/widgets/widget_scaffold_body_wrapper.dart';
 import 'contacts.dart';
 
 class AddContactScreen extends StatefulWidget {
-  const AddContactScreen(
-      {Key key, this.onNameChanged, this.onDescriptionChanged, this.groupMembers})
+  const AddContactScreen({Key key, this.onNameChanged, this.onDescriptionChanged, this.address})
       : super(key: key);
 
   final void Function(String) onNameChanged;
   final void Function(String) onDescriptionChanged;
-  final List<Contact> groupMembers;
+  final String address;
 
   @override
   _AddContactScreenState createState() => _AddContactScreenState();
@@ -43,6 +41,8 @@ class _AddContactScreenState extends State<AddContactScreen> {
 
   @override
   void initState() {
+    contactAddressController.text = widget.address;
+    contact.address = widget.address;
     if (widget.onNameChanged is void Function(String)) {
       contactNameController.addListener(() => widget.onNameChanged(contactNameController.text));
     }

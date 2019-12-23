@@ -181,7 +181,9 @@ mixin Routes {
           assert(args.account != null);
           return MaterialPageRoute(builder: (BuildContext context) => PayScreen(args: args));
         case addContact:
-          return MaterialPageRoute(builder: (BuildContext context) => const AddContactScreen());
+          final address = settings.arguments as String;
+          return MaterialPageRoute(
+              builder: (BuildContext context) => AddContactScreen(address: address));
         default:
           return MaterialPageRoute(
               maintainState: false,
