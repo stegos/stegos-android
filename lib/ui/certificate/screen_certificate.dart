@@ -1,12 +1,20 @@
+import 'dart:io';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:open_file/open_file.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:pdf/pdf.dart';
 import 'package:provider/provider.dart';
 import 'package:stegos_wallet/env_stegos.dart';
+import 'package:stegos_wallet/log/loggable.dart';
 import 'package:stegos_wallet/services/service_node.dart';
 import 'package:stegos_wallet/ui/themes.dart';
 import 'package:stegos_wallet/widgets/widget_app_bar.dart';
+
+import 'certificate_pdf.dart';
 
 class CertificateScreen extends StatefulWidget {
   CertificateScreen({Key key, this.transaction}) : super(key: key);
@@ -17,7 +25,7 @@ class CertificateScreen extends StatefulWidget {
   CertificateScreenState createState() => CertificateScreenState();
 }
 
-class CertificateScreenState extends State<CertificateScreen> {
+class CertificateScreenState extends State<CertificateScreen> with Loggable<CertificateScreenState> {
   TxValidationInfo txvInfo;
 
   @override
@@ -25,7 +33,8 @@ class CertificateScreenState extends State<CertificateScreen> {
     super.didChangeDependencies();
     if (txvInfo == null) {
       final env = Provider.of<StegosEnv>(context);
-      final info = await env.nodeService.validateTxCertificate(widget.transaction);
+      final info = await env.nodeService.validateTxCertificate(
+          widget.transaction);
       if (info != null) {
         setState(() {
           txvInfo = info;
@@ -42,7 +51,10 @@ class CertificateScreenState extends State<CertificateScreen> {
         child: Scaffold(
           appBar: AppBarWidget(
             centerTitle: false,
-            backgroundColor: Theme.of(context).colorScheme.primary,
+            backgroundColor: Theme
+                .of(context)
+                .colorScheme
+                .primary,
             leading: IconButton(
               icon: const Image(
                 image: AssetImage('assets/images/arrow_back.png'),
@@ -69,9 +81,11 @@ class CertificateScreenState extends State<CertificateScreen> {
                         child: Column(
                           children: <Widget>[
                             Container(
-                              padding: const EdgeInsets.only(left: 15, right: 15),
+                              padding: const EdgeInsets.only(
+                                  left: 15, right: 15),
                               child:
-                                  Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                              Row(mainAxisAlignment: MainAxisAlignment
+                                  .spaceBetween, children: [
                                 Text(widget.transaction.humanCreationTime,
                                     style: const TextStyle(fontSize: 14)),
                                 Text(widget.transaction.humanStatus,
@@ -97,28 +111,36 @@ class CertificateScreenState extends State<CertificateScreen> {
                         alignment: Alignment.center,
                         child: Text(
                           'Transaction data',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold),
                         ),
                       ),
-                      _buildTxValue('Sender', '${widget.transaction.account.pkey}'),
-                      _buildTxValue('Recepient', '${widget.transaction.certOutput['recipient']}'),
-                      _buildTxValue('R-value', '${widget.transaction.certOutput['rvalue']}'),
-                      _buildTxValue('UTXO ID', '${widget.transaction.certOutput['output_hash']}'),
+                      _buildTxValue(
+                          'Sender', '${widget.transaction.account.pkey}'),
+                      _buildTxValue('Recepient',
+                          '${widget.transaction.certOutput['recipient']}'),
+                      _buildTxValue('R-value',
+                          '${widget.transaction.certOutput['rvalue']}'),
+                      _buildTxValue('UTXO ID',
+                          '${widget.transaction.certOutput['output_hash']}'),
                       if (txvInfo != null) ...[
                         const SizedBox(height: 10),
                         Text(
                           'Transaction verification',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold),
                           textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 22),
                         Row(
                           children: const [
                             Expanded(
-                              child: Text('Sender: Valid', style: verificationTextStyle),
+                              child: Text('Sender: Valid',
+                                  style: verificationTextStyle),
                             ),
                             Expanded(
-                              child: Text('UTXO ID: Valid', style: verificationTextStyle),
+                              child: Text('UTXO ID: Valid',
+                                  style: verificationTextStyle),
                             ),
                           ],
                         ),
@@ -126,7 +148,8 @@ class CertificateScreenState extends State<CertificateScreen> {
                         Row(
                           children: [
                             const Expanded(
-                              child: Text('Recipient: Valid', style: verificationTextStyle),
+                              child: Text('Recipient: Valid',
+                                  style: verificationTextStyle),
                             ),
                             Expanded(
                               child: Text('UTXO Block: #${txvInfo.epoch}',
@@ -149,30 +172,35 @@ class CertificateScreenState extends State<CertificateScreen> {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
-          border: Border(bottom: BorderSide(width: 1, color: StegosColors.white.withOpacity(0.5)))),
+          border: Border(bottom: BorderSide(
+              width: 1, color: StegosColors.white.withOpacity(0.5)))),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
           Text(
             label,
-            style: TextStyle(fontSize: 12, color: StegosColors.white.withOpacity(0.54)),
+            style: TextStyle(
+                fontSize: 12, color: StegosColors.white.withOpacity(0.54)),
           ),
           const SizedBox(height: 10),
           SelectableText(value,
-              style: TextStyle(fontSize: 12, color: StegosColors.white.withOpacity(0.87))),
+              style: TextStyle(
+                  fontSize: 12, color: StegosColors.white.withOpacity(0.87))),
           const SizedBox(height: 8),
         ],
       ),
     );
   }
 
-  Container _buildButtons() => Container(
+  Container _buildButtons() =>
+      Container(
         color: StegosColors.backgroundColor,
         child: Container(
           padding: const EdgeInsets.only(top: 33, bottom: 25),
           margin: const EdgeInsets.symmetric(horizontal: 10),
           decoration: const BoxDecoration(
-            border: Border(bottom: BorderSide(color: StegosColors.white, width: 1)),
+            border: Border(
+                bottom: BorderSide(color: StegosColors.white, width: 1)),
           ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -187,7 +215,7 @@ class CertificateScreenState extends State<CertificateScreen> {
                     height: 65,
                     child: RaisedButton(
                       padding: const EdgeInsets.all(10),
-                      onPressed: () {},
+                      onPressed: _saveAsPDF,
                       color: StegosColors.splashBackground,
                       child: SvgPicture.asset('assets/images/pdf.svg'),
                     ),
@@ -229,4 +257,15 @@ class CertificateScreenState extends State<CertificateScreen> {
           ),
         ),
       );
+
+  void _saveAsPDF() async {
+    final env = Provider.of<StegosEnv>(context);
+    final dataDirectory = await getExternalStorageDirectory();
+    final String appDocPath = dataDirectory.path;
+    final File file = File('$appDocPath/certificate.pdf');
+    log.info('Save as file ${file.path} ...');
+    await file.writeAsBytes((await generateDocument(widget.transaction, txvInfo)).save());
+    log.info('Saved successfully');
+    await OpenFile.open(file.path);
+  }
 }
