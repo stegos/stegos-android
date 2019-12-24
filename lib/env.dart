@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:downloads_path_provider/downloads_path_provider.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:path_provider/path_provider.dart';
@@ -33,14 +32,12 @@ abstract class Env<W extends Widget> {
   Log log;
   Directory dataDirectory;
   Directory tempDirectory;
-  Directory downloadDirectory;
   String get name;
 
   Future<W> open() async {
     await initLogging();
     dataDirectory = await getApplicationDocumentsDirectory();
     tempDirectory = await getTemporaryDirectory();
-    downloadDirectory = await DownloadsPathProvider.downloadsDirectory;
     await Env.setPortrait();
     final widget = await openWidget();
     log.info('Application initialized');

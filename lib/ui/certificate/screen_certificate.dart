@@ -1,12 +1,12 @@
 import 'dart:io';
 
+import 'package:esys_flutter_share/esys_flutter_share.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:open_file/open_file.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pdf;
 import 'package:provider/provider.dart';
 import 'package:stegos_wallet/env_stegos.dart';
 import 'package:stegos_wallet/log/loggable.dart';
@@ -35,7 +35,7 @@ class CertificateScreenState extends State<CertificateScreen> with Loggable<Cert
       final env = Provider.of<StegosEnv>(context);
       final info = await env.nodeService.validateTxCertificate(
           widget.transaction);
-      if (info != null) {
+      if (info != null && mounted) {
         setState(() {
           txvInfo = info;
         });
@@ -237,7 +237,7 @@ class CertificateScreenState extends State<CertificateScreen> with Loggable<Cert
                     height: 65,
                     child: RaisedButton(
                       padding: const EdgeInsets.all(10),
-                      onPressed: () {},
+                      onPressed: _sharePdf,
                       color: StegosColors.splashBackground,
                       child: SvgPicture.asset('assets/images/share.svg'),
                     ),
@@ -258,14 +258,26 @@ class CertificateScreenState extends State<CertificateScreen> with Loggable<Cert
         ),
       );
 
-  void _saveAsPDF() async {
+  Future<void> _saveAsPDF() async {
     final env = Provider.of<StegosEnv>(context);
-    final dataDirectory = await getExternalStorageDirectory();
+    final dataDirectory = env.tempDirectory;
     final String appDocPath = dataDirectory.path;
-    final File file = File('$appDocPath/certificate.pdf');
+    final File file = File(
+        '$appDocPath/certificate_${widget.transaction.certOutput['rvalue']}.pdf');
     log.info('Save as file ${file.path} ...');
-    await file.writeAsBytes((await generateDocument(widget.transaction, txvInfo)).save());
-    log.info('Saved successfully');
+    await file.writeAsBytes(
+        (await generateDocument(widget.transaction, txvInfo)).save());
+    log.fine('Saved successfully');
     await OpenFile.open(file.path);
+  }
+
+  Future<void> _sharePdf() async {
+    final pdf.Document document =
+        await generateDocument(widget.transaction, txvInfo);
+    await Share.file(
+        'Certificate',
+        'certificate_${widget.transaction.certOutput['rvalue']}.pdf',
+        document.save(),
+        'application/pdf');
   }
 }
