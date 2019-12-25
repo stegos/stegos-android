@@ -146,15 +146,9 @@ mixin StegosThemes {
   );
 
   static final accountsTheme = baseTheme.copyWith(
-      floatingActionButtonTheme: const FloatingActionButtonThemeData(
-          backgroundColor: Color(0xff15151f), foregroundColor: StegosColors.primaryColor),
-      buttonTheme: ButtonThemeData(
-          buttonColor: const Color(0xff15151f),
-          colorScheme: ColorScheme.fromSwatch(
-              primaryColorDark: const Color(0xff15151f),
-              accentColor: const Color(0xff15151f),
-              backgroundColor: const Color(0xff15151f),
-              brightness: Brightness.dark)));
+    floatingActionButtonTheme: const FloatingActionButtonThemeData(
+        backgroundColor: Color(0xff15151f), foregroundColor: StegosColors.primaryColor),
+  );
 
   static final walletTheme = baseTheme.copyWith(
     tabBarTheme: const TabBarTheme(
@@ -237,7 +231,7 @@ mixin StegosThemes {
 
   static final ChatTheme = baseTheme.copyWith(
       floatingActionButtonTheme: const FloatingActionButtonThemeData(
-          backgroundColor: Color(0xff2B2E3B), foregroundColor: StegosColors.primaryColor),
+          backgroundColor: Color(0xff15151f), foregroundColor: StegosColors.primaryColor),
       buttonTheme: _defaults.buttonTheme.copyWith(
         shape: const RoundedRectangleBorder(),
         textTheme: ButtonTextTheme.accent,
