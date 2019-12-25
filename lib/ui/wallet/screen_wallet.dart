@@ -1,14 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:provider/provider.dart';
-import 'package:stegos_wallet/env_stegos.dart';
-import 'package:stegos_wallet/ui/app.dart';
-import 'package:stegos_wallet/ui/pay/screen_pay.dart';
+import 'package:stegos_wallet/ui/chat/chat_list/chat_list.dart';
 import 'package:stegos_wallet/ui/routes.dart';
 import 'package:stegos_wallet/ui/themes.dart';
 import 'package:stegos_wallet/ui/wallet/contacts/contacts.dart';
-import 'package:stegos_wallet/ui/wallet/qr_reader/qr_reader.dart';
 import 'package:stegos_wallet/ui/wallet/qr_reader/qr_reader_tab.dart';
 import 'package:stegos_wallet/ui/wallet/wallet/screen_accounts.dart';
 import 'package:stegos_wallet/widgets/widget_app_bar.dart';
@@ -25,24 +21,30 @@ class WalletScreen extends StatefulWidget {
 }
 
 class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderStateMixin {
-  final GlobalKey<ScaffoldState> _drawerKey = GlobalKey();
+  final GlobalKey<ScaffoldState> drawerKey = GlobalKey();
 
   bool scanForAddress = false;
   int selectedItem = 0;
-  TabController _tabController;
+  TabController tabController;
 
-  Widget _buildTabIcon(String assetName, bool selected) => SvgPicture.asset(assetName,
+  final List<String> tabNames = ['Stegos Wallet', 'QR Reader', 'Chat', 'Contacts'];
+
+  Widget buildTabIcon(String assetName, bool selected) => SvgPicture.asset(assetName,
       color: selected ? StegosColors.primaryColor : StegosColors.primaryColorDark);
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(vsync: this, length: 4, initialIndex: widget.initialTab);
-    _tabController.addListener(() {
-      setState(() {
-        selectedItem = _tabController.index;
-        scanForAddress = _tabController.index == 1;
-      });
+    tabController = TabController(vsync: this, length: 4);
+    tabController.index = widget.initialTab ?? 0;
+    updateTabParams();
+    tabController.addListener(updateTabParams);
+  }
+
+  void updateTabParams() {
+    setState(() {
+      selectedItem = tabController.index;
+      scanForAddress = tabController.index == 1;
     });
   }
 
@@ -51,17 +53,16 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
     return Theme(
       data: StegosThemes.walletTheme,
       child: DefaultTabController(
-        initialIndex: 2,
         length: 4,
         child: Scaffold(
-          key: _drawerKey,
+          key: drawerKey,
           appBar: AppBarWidget(
             centerTitle: false,
             leading: IconButton(
               icon: SvgPicture.asset('assets/images/menu.svg'),
-              onPressed: () => {_drawerKey.currentState.openDrawer()},
+              onPressed: () => {drawerKey.currentState.openDrawer()},
             ),
-            title: const Text('Stegos Wallet'),
+            title: Text(tabNames[selectedItem]),
           ),
           drawer: Drawer(
             child: ListView(
@@ -92,22 +93,22 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
           bottomNavigationBar: Container(
             color: StegosColors.splashBackground,
             child: TabBar(
-              controller: _tabController,
+              controller: tabController,
               tabs: [
                 Tab(
-                  icon: _buildTabIcon('assets/images/wallet.svg', selectedItem == 0),
+                  icon: buildTabIcon('assets/images/wallet.svg', selectedItem == 0),
                   text: 'Wallet',
                 ),
                 Tab(
-                  icon: _buildTabIcon('assets/images/qr_reader.svg', selectedItem == 1),
+                  icon: buildTabIcon('assets/images/qr_reader.svg', selectedItem == 1),
                   text: 'QR Reader',
                 ),
                 Tab(
-                  icon: _buildTabIcon('assets/images/chat.svg', selectedItem == 2),
+                  icon: buildTabIcon('assets/images/chat.svg', selectedItem == 2),
                   text: 'Chat',
                 ),
                 Tab(
-                  icon: _buildTabIcon('assets/images/contacts.svg', selectedItem == 3),
+                  icon: buildTabIcon('assets/images/contacts.svg', selectedItem == 3),
                   text: 'Contacts',
                 ),
               ],
@@ -119,13 +120,13 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
           ),
           body: TabBarView(
             physics: const NeverScrollableScrollPhysics(),
-            controller: _tabController,
+            controller: tabController,
             children: [
               AccountsScreen(),
               QrReaderTab(
                 isScanning: scanForAddress,
               ),
-              Text('Chat'),
+              ChatList(),
               Contacts(),
             ],
           ),

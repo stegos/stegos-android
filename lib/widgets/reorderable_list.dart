@@ -131,11 +131,11 @@ class _ReorderableListState extends State<ReorderableList> {
       builder: (BuildContext context) {
         return _ReorderableListContent(
           header: widget.header,
-          children: widget.children,
           scrollDirection: widget.scrollDirection,
           onReorder: widget.onReorder,
           padding: widget.padding,
           reverse: widget.reverse,
+          children: widget.children,
         );
       },
     );
@@ -279,9 +279,7 @@ class _ReorderableListContentState extends State<_ReorderableListContent>
   // Requests animation to the latest next index if it changes during an animation.
   void _onEntranceStatusChanged(AnimationStatus status) {
     if (status == AnimationStatus.completed) {
-      setState(() {
-        _requestAnimationToNextIndex();
-      });
+      setState(_requestAnimationToNextIndex);
     }
   }
 
@@ -454,7 +452,6 @@ class _ReorderableListContentState extends State<_ReorderableListContent>
             child: toWrapWithSemantics,
           ),
         ),
-        child: _dragging == toWrap.key ? const SizedBox() : toWrapWithSemantics,
         childWhenDragging: const SizedBox(),
         dragAnchor: DragAnchor.child,
         onDragStarted: onDragStarted,
@@ -467,6 +464,7 @@ class _ReorderableListContentState extends State<_ReorderableListContent>
         onDraggableCanceled: (Velocity velocity, Offset offset) {
           onDragEnded();
         },
+        child: _dragging == toWrap.key ? const SizedBox() : toWrapWithSemantics,
       );
 
       // The target for dropping at the end of the list doesn't need to be
@@ -576,10 +574,10 @@ class _ReorderableListContentState extends State<_ReorderableListContent>
       }
       return SingleChildScrollView(
         scrollDirection: widget.scrollDirection,
-        child: _buildContainerForScrollDirection(children: wrappedChildren),
         padding: widget.padding,
         controller: _scrollController,
         reverse: widget.reverse,
+        child: _buildContainerForScrollDirection(children: wrappedChildren),
       );
     });
   }

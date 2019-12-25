@@ -22,11 +22,13 @@ class PasswordScreen extends StatefulWidget {
   final String titleSubmitButton;
   final bool obscureText;
   final Future<Pair<String, String>> Function(String) unlocker;
+
   @override
   State<StatefulWidget> createState() => _PasswordScreenState();
 }
 
 class _PasswordScreenState extends State<PasswordScreen> {
+
   String _titleStatus;
 
   String _password;

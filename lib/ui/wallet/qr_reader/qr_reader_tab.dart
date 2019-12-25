@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
 import 'package:stegos_wallet/env_stegos.dart';
+import 'package:stegos_wallet/stores/store_stegos.dart';
 import 'package:stegos_wallet/ui/app.dart';
 import 'package:stegos_wallet/ui/pay/screen_pay.dart';
 import 'package:stegos_wallet/ui/routes.dart';
 import 'package:stegos_wallet/ui/themes.dart';
+import 'package:stegos_wallet/ui/wallet/contacts/contacts.dart';
+import 'package:stegos_wallet/ui/wallet/contacts/screen_edit_contact.dart';
 import 'package:stegos_wallet/ui/wallet/qr_reader/qr_reader.dart';
 
 class QrReaderTab extends StatefulWidget {
@@ -44,8 +47,10 @@ class _QrReaderTabState extends State<QrReaderTab> {
                       setState(() {
                         isScanning = false;
                       });
-                      StegosApp.navigatorState
-                          .pushReplacementNamed(Routes.addContact, arguments: address);
+                      StegosApp.navigatorState.pushReplacementNamed(
+                          Routes.editContact,
+                          arguments:
+                              EditContactScreenArguments(address: address));
                     },
                   ),
                   ListTile(

@@ -154,8 +154,8 @@ class _PinpadWidgetState extends State<PinpadWidget> {
     return Theme(
         data: StegosThemes.pinpadTheme,
         child: Container(
-            decoration: BoxDecoration(
-                image: const DecorationImage(
+            decoration: const BoxDecoration(
+                image: DecorationImage(
               image: AssetImage('assets/images/welcome_background.png'),
               fit: BoxFit.cover,
             )),

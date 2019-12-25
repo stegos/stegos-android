@@ -4,8 +4,12 @@ import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:mobx/mobx.dart';
 import 'package:stegos_wallet/env_stegos.dart';
 import 'package:stegos_wallet/services/service_node.dart';
+import 'package:stegos_wallet/stores/store_stegos.dart';
 import 'package:stegos_wallet/ui/account/screen_account.dart';
 import 'package:stegos_wallet/ui/account_settings/screen_account_settings.dart';
+import 'package:stegos_wallet/ui/chat/chat/screen_chat.dart';
+import 'package:stegos_wallet/ui/chat/chat_settings/screen_chat_settings.dart';
+import 'package:stegos_wallet/ui/chat/create_group/screen_create_group.dart';
 import 'package:stegos_wallet/ui/dev/screen_dev_menu.dart';
 import 'package:stegos_wallet/ui/pay/screen_pay.dart';
 import 'package:stegos_wallet/ui/pinprotect/screen_pin_protect.dart';
@@ -13,9 +17,11 @@ import 'package:stegos_wallet/ui/recover/screen_recover.dart';
 import 'package:stegos_wallet/ui/settings/screen_settings.dart';
 import 'package:stegos_wallet/ui/splash/screen_splash.dart';
 import 'package:stegos_wallet/ui/username/screen_username.dart';
-import 'package:stegos_wallet/ui/wallet/contacts/screen_add_contact.dart';
+import 'package:stegos_wallet/ui/wallet/contacts/contacts.dart';
+import 'package:stegos_wallet/ui/wallet/contacts/screen_edit_contact.dart';
 import 'package:stegos_wallet/ui/wallet/screen_wallet.dart';
 import 'package:stegos_wallet/ui/welcome/screen_welcome.dart';
+import 'chat/create_chat/screen_create_chat.dart';
 
 import 'error/screen_error.dart';
 
@@ -99,7 +105,12 @@ mixin Routes {
   static const username = 'username';
   static const wallet = 'wallet';
   static const welcome = 'welcome';
-  static const addContact = 'addContact';
+  static const createChat = 'createChat';
+  static const chat = 'chat';
+  static const chatSettings = 'chatSettings';
+  static const createGroup = 'createGroup';
+  static const editContact = 'addContact';
+  static const viewContact = 'viewContact';
 
   static RouteFactory createRouteFactory(StegosEnv env, bool showSplash) {
     MaterialPageRoute Function(RouteSettings settings) routeFactoryFn;
@@ -155,7 +166,11 @@ mixin Routes {
           return MaterialPageRoute(
               builder: (BuildContext context) => AccountScreen(account: account));
         case wallet:
-          return MaterialPageRoute(builder: (BuildContext context) => WalletScreen());
+          final initialTab = settings.arguments as int;
+          return MaterialPageRoute(
+              builder: (BuildContext context) => WalletScreen(
+                    initialTab: initialTab,
+                  ));
         case recover:
           return MaterialPageRoute(builder: (BuildContext context) => RecoverScreen());
         case splash:
@@ -180,10 +195,25 @@ mixin Routes {
           final args = settings.arguments as PayScreenArguments;
           assert(args.account != null);
           return MaterialPageRoute(builder: (BuildContext context) => PayScreen(args: args));
-        case addContact:
-          final address = settings.arguments as String;
+        case createChat:
+          return MaterialPageRoute(builder: (BuildContext context) => CreateChatScreen());
+        case chat:
+          return MaterialPageRoute(builder: (BuildContext context) => ChatScreen());
+        case chatSettings:
+          return MaterialPageRoute(builder: (BuildContext context) => ChatSettingsScreen());
+        case createGroup:
+          return MaterialPageRoute(builder: (BuildContext context) => CreateGroupScreen());
+        case editContact:
+          final args = settings.arguments as EditContactScreenArguments;
           return MaterialPageRoute(
-              builder: (BuildContext context) => AddContactScreen(address: address));
+              builder: (BuildContext context) => EditContactScreen(args: args));
+        case viewContact:
+          final args = settings.arguments as EditContactScreenArguments;
+          return MaterialPageRoute(
+              builder: (BuildContext context) => EditContactScreen(
+                    args: args,
+                    readOnly: true,
+                  ));
         default:
           return MaterialPageRoute(
               maintainState: false,

@@ -146,15 +146,9 @@ mixin StegosThemes {
   );
 
   static final accountsTheme = baseTheme.copyWith(
-      floatingActionButtonTheme: const FloatingActionButtonThemeData(
-          backgroundColor: Color(0xff15151f), foregroundColor: StegosColors.primaryColor),
-      buttonTheme: ButtonThemeData(
-          buttonColor: const Color(0xff15151f),
-          colorScheme: ColorScheme.fromSwatch(
-              primaryColorDark: const Color(0xff15151f),
-              accentColor: const Color(0xff15151f),
-              backgroundColor: const Color(0xff15151f),
-              brightness: Brightness.dark)));
+    floatingActionButtonTheme: const FloatingActionButtonThemeData(
+        backgroundColor: Color(0xff15151f), foregroundColor: StegosColors.primaryColor),
+  );
 
   static final walletTheme = baseTheme.copyWith(
     tabBarTheme: const TabBarTheme(
@@ -234,6 +228,28 @@ mixin StegosThemes {
       splashColor: const Color(0xffe26e04),
     ),
   );
+
+  static final ChatTheme = baseTheme.copyWith(
+      floatingActionButtonTheme: const FloatingActionButtonThemeData(
+          backgroundColor: Color(0xff15151f), foregroundColor: StegosColors.primaryColor),
+      buttonTheme: _defaults.buttonTheme.copyWith(
+        shape: const RoundedRectangleBorder(),
+        textTheme: ButtonTextTheme.accent,
+        colorScheme: ColorScheme.fromSwatch(
+            primaryColorDark: StegosColors.primaryColorDark,
+            accentColor: StegosColors.white,
+            backgroundColor: StegosColors.primaryColorDark,
+            brightness: Brightness.dark),
+        disabledColor: StegosColors.primaryColorDark,
+        buttonColor: StegosColors.primaryColor,
+        focusColor: StegosColors.white,
+        highlightColor: StegosColors.primaryColor,
+        hoverColor: StegosColors.primaryColor,
+        splashColor: const Color(0xffe26e04),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+          border: InputBorder.none,
+          hintStyle: const TextStyle(color: Color(0xff2B2E3B), fontSize: 16, height: 2)));
 
   static final contactsTheme = baseTheme.copyWith(
     floatingActionButtonTheme: const FloatingActionButtonThemeData(

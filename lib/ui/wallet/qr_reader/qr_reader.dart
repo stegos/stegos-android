@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
+import 'package:stegos_wallet/utils/stegos_address.dart';
 
 class QrReader extends StatefulWidget {
   const QrReader({Key key, @required this.onStegosAddressFound, this.isScanning = true})
@@ -15,20 +16,6 @@ class QrReader extends StatefulWidget {
 class _QrReaderState extends State<QrReader> {
   final GlobalKey _qrViewKey = GlobalKey(debugLabel: 'QR');
   QRViewController controller;
-
-  static final RegExp _stegosAddressRegExp = RegExp(
-    r'^st[rgt]1[ac-hj-np-z02-9]{8,87}$',
-    caseSensitive: false,
-    multiLine: false,
-  );
-
-  bool isValidToAddress(String address) {
-    if (address == null) {
-      return false;
-    } else {
-      return _stegosAddressRegExp.hasMatch(address);
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -86,7 +73,7 @@ class _QrReaderState extends State<QrReader> {
       this.controller = controller;
     });
     controller.scannedDataStream.listen((String scanData) {
-      if (widget.isScanning && isValidToAddress(scanData)) {
+      if (widget.isScanning && validateStegosAddress(scanData)) {
         widget.onStegosAddressFound(scanData);
       }
     });

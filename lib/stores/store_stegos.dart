@@ -9,22 +9,32 @@ import 'package:stegos_wallet/services/service_node.dart';
 part 'store_stegos.g.dart';
 
 class ContactStore extends _ContactStore {
-  ContactStore._(String name, String pkey, {int ordinal})
-      : super(name, pkey, ordinal: ordinal);
+  ContactStore._(int id, String name, String pkey, {int ordinal})
+      : super(id, name, pkey, ordinal: ordinal);
 
-  factory ContactStore._fromJBDOC(JBDOC doc) =>
-      ContactStore._(doc.object['name'] as String, doc.object['pkey'] as String,
-          ordinal: doc.object['ordinal'] as int);
+  factory ContactStore._fromJBDOC(JBDOC doc) => ContactStore._(
+      doc.id,
+      doc.object['name'] as String,
+      doc.object['pkey'] as String,
+      ordinal: doc.object['ordinal'] as int);
 
   dynamic toJson() => {
     'name': name,
     'pkey': pkey,
     'ordinal': ordinal,
   };
+
+  String get shortAddress {
+    return pkey.length > 10
+        ? '${pkey.substring(0, 8)}...${pkey.substring(pkey.length - 10)}'
+        : pkey;
+  }
 }
 
 abstract class _ContactStore with Store {
-  _ContactStore(this.name, this.pkey, {this.ordinal});
+  _ContactStore(this.id, this.name, this.pkey, {this.ordinal});
+
+  final int id;
 
   @observable
   String name;
@@ -57,7 +67,7 @@ abstract class _StegosStore extends MainStoreSupport with Store, Loggable<Stegos
   /// Basic settings
   final settings = ObservableMap<String, dynamic>();
 
-  final contacts = ObservableMap<String, ContactStore>();
+  final contacts = ObservableMap<int, ContactStore>();
 
   @computed
   List<ContactStore> get contactsList =>
@@ -179,7 +189,7 @@ abstract class _StegosStore extends MainStoreSupport with Store, Loggable<Stegos
           .map((doc) => ContactStore._fromJBDOC(doc)).toList();
       runInAction(() {
         for (final c in contactsList) {
-          contacts[c.pkey] = c;
+          contacts[c.id] = c;
         }
       });
     });
@@ -187,23 +197,39 @@ abstract class _StegosStore extends MainStoreSupport with Store, Loggable<Stegos
 
   @action
   Future<void> addContact(String name, String pkey) async {
-    //todo check if contact with that pkey already exists
-    final newContact = ContactStore._(name, pkey, ordinal: contacts.length);
-    runInAction(() => contacts.putIfAbsent(pkey, () => newContact));
+    final json = {
+      'name': name,
+      'pkey': pkey,
+      'ordinal': contacts.length
+    };
     await env.useDb((db) async {
-      await db.put(_contactsCollectionName, newContact.toJson());
+      final id = await db.put(_contactsCollectionName, json);
+      final newContact = ContactStore._(id, name, pkey, ordinal: contacts.length);
+      runInAction(() => contacts.putIfAbsent(id, () => newContact));
     });
   }
 
   @action
-  Future<void> removeContact(String pkey) async {
-    runInAction(() => contacts.remove(pkey));
+  Future<void> editContact(int id, String name, String pkey) async {
+    final contact = contacts[id];
+    if(contact == null){
+       return Future.value();
+    }
+    return env.useDb((db) =>
+      db.patch(_contactsCollectionName, {'name': name, 'pkey': pkey}, id)).then((_) {
+      runInAction(() {
+        contact.name = name;
+        contact.pkey = pkey;
+      });
+    });
+  }
+
+  @action
+  Future<void> removeContact(int id) async {
+    runInAction(() => contacts.remove(id));
     await env.useDb((db) async {
-      await db
-          .createQuery('/[pkey = :?] | del', _contactsCollectionName)
-          .setString(0, pkey)
-          .first();
-      contacts.remove(pkey);
+      await db.del(_contactsCollectionName, id);
+      contacts.remove(id);
     });
   }
 }

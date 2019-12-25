@@ -72,11 +72,19 @@ mixin _$StegosStore on _StegosStore, Store {
     return _$addContactAsyncAction.run(() => super.addContact(name, pkey));
   }
 
+  final _$editContactAsyncAction = AsyncAction('editContact');
+
+  @override
+  Future<void> editContact(int id, String name, String pkey) {
+    return _$editContactAsyncAction
+        .run(() => super.editContact(id, name, pkey));
+  }
+
   final _$removeContactAsyncAction = AsyncAction('removeContact');
 
   @override
-  Future<void> removeContact(String pkey) {
-    return _$removeContactAsyncAction.run(() => super.removeContact(pkey));
+  Future<void> removeContact(int id) {
+    return _$removeContactAsyncAction.run(() => super.removeContact(id));
   }
 
   final _$_StegosStoreActionController = ActionController(name: '_StegosStore');
