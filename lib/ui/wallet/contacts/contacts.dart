@@ -12,6 +12,11 @@ import 'package:stegos_wallet/utils/generate_color.dart';
 import 'package:stegos_wallet/widgets/widget_scaffold_body_wrapper.dart';
 
 class Contacts extends StatefulWidget {
+
+  Contacts({Key key, this.selectContact = false}) : super(key: key);
+
+  final bool selectContact;
+
   @override
   _ContactsState createState() => _ContactsState();
 }
@@ -19,13 +24,12 @@ class Contacts extends StatefulWidget {
 class _ContactsState extends State<Contacts> {
 
   String filter = '';
+  bool selectContact;
 
-  String getShortName(String name) {
-    return name
-        .split(' ')
-        .map((String part) => part[0])
-        .reduce((prev, current) => prev + current)
-        .toUpperCase();
+  @override
+  void initState() {
+    selectContact = widget.selectContact;
+    super.initState();
   }
 
   @override
@@ -102,6 +106,8 @@ class _ContactsState extends State<Contacts> {
                         },
                         child: ListTile(
                           onTap: () {
+                            selectContact ?
+                            StegosApp.navigatorState.pop(contact.pkey) :
                             StegosApp.navigatorState
                                 .pushNamed(
                                 Routes.viewContact,

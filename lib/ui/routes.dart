@@ -16,6 +16,7 @@ import 'package:stegos_wallet/ui/recover/screen_recover.dart';
 import 'package:stegos_wallet/ui/settings/screen_settings.dart';
 import 'package:stegos_wallet/ui/splash/screen_splash.dart';
 import 'package:stegos_wallet/ui/username/screen_username.dart';
+import 'package:stegos_wallet/ui/wallet/contacts/contacts.dart';
 import 'package:stegos_wallet/ui/wallet/contacts/screen_edit_contact.dart';
 import 'package:stegos_wallet/ui/wallet/screen_wallet.dart';
 import 'package:stegos_wallet/ui/welcome/screen_welcome.dart';
@@ -107,6 +108,7 @@ mixin Routes {
   static const chat = 'chat';
   static const chatSettings = 'chatSettings';
   static const createGroup = 'createGroup';
+  static const contacts = 'contacts';
   static const editContact = 'addContact';
   static const viewContact = 'viewContact';
 
@@ -201,6 +203,10 @@ mixin Routes {
           return MaterialPageRoute(builder: (BuildContext context) => ChatSettingsScreen());
         case createGroup:
           return MaterialPageRoute(builder: (BuildContext context) => CreateGroupScreen());
+        case contacts:
+          final selectContact = settings.arguments as bool || false;
+          return MaterialPageRoute(
+              builder: (BuildContext context) => Contacts(selectContact: selectContact));
         case editContact:
           final args = settings.arguments as EditContactScreenArguments;
           return MaterialPageRoute(
