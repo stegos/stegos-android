@@ -13,7 +13,7 @@ class Contact {
   String address;
 
   String get shortAddress {
-    return '${address.substring(0, 8)}...${address.substring(address.length - 8)}';
+    return '${address.substring(0, 8)}...${address.substring(address.length - 10)}';
   }
 }
 
@@ -55,88 +55,90 @@ class _ContactsState extends State<Contacts> {
       data: StegosThemes.contactsTheme,
       child: Scaffold(
         body: ScaffoldBodyWrapperWidget(
-          builder: (context) => SingleChildScrollView(
-            child: Column(
-              children: <Widget>[
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16).copyWith(top: 17, bottom: 25),
-                  height: 90,
-                  child: Container(
-                    height: 47,
-                    padding: const EdgeInsets.only(right: 15),
-                    decoration: BoxDecoration(
-                        color: const Color(0x807D8B97), borderRadius: BorderRadius.circular(12)),
-                    child: const TextField(
-                      decoration: InputDecoration(
-                          prefixIcon: Icon(
-                            Icons.search,
-                            color: Color(0xff2B2E3B),
-                            size: 29,
-                          ),
-                          hintText: 'Search for contacts',
-                          border: InputBorder.none),
-                    ),
+          builder: (context) => Stack(
+            children: <Widget>[
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16).copyWith(top: 17, bottom: 28),
+                height: 90,
+                child: Container(
+                  padding: const EdgeInsets.only(right: 15),
+                  decoration: BoxDecoration(
+                      color: const Color(0x807D8B97), borderRadius: BorderRadius.circular(12)),
+                  child: const TextField(
+                    decoration: InputDecoration(
+                        prefixIcon: Icon(
+                          Icons.search,
+                          color: Color(0xff2B2E3B),
+                          size: 29,
+                        ),
+                        hintText: 'Search for contacts',
+                        border: InputBorder.none),
                   ),
                 ),
-                Column(
-                  children: contacts.map((Contact contact) {
-                    final ValueKey<Contact> key = ValueKey(contact);
-                    return Dismissible(
-                      secondaryBackground: Container(
-                        padding: const EdgeInsets.all(10),
-                        color: StegosColors.errorColor.withOpacity(0.9),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: <Widget>[
-                            const Text('Delete'),
-                            const SizedBox(width: 5),
-                            Icon(Icons.delete_forever),
-                          ],
-                        ),
-                      ),
-                      key: key,
-                      direction: DismissDirection.horizontal,
-                      background: Container(
+              ),
+              Container(
+                padding: const EdgeInsets.only(top: 90),
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: contacts.map((Contact contact) {
+                      final ValueKey<Contact> key = ValueKey(contact);
+                      return Dismissible(
+                        secondaryBackground: Container(
                           padding: const EdgeInsets.all(10),
-                          color: StegosColors.primaryColorDark,
+                          color: StegosColors.errorColor.withOpacity(0.9),
                           child: Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
                             children: <Widget>[
-                              Icon(Icons.edit),
+                              const Text('Delete'),
                               const SizedBox(width: 5),
-                              const Text('Edit'),
+                              Icon(Icons.delete_forever),
                             ],
-                          )),
-                      confirmDismiss: (DismissDirection direction) {
-                        if (direction == DismissDirection.startToEnd) {
-                          return editContact(contact);
-                        } else {
-                          return confirmDeleting(contact);
-                        }
-                      },
-                      child: ListTile(
-                        subtitle: Text(contact.shortAddress),
-                        onTap: () {
-                          StegosApp.navigatorState
-                              .pushNamed(Routes.viewContact, arguments: contact);
-                        },
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                        leading: Container(
-                          child: CircleAvatar(
-                            radius: 35,
-                            child: Text(
-                              getShortName(contact.name),
-                              style: const TextStyle(fontSize: 26),
-                            ),
                           ),
                         ),
-                        title: Text(contact.name,
-                            style: const TextStyle(fontSize: 18, color: StegosColors.white)),
-                      ),
-                    );
-                  }).toList(),
+                        key: key,
+                        direction: DismissDirection.horizontal,
+                        background: Container(
+                            padding: const EdgeInsets.all(10),
+                            color: StegosColors.primaryColorDark,
+                            child: Row(
+                              children: <Widget>[
+                                Icon(Icons.edit),
+                                const SizedBox(width: 5),
+                                const Text('Edit'),
+                              ],
+                            )),
+                        confirmDismiss: (DismissDirection direction) {
+                          if (direction == DismissDirection.startToEnd) {
+                            return editContact(contact);
+                          } else {
+                            return confirmDeleting(contact);
+                          }
+                        },
+                        child: ListTile(
+                          subtitle: Text(contact.shortAddress),
+                          onTap: () {
+                            StegosApp.navigatorState
+                                .pushNamed(Routes.viewContact, arguments: contact);
+                          },
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                          leading: Container(
+                            child: CircleAvatar(
+                              radius: 35,
+                              child: Text(
+                                getShortName(contact.name),
+                                style: const TextStyle(fontSize: 26),
+                              ),
+                            ),
+                          ),
+                          title: Text(contact.name,
+                              style: const TextStyle(fontSize: 18, color: StegosColors.white)),
+                        ),
+                      );
+                    }).toList(),
+                  ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
         floatingActionButton: buildFloatingActionButton(context),
