@@ -59,7 +59,7 @@ class _ChatSettingsScreenState extends State<ChatSettingsScreen> {
                 child: Text(
                   'Are you sure you want to delete Group $chatName?',
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: StegosColors.white, fontSize: 18),
+                  style: const TextStyle(color: StegosColors.white, fontSize: 18),
                 ),
               ),
               Padding(
@@ -115,7 +115,7 @@ class _ChatSettingsScreenState extends State<ChatSettingsScreen> {
                 child: Text(
                   'Are you sure you want to leave Group $chatName?',
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: StegosColors.white, fontSize: 18),
+                  style: const TextStyle(color: StegosColors.white, fontSize: 18),
                 ),
               ),
               Padding(

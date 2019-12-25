@@ -20,13 +20,13 @@ class _ChatListState extends State<ChatList> {
         ),
       ),
       title: const Text('Anton Bucharin', style: TextStyle(fontSize: 18)),
-      subtitle: Text('i am still waiting for your message...',
+      subtitle: const Text('i am still waiting for your message...',
           style: TextStyle(color: StegosColors.primaryColorDark, fontWeight: FontWeight.w300)),
       trailing: Column(
         crossAxisAlignment: CrossAxisAlignment.end,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
-          Text('17:52', style: TextStyle(color: StegosColors.primaryColorDark)),
+          const Text('17:52', style: TextStyle(color: StegosColors.primaryColorDark)),
           Container(
             width: 22,
             height: 22,

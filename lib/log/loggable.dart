@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:logging/logging.dart';
 
 mixin Loggable<T> {
