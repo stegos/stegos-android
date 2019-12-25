@@ -13,7 +13,8 @@ import 'package:stegos_wallet/ui/recover/screen_recover.dart';
 import 'package:stegos_wallet/ui/settings/screen_settings.dart';
 import 'package:stegos_wallet/ui/splash/screen_splash.dart';
 import 'package:stegos_wallet/ui/username/screen_username.dart';
-import 'package:stegos_wallet/ui/wallet/contacts/screen_add_contact.dart';
+import 'package:stegos_wallet/ui/wallet/contacts/contacts.dart';
+import 'package:stegos_wallet/ui/wallet/contacts/screen_edit_contact.dart';
 import 'package:stegos_wallet/ui/wallet/screen_wallet.dart';
 import 'package:stegos_wallet/ui/welcome/screen_welcome.dart';
 
@@ -99,7 +100,8 @@ mixin Routes {
   static const username = 'username';
   static const wallet = 'wallet';
   static const welcome = 'welcome';
-  static const addContact = 'addContact';
+  static const editContact = 'addContact';
+  static const viewContact = 'viewContact';
 
   static RouteFactory createRouteFactory(StegosEnv env, bool showSplash) {
     MaterialPageRoute Function(RouteSettings settings) routeFactoryFn;
@@ -180,10 +182,17 @@ mixin Routes {
           final args = settings.arguments as PayScreenArguments;
           assert(args.account != null);
           return MaterialPageRoute(builder: (BuildContext context) => PayScreen(args: args));
-        case addContact:
-          final address = settings.arguments as String;
+        case editContact:
+          final contact = settings.arguments as Contact;
           return MaterialPageRoute(
-              builder: (BuildContext context) => AddContactScreen(address: address));
+              builder: (BuildContext context) => EditContactScreen(contact: contact));
+        case viewContact:
+          final contact = settings.arguments as Contact;
+          return MaterialPageRoute(
+              builder: (BuildContext context) => EditContactScreen(
+                    contact: contact,
+                    readOnly: true,
+                  ));
         default:
           return MaterialPageRoute(
               maintainState: false,

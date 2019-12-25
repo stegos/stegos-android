@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:stegos_wallet/ui/app.dart';
 import 'package:stegos_wallet/ui/routes.dart';
@@ -10,6 +11,10 @@ class Contact {
 
   String name;
   String address;
+
+  String get shortAddress {
+    return '${address.substring(0, 8)}...${address.substring(address.length - 8)}';
+  }
 }
 
 class Contacts extends StatefulWidget {
@@ -19,11 +24,21 @@ class Contacts extends StatefulWidget {
 
 class _ContactsState extends State<Contacts> {
   final List<Contact> contacts = [
-    Contact(name: 'Anna Kristova', address: ''),
-    Contact(name: 'Alina Grey', address: ''),
-    Contact(name: 'Bill Poll', address: ''),
-    Contact(name: 'Bill Gonzales', address: ''),
-    Contact(name: 'Bill Gonzales', address: ''),
+    Contact(
+        name: 'Anna Kristova',
+        address: 'stt1rqtmwyy5rp5xzk3k84spahdphccxa6w848phuxs5cs82h5mg2yqsxuhxkr'),
+    Contact(
+        name: 'Alina Grey',
+        address: 'stt1rqtmwyy5rp5xzk3k84spahdphccxa6w848phuxs5cs82h5mg2yqsxuhxkr'),
+    Contact(
+        name: 'Bill Poll',
+        address: 'stt1rqtmwyy5rp5xzk3k84spahdphccxa6w848phuxs5cs82h5mg2yqsxuhxkr'),
+    Contact(
+        name: 'Bill Gonzales',
+        address: 'stt1rqtmwyy5rp5xzk3k84spahdphccxa6w848phuxs5cs82h5mg2yqsxuhxkr'),
+    Contact(
+        name: 'Bill Gonzales',
+        address: 'stt1rqtmwyy5rp5xzk3k84spahdphccxa6w848phuxs5cs82h5mg2yqsxuhxkr'),
   ];
 
   String getShortName(String name) {
@@ -67,11 +82,44 @@ class _ContactsState extends State<Contacts> {
                   children: contacts.map((Contact contact) {
                     final ValueKey<Contact> key = ValueKey(contact);
                     return Dismissible(
+                      secondaryBackground: Container(
+                        padding: const EdgeInsets.all(10),
+                        color: StegosColors.errorColor.withOpacity(0.9),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: <Widget>[
+                            const Text('Delete'),
+                            const SizedBox(width: 5),
+                            Icon(Icons.delete_forever),
+                          ],
+                        ),
+                      ),
                       key: key,
-                      direction: DismissDirection.endToStart,
-                      confirmDismiss: (DismissDirection direction) => _confirmDeleting(contact),
+                      direction: DismissDirection.horizontal,
+                      background: Container(
+                          padding: const EdgeInsets.all(10),
+                          color: StegosColors.primaryColorDark,
+                          child: Row(
+                            children: <Widget>[
+                              Icon(Icons.edit),
+                              const SizedBox(width: 5),
+                              const Text('Edit'),
+                            ],
+                          )),
+                      confirmDismiss: (DismissDirection direction) {
+                        print(direction);
+                        if (direction == DismissDirection.startToEnd) {
+                          return editContact(contact);
+                        } else {
+                          return confirmDeleting(contact);
+                        }
+                      },
                       child: ListTile(
-                        selected: true,
+                        subtitle: Text(contact.shortAddress),
+                        onTap: () {
+                          StegosApp.navigatorState
+                              .pushNamed(Routes.viewContact, arguments: contact);
+                        },
                         contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
                         leading: Container(
                           child: CircleAvatar(
@@ -92,17 +140,17 @@ class _ContactsState extends State<Contacts> {
             ),
           ),
         ),
-        floatingActionButton: _buildFloatingActionButton(context),
+        floatingActionButton: buildFloatingActionButton(context),
       ),
     );
   }
 
-  Widget _buildFloatingActionButton(BuildContext context) => FloatingActionButton(
-        onPressed: () => StegosApp.navigatorState.pushNamed(Routes.addContact),
+  Widget buildFloatingActionButton(BuildContext context) => FloatingActionButton(
+        onPressed: () => StegosApp.navigatorState.pushNamed(Routes.editContact),
         child: Icon(Icons.add),
       );
 
-  Future<bool> _confirmDeleting(Contact contact) => appShowDialog<bool>(
+  Future<bool> confirmDeleting(Contact contact) => appShowDialog<bool>(
         barrierDismissible: false,
         builder: (BuildContext context) {
           return AlertDialog(
@@ -125,4 +173,9 @@ class _ContactsState extends State<Contacts> {
           );
         },
       );
+
+  Future<bool> editContact(Contact contact) {
+    StegosApp.navigatorState.pushNamed(Routes.editContact, arguments: contact);
+    return Future.value(false);
+  }
 }
