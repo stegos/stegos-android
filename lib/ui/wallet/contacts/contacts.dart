@@ -13,7 +13,9 @@ class Contact {
   String address;
 
   String get shortAddress {
-    return '${address.substring(0, 8)}...${address.substring(address.length - 10)}';
+    return address.length > 10
+        ? '${address.substring(0, 8)}...${address.substring(address.length - 10)}'
+        : address;
   }
 }
 
