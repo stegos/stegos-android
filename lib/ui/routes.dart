@@ -16,6 +16,8 @@ import 'package:stegos_wallet/ui/recover/screen_recover.dart';
 import 'package:stegos_wallet/ui/settings/screen_settings.dart';
 import 'package:stegos_wallet/ui/splash/screen_splash.dart';
 import 'package:stegos_wallet/ui/username/screen_username.dart';
+import 'package:stegos_wallet/ui/wallet/contacts/contacts.dart';
+import 'package:stegos_wallet/ui/wallet/contacts/screen_edit_contact.dart';
 import 'package:stegos_wallet/ui/wallet/screen_wallet.dart';
 import 'package:stegos_wallet/ui/welcome/screen_welcome.dart';
 import 'chat/create_chat/screen_create_chat.dart';
@@ -106,6 +108,8 @@ mixin Routes {
   static const chat = 'chat';
   static const chatSettings = 'chatSettings';
   static const createGroup = 'createGroup';
+  static const editContact = 'addContact';
+  static const viewContact = 'viewContact';
 
   static RouteFactory createRouteFactory(StegosEnv env, bool showSplash) {
     MaterialPageRoute Function(RouteSettings settings) routeFactoryFn;
@@ -198,6 +202,17 @@ mixin Routes {
           return MaterialPageRoute(builder: (BuildContext context) => ChatSettingsScreen());
         case createGroup:
           return MaterialPageRoute(builder: (BuildContext context) => CreateGroupScreen());
+        case editContact:
+          final contact = settings.arguments as Contact;
+          return MaterialPageRoute(
+              builder: (BuildContext context) => EditContactScreen(contact: contact));
+        case viewContact:
+          final contact = settings.arguments as Contact;
+          return MaterialPageRoute(
+              builder: (BuildContext context) => EditContactScreen(
+                    contact: contact,
+                    readOnly: true,
+                  ));
         default:
           return MaterialPageRoute(
               maintainState: false,

@@ -8,7 +8,9 @@ import 'package:stegos_wallet/ui/app.dart';
 import 'package:stegos_wallet/ui/pay/screen_pay.dart';
 import 'package:stegos_wallet/ui/routes.dart';
 import 'package:stegos_wallet/ui/themes.dart';
+import 'package:stegos_wallet/ui/wallet/contacts/contacts.dart';
 import 'package:stegos_wallet/ui/wallet/qr_reader/qr_reader.dart';
+import 'package:stegos_wallet/ui/wallet/qr_reader/qr_reader_tab.dart';
 import 'package:stegos_wallet/ui/wallet/wallet/screen_accounts.dart';
 import 'package:stegos_wallet/widgets/widget_app_bar.dart';
 
@@ -124,23 +126,11 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
             controller: _tabController,
             children: [
               AccountsScreen(),
-              QrReader(
+              QrReaderTab(
                 isScanning: scanForAddress,
-                onStegosAddressFound: (String address) {
-                  final env = Provider.of<StegosEnv>(context);
-                  if (!env.nodeService.operable) {
-                    return;
-                  }
-                  final account = env.nodeService.accountsList[0];
-                  setState(() {
-                    scanForAddress = false;
-                  });
-                  StegosApp.navigatorState.pushNamed(Routes.pay,
-                      arguments: PayScreenArguments(account: account, recepientAddress: address));
-                },
               ),
               ChatList(),
-              Text('Contacts'),
+              Contacts(),
             ],
           ),
         ),

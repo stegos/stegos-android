@@ -256,4 +256,10 @@ mixin StegosThemes {
       inputDecorationTheme: InputDecorationTheme(
           border: InputBorder.none,
           hintStyle: const TextStyle(color: Color(0xff2B2E3B), fontSize: 16, height: 2)));
+
+  static final contactsTheme = baseTheme.copyWith(
+    floatingActionButtonTheme: const FloatingActionButtonThemeData(
+        backgroundColor: Color(0xff15151f), foregroundColor: StegosColors.primaryColor),
+    buttonTheme: payScreenTheme.buttonTheme,
+  );
 }

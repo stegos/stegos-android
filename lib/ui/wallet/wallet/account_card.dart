@@ -63,7 +63,7 @@ class AccountCard extends StatelessWidget {
                               children: <Widget>[
                                 Text(account.humanName, style: const TextStyle(fontSize: 12)),
                                 GestureDetector(
-                                  onTap: _showQRCode,
+                                  onTap: showQRCode,
                                   child: const Image(
                                       image: AssetImage('assets/images/qr.png'),
                                       width: 20,
@@ -79,7 +79,7 @@ class AccountCard extends StatelessWidget {
         );
       });
 
-  Future<String> _showQRCode() {
+  Future<String> showQRCode() {
     return StegosApp.navigatorState.push(MaterialPageRoute(
       builder: (BuildContext context) => QrGenerator(
         title: 'QR code for ${account.humanName}',
