@@ -18,6 +18,8 @@ class Contacts extends StatefulWidget {
 
 class _ContactsState extends State<Contacts> {
 
+  String filter = '';
+
   String getShortName(String name) {
     return name
         .split(' ')
@@ -29,7 +31,7 @@ class _ContactsState extends State<Contacts> {
   @override
   Widget build(BuildContext context) {
     final store = Provider.of<StegosStore>(context);
-    final contacts = store.contactsList;
+    final contacts = store.contactsList.where((ContactStore c) => c.name.toLowerCase().contains(filter.toLowerCase()));
     return Theme(
       data: StegosThemes.contactsTheme,
       child: Scaffold(
@@ -43,7 +45,12 @@ class _ContactsState extends State<Contacts> {
                   padding: const EdgeInsets.only(right: 15),
                   decoration: BoxDecoration(
                       color: const Color(0x807D8B97), borderRadius: BorderRadius.circular(12)),
-                  child: const TextField(
+                  child: TextField(
+                    onChanged: (text) {
+                      setState(() {
+                        filter = text;
+                      });
+                    },
                     decoration: InputDecoration(
                         prefixIcon: Icon(
                           Icons.search,
