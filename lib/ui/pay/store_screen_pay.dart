@@ -1,5 +1,6 @@
 import 'package:mobx/mobx.dart';
 import 'package:stegos_wallet/services/service_node.dart';
+import 'package:stegos_wallet/utils/stegos_address.dart';
 
 part 'store_screen_pay.g.dart';
 
@@ -38,10 +39,7 @@ abstract class _PayScreenStore with Store {
     if (toAddress == null) {
       return false;
     } else {
-      return RegExp(
-        r'^st[rgt]1[ac-hj-np-z02-9]{8,87}$',
-        caseSensitive: false,
-      ).hasMatch(toAddress);
+      return validateStegosAddress(toAddress);
     }
   }
 

@@ -4,6 +4,7 @@ import 'package:stegos_wallet/ui/qr_generator/qr_generator.dart';
 import 'package:stegos_wallet/ui/themes.dart';
 import 'package:stegos_wallet/ui/wallet/qr_reader/screen_qr_reader.dart';
 import 'package:stegos_wallet/utils/dialogs.dart';
+import 'package:stegos_wallet/utils/stegos_address.dart';
 import 'package:stegos_wallet/widgets/widget_app_bar.dart';
 import 'package:stegos_wallet/widgets/widget_scaffold_body_wrapper.dart';
 import 'contacts.dart';
@@ -22,20 +23,6 @@ class _EditContactScreenState extends State<EditContactScreen> {
   final TextEditingController contactNameController = TextEditingController();
   final TextEditingController contactAddressController = TextEditingController();
   Contact contact = Contact();
-
-  static final RegExp _stegosAddressRegExp = RegExp(
-    r'^st[rgt]1[ac-hj-np-z02-9]{8,87}$',
-    caseSensitive: false,
-    multiLine: false,
-  );
-
-  bool isValidAddress(String address) {
-    if (address == null) {
-      return false;
-    } else {
-      return _stegosAddressRegExp.hasMatch(address);
-    }
-  }
 
   @override
   void initState() {
@@ -180,7 +167,7 @@ class _EditContactScreenState extends State<EditContactScreen> {
   }
 
   bool get isValid {
-    return isValidAddress(contact.address) && contact.name.isNotEmpty;
+    return validateStegosAddress(contact.address) && contact.name.isNotEmpty;
   }
 
   Widget buildSendButton() => widget.readOnly

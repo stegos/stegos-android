@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:stegos_wallet/ui/app.dart';
 import 'package:stegos_wallet/ui/routes.dart';
 import 'package:stegos_wallet/ui/themes.dart';
+import 'package:stegos_wallet/utils/abbreviation.dart';
 import 'package:stegos_wallet/utils/dialogs.dart';
+import 'package:stegos_wallet/utils/generate_color.dart';
 import 'package:stegos_wallet/widgets/widget_scaffold_body_wrapper.dart';
 
 class Contact {
@@ -42,14 +44,6 @@ class _ContactsState extends State<Contacts> {
         name: 'Bill Gonzales',
         address: 'stt1rqtmwyy5rp5xzk3k84spahdphccxa6w848phuxs5cs82h5mg2yqsxuhxkr'),
   ];
-
-  String getShortName(String name) {
-    return name
-        .split(' ')
-        .map((String part) => part[0])
-        .reduce((prev, current) => prev + current)
-        .toUpperCase();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -117,7 +111,6 @@ class _ContactsState extends State<Contacts> {
                           }
                         },
                         child: ListTile(
-                          subtitle: Text(contact.shortAddress),
                           onTap: () {
                             StegosApp.navigatorState
                                 .pushNamed(Routes.viewContact, arguments: contact);
@@ -126,14 +119,20 @@ class _ContactsState extends State<Contacts> {
                           leading: Container(
                             child: CircleAvatar(
                               radius: 35,
+                              backgroundColor: textToAvatarColour(contact.name),
                               child: Text(
-                                getShortName(contact.name),
+                                abbreviation(contact.name),
                                 style: const TextStyle(fontSize: 26),
                               ),
                             ),
                           ),
                           title: Text(contact.name,
                               style: const TextStyle(fontSize: 18, color: StegosColors.white)),
+                          subtitle: Text(
+                            contact.shortAddress,
+                            style: TextStyle(
+                                color: StegosColors.primaryColorDark, fontWeight: FontWeight.w300),
+                          ),
                         ),
                       );
                     }).toList(),

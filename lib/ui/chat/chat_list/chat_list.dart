@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:stegos_wallet/ui/routes.dart';
 import 'package:stegos_wallet/ui/themes.dart';
+import 'package:stegos_wallet/utils/abbreviation.dart';
+import 'package:stegos_wallet/utils/generate_color.dart';
 
 class ChatList extends StatefulWidget {
   @override
@@ -12,11 +14,12 @@ class _ChatListState extends State<ChatList> {
     return ListTile(
       onTap: () => Navigator.of(context).pushNamed(Routes.chat),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      leading: const CircleAvatar(
+      leading: CircleAvatar(
         radius: 35,
+        backgroundColor: textToAvatarColour('Anton Bucharin'),
         child: Text(
-          'AB',
-          style: TextStyle(fontSize: 26),
+          abbreviation('Anton Bucharin'),
+          style: const TextStyle(fontSize: 26),
         ),
       ),
       title: const Text('Anton Bucharin', style: TextStyle(fontSize: 18)),
