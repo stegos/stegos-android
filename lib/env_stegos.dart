@@ -86,7 +86,7 @@ class StegosEnv extends Env<Widget> {
   bool get configSkipAppSuspending => false;
 
   /// Stegos node websocket endpoint
-  String get configNodeWsEndpoint => 'ws://10.0.2.2:3145';
+  String get configNodeWsEndpoint => 'ws://127.0.0.1:3145';
 
   /// Stegos node API access token
   String get configNodeWsEndpointApiToken => 'xPM4oRn0/GintAaKOZA6Qw==';

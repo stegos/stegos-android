@@ -13,3 +13,6 @@
 
 # Keep EJDB
 -keep class com.softmotions.ejdb2.** { *; }
+
+# Keep Stegos
+-keep class com.stegos.** { *; }

@@ -18,6 +18,9 @@
         android:name="io.flutter.app.FlutterApplication"
         android:label="stegos_wallet"
         android:icon="@mipmap/ic_launcher">
+
+        <service android:enabled="true" android:exported="true" android:name="Stegos" />
+
         <activity
             android:name=".MainActivity"
             android:launchMode="singleTop"

@@ -2,6 +2,7 @@
 .vscode/*.txt
 
 # Miscellaneous
+*.so
 *.class
 *.log
 *.pyc
