@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:stegos_wallet/stores/store_stegos.dart';
 import 'package:stegos_wallet/ui/app.dart';
 import 'package:stegos_wallet/ui/routes.dart';
 import 'package:stegos_wallet/ui/themes.dart';
@@ -18,13 +20,6 @@ class Contacts extends StatefulWidget {
 }
 
 class _ContactsState extends State<Contacts> {
-  final List<Contact> contacts = [
-    Contact(name: 'Anna Kristova', address: ''),
-    Contact(name: 'Alina Grey', address: ''),
-    Contact(name: 'Bill Poll', address: ''),
-    Contact(name: 'Bill Gonzales', address: ''),
-    Contact(name: 'Bill Gonzales', address: ''),
-  ];
 
   String getShortName(String name) {
     return name
@@ -36,6 +31,8 @@ class _ContactsState extends State<Contacts> {
 
   @override
   Widget build(BuildContext context) {
+    final store = Provider.of<StegosStore>(context);
+    final contacts = store.contactsList;
     return Theme(
       data: StegosThemes.contactsTheme,
       child: Scaffold(
@@ -64,8 +61,8 @@ class _ContactsState extends State<Contacts> {
                   ),
                 ),
                 Column(
-                  children: contacts.map((Contact contact) {
-                    final ValueKey<Contact> key = ValueKey(contact);
+                  children: contacts.map((ContactStore contact) {
+                    final ValueKey<ContactStore> key = ValueKey(contact);
                     return Dismissible(
                       key: key,
                       direction: DismissDirection.endToStart,
@@ -102,7 +99,9 @@ class _ContactsState extends State<Contacts> {
         child: Icon(Icons.add),
       );
 
-  Future<bool> _confirmDeleting(Contact contact) => appShowDialog<bool>(
+  Future<bool> _confirmDeleting(ContactStore contact) {
+    final store = Provider.of<StegosStore>(context);
+    return appShowDialog<bool>(
         barrierDismissible: false,
         builder: (BuildContext context) {
           return AlertDialog(
@@ -117,7 +116,7 @@ class _ContactsState extends State<Contacts> {
               FlatButton(
                 onPressed: () {
                   StegosApp.navigatorState.pop(true);
-                  contacts.remove(contact);
+                  store.removeContact(contact.pkey);
                 },
                 child: const Text('DELETE'),
               )
@@ -125,4 +124,5 @@ class _ContactsState extends State<Contacts> {
           );
         },
       );
+  }
 }

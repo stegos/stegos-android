@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:stegos_wallet/stores/store_stegos.dart';
 import 'package:stegos_wallet/ui/app.dart';
 import 'package:stegos_wallet/ui/themes.dart';
 import 'package:stegos_wallet/ui/wallet/qr_reader/screen_qr_reader.dart';
@@ -175,15 +177,26 @@ class _AddContactScreenState extends State<AddContactScreen> {
   }
 
   bool get isValid {
+    //todo true validation
     return isValidAddress(contact.address) && contact.name.isNotEmpty;
   }
 
   Widget buildSendButton() => RaisedButton(
         elevation: 8,
         disabledElevation: 8,
-        onPressed: isValid ? () => StegosApp.navigatorState.pop(null) : null,
+        onPressed: _addContact,
         child: const Text('CREATE'),
       );
+
+  void _addContact(){
+    final store = Provider.of<StegosStore>(context);
+    if(isValid){
+      store.addContact(contactNameController.text, contactAddressController.text)
+          .then((_) {
+        StegosApp.navigatorState.pop();
+      });
+    }
+  }
 
   @override
   void dispose() {

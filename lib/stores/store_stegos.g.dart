@@ -8,7 +8,32 @@ part of 'store_stegos.dart';
 
 // ignore_for_file: non_constant_identifier_names, unnecessary_lambdas, prefer_expression_function_bodies, lines_longer_than_80_chars, avoid_as, avoid_annotating_with_dynamic
 
+mixin _$ContactStore on _ContactStore, Store {
+  final _$nameAtom = Atom(name: '_ContactStore.name');
+
+  @override
+  String get name {
+    _$nameAtom.context.enforceReadPolicy(_$nameAtom);
+    _$nameAtom.reportObserved();
+    return super.name;
+  }
+
+  @override
+  set name(String value) {
+    _$nameAtom.context.conditionallyRunInAction(() {
+      super.name = value;
+      _$nameAtom.reportChanged();
+    }, _$nameAtom, name: '${_$nameAtom.name}_set');
+  }
+}
+
 mixin _$StegosStore on _StegosStore, Store {
+  Computed<List<ContactStore>> _$contactsListComputed;
+
+  @override
+  List<ContactStore> get contactsList => (_$contactsListComputed ??=
+          Computed<List<ContactStore>>(() => super.contactsList))
+      .value;
   Computed<bool> _$needWelcomeComputed;
 
   @override
@@ -38,6 +63,20 @@ mixin _$StegosStore on _StegosStore, Store {
   @override
   Future<void> activate() {
     return _$activateAsyncAction.run(() => super.activate());
+  }
+
+  final _$addContactAsyncAction = AsyncAction('addContact');
+
+  @override
+  Future<void> addContact(String name, String pkey) {
+    return _$addContactAsyncAction.run(() => super.addContact(name, pkey));
+  }
+
+  final _$removeContactAsyncAction = AsyncAction('removeContact');
+
+  @override
+  Future<void> removeContact(String pkey) {
+    return _$removeContactAsyncAction.run(() => super.removeContact(pkey));
   }
 
   final _$_StegosStoreActionController = ActionController(name: '_StegosStore');

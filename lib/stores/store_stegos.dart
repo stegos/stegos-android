@@ -1,3 +1,4 @@
+import 'package:ejdb2_flutter/ejdb2_flutter.dart';
 import 'package:flutter/widgets.dart';
 import 'package:mobx/mobx.dart';
 import 'package:stegos_wallet/env_stegos.dart';
@@ -6,6 +7,32 @@ import 'package:stegos_wallet/stores/store_common.dart';
 import 'package:stegos_wallet/services/service_node.dart';
 
 part 'store_stegos.g.dart';
+
+class ContactStore extends _ContactStore {
+  ContactStore._(String name, String pkey, {int ordinal})
+      : super(name, pkey, ordinal: ordinal);
+
+  factory ContactStore._fromJBDOC(JBDOC doc) =>
+      ContactStore._(doc.object['name'] as String, doc.object['pkey'] as String,
+          ordinal: doc.object['ordinal'] as int);
+
+  dynamic toJson() => {
+    'name': name,
+    'pkey': pkey,
+    'ordinal': ordinal,
+  };
+}
+
+abstract class _ContactStore with Store {
+  _ContactStore(this.name, this.pkey, {this.ordinal});
+
+  @observable
+  String name;
+
+  String pkey;
+
+  int ordinal = 0;
+}
 
 class StegosStore extends _StegosStore with _$StegosStore {
   StegosStore(StegosEnv env) : super(env) {
@@ -23,10 +50,19 @@ abstract class _StegosStore extends MainStoreSupport with Store, Loggable<Stegos
 
   static const int DOC_SETTINGS_ID = 1;
 
+  String _contactsCollectionName = 'contact';
+
   final StegosEnv env;
 
   /// Basic settings
   final settings = ObservableMap<String, dynamic>();
+
+  final contacts = ObservableMap<String, ContactStore>();
+
+  @computed
+  List<ContactStore> get contactsList =>
+      contacts.values.toList(growable: false)
+        ..sort((a, b) => a.ordinal.compareTo(b.ordinal));
 
   /// True if need to show welcome screen as first app screen
   @computed
@@ -122,6 +158,7 @@ abstract class _StegosStore extends MainStoreSupport with Store, Loggable<Stegos
       log.fine(
           '\n\t${settings.entries.map((e) => 'settings: ${e.key} => ${e.value}').join('\n\t')}');
     }
+    await _initContacts();
     // Activate substores
     return Future.forEach(<StoreLifecycle>[nodeService], (StoreLifecycle e) => e.activate());
   }
@@ -133,4 +170,40 @@ abstract class _StegosStore extends MainStoreSupport with Store, Loggable<Stegos
 
   Future<int> _flushSettings() => env.useDb((db) => db.put(
       'settings', settings.map((k, v) => MapEntry<dynamic, dynamic>(k, v)), DOC_SETTINGS_ID));
+
+  Future<void> _initContacts() {
+    return env.useDb((db) async {
+      final contactsList = await db
+          .createQuery('/*', _contactsCollectionName)
+          .execute()
+          .map((doc) => ContactStore._fromJBDOC(doc)).toList();
+      runInAction(() {
+        for (final c in contactsList) {
+          contacts[c.pkey] = c;
+        }
+      });
+    });
+  }
+
+  @action
+  Future<void> addContact(String name, String pkey) async {
+    //todo check if contact with that pkey already exists
+    final newContact = ContactStore._(name, pkey, ordinal: contacts.length);
+    runInAction(() => contacts.putIfAbsent(pkey, () => newContact));
+    await env.useDb((db) async {
+      await db.put(_contactsCollectionName, newContact.toJson());
+    });
+  }
+
+  @action
+  Future<void> removeContact(String pkey) async {
+    runInAction(() => contacts.remove(pkey));
+    await env.useDb((db) async {
+      await db
+          .createQuery('/[pkey = :?] | del', _contactsCollectionName)
+          .setString(0, pkey)
+          .first();
+      contacts.remove(pkey);
+    });
+  }
 }
