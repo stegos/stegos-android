@@ -107,7 +107,6 @@ class _ContactsState extends State<Contacts> {
                             ],
                           )),
                       confirmDismiss: (DismissDirection direction) {
-                        print(direction);
                         if (direction == DismissDirection.startToEnd) {
                           return editContact(contact);
                         } else {
