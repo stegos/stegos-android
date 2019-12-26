@@ -36,6 +36,11 @@ android {
         disable 'InvalidPackage'
     }
 
+    packagingOptions{
+        doNotStrip "*/x86/*.so"
+        doNotStrip "*/x86_64/*.so"
+    }
+
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId "com.stegos.stegos_wallet"

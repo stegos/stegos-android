@@ -22,10 +22,9 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
 
     @Override
     public void onServiceConnected(ComponentName className, IBinder service) {
-      Log.i(TAG, "Stegos service connected?");
       Stegos.StegosServiceBinder binder = (Stegos.StegosServiceBinder) service;
       stegos = binder.getService();
-      Log.i(TAG, "Stegos service connected: " + stegos);
+      Log.i(TAG, "Stegos service connected");
       stegos.start();
     }
 
@@ -37,9 +36,9 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
 
   private void connectToService() {
     if (stegos == null) {
-      Log.i(TAG, "Connecting to service");
+      Log.i(TAG, "Connecting to stegos service");
       Intent service = new Intent(this, Stegos.class);
-      startService(service);
+      startService(service); // not needed?
       bindService(service, connection, Context.BIND_AUTO_CREATE);
     } else {
       Log.i(TAG, "Service already connected!");
