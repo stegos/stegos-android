@@ -108,6 +108,7 @@ mixin Routes {
   static const chat = 'chat';
   static const chatSettings = 'chatSettings';
   static const createGroup = 'createGroup';
+  static const contacts = 'contacts';
   static const editContact = 'addContact';
   static const viewContact = 'viewContact';
 
@@ -202,15 +203,19 @@ mixin Routes {
           return MaterialPageRoute(builder: (BuildContext context) => ChatSettingsScreen());
         case createGroup:
           return MaterialPageRoute(builder: (BuildContext context) => CreateGroupScreen());
-        case editContact:
-          final contact = settings.arguments as Contact;
+        case contacts:
+          final selectContact = settings.arguments as bool || false;
           return MaterialPageRoute(
-              builder: (BuildContext context) => EditContactScreen(contact: contact));
+              builder: (BuildContext context) => Contacts(selectContact: selectContact));
+        case editContact:
+          final args = settings.arguments as EditContactScreenArguments;
+          return MaterialPageRoute(
+              builder: (BuildContext context) => EditContactScreen(args: args));
         case viewContact:
-          final contact = settings.arguments as Contact;
+          final args = settings.arguments as EditContactScreenArguments;
           return MaterialPageRoute(
               builder: (BuildContext context) => EditContactScreen(
-                    contact: contact,
+                    args: args,
                     readOnly: true,
                   ));
         default:

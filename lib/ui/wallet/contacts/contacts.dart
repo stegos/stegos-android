@@ -1,52 +1,41 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:stegos_wallet/stores/store_stegos.dart';
 import 'package:stegos_wallet/ui/app.dart';
 import 'package:stegos_wallet/ui/routes.dart';
 import 'package:stegos_wallet/ui/themes.dart';
+import 'package:stegos_wallet/ui/wallet/contacts/screen_edit_contact.dart';
 import 'package:stegos_wallet/utils/abbreviation.dart';
 import 'package:stegos_wallet/utils/dialogs.dart';
 import 'package:stegos_wallet/utils/generate_color.dart';
 import 'package:stegos_wallet/widgets/widget_scaffold_body_wrapper.dart';
 
-class Contact {
-  Contact({this.name = '', this.address = ''});
-
-  String name;
-  String address;
-
-  String get shortAddress {
-    return address.length > 10
-        ? '${address.substring(0, 8)}...${address.substring(address.length - 10)}'
-        : address;
-  }
-}
-
 class Contacts extends StatefulWidget {
+
+  Contacts({Key key, this.selectContact = false}) : super(key: key);
+
+  final bool selectContact;
+
   @override
   _ContactsState createState() => _ContactsState();
 }
 
 class _ContactsState extends State<Contacts> {
-  final List<Contact> contacts = [
-    Contact(
-        name: 'Anna Kristova',
-        address: 'stt1rqtmwyy5rp5xzk3k84spahdphccxa6w848phuxs5cs82h5mg2yqsxuhxkr'),
-    Contact(
-        name: 'Alina Grey',
-        address: 'stt1rqtmwyy5rp5xzk3k84spahdphccxa6w848phuxs5cs82h5mg2yqsxuhxkr'),
-    Contact(
-        name: 'Bill Poll',
-        address: 'stt1rqtmwyy5rp5xzk3k84spahdphccxa6w848phuxs5cs82h5mg2yqsxuhxkr'),
-    Contact(
-        name: 'Bill Gonzales',
-        address: 'stt1rqtmwyy5rp5xzk3k84spahdphccxa6w848phuxs5cs82h5mg2yqsxuhxkr'),
-    Contact(
-        name: 'Bill Gonzales',
-        address: 'stt1rqtmwyy5rp5xzk3k84spahdphccxa6w848phuxs5cs82h5mg2yqsxuhxkr'),
-  ];
+
+  String filter = '';
+  bool selectContact;
+
+  @override
+  void initState() {
+    selectContact = widget.selectContact;
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
+    final store = Provider.of<StegosStore>(context);
+    final contacts = store.contactsList.where((ContactStore c) => c.name.toLowerCase().contains(filter.toLowerCase()));
     return Theme(
       data: StegosThemes.contactsTheme,
       child: Scaffold(
@@ -60,7 +49,12 @@ class _ContactsState extends State<Contacts> {
                   padding: const EdgeInsets.only(right: 15),
                   decoration: BoxDecoration(
                       color: const Color(0x807D8B97), borderRadius: BorderRadius.circular(12)),
-                  child: const TextField(
+                  child: TextField(
+                    onChanged: (text) {
+                      setState(() {
+                        filter = text;
+                      });
+                    },
                     decoration: InputDecoration(
                         prefixIcon: Icon(
                           Icons.search,
@@ -76,8 +70,8 @@ class _ContactsState extends State<Contacts> {
                 padding: const EdgeInsets.only(top: 90),
                 child: SingleChildScrollView(
                   child: Column(
-                    children: contacts.map((Contact contact) {
-                      final ValueKey<Contact> key = ValueKey(contact);
+                    children: contacts.map((ContactStore contact) {
+                      final ValueKey<ContactStore> key = ValueKey(contact);
                       return Dismissible(
                         secondaryBackground: Container(
                           padding: const EdgeInsets.all(10),
@@ -112,8 +106,13 @@ class _ContactsState extends State<Contacts> {
                         },
                         child: ListTile(
                           onTap: () {
+                            selectContact ?
+                            StegosApp.navigatorState.pop(contact.pkey) :
                             StegosApp.navigatorState
-                                .pushNamed(Routes.viewContact, arguments: contact);
+                                .pushNamed(
+                                Routes.viewContact,
+                                arguments: EditContactScreenArguments(
+                                    contact: contact));
                           },
                           contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
                           leading: Container(
@@ -152,7 +151,9 @@ class _ContactsState extends State<Contacts> {
         child: Icon(Icons.add),
       );
 
-  Future<bool> confirmDeleting(Contact contact) => appShowDialog<bool>(
+  Future<bool> confirmDeleting(ContactStore contact) {
+    final store = Provider.of<StegosStore>(context);
+    return appShowDialog<bool>(
         barrierDismissible: false,
         builder: (BuildContext context) {
           return AlertDialog(
@@ -167,7 +168,7 @@ class _ContactsState extends State<Contacts> {
               FlatButton(
                 onPressed: () {
                   StegosApp.navigatorState.pop(true);
-                  contacts.remove(contact);
+                  store.removeContact(contact.id);
                 },
                 child: const Text('DELETE'),
               )
@@ -175,9 +176,11 @@ class _ContactsState extends State<Contacts> {
           );
         },
       );
+  }
 
-  Future<bool> editContact(Contact contact) {
-    StegosApp.navigatorState.pushNamed(Routes.editContact, arguments: contact);
+  Future<bool> editContact(ContactStore contact) {
+    StegosApp.navigatorState.pushNamed(Routes.editContact,
+        arguments: EditContactScreenArguments(contact: contact));
     return Future.value(false);
   }
 }

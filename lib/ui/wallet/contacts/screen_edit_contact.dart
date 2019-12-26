@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:stegos_wallet/stores/store_stegos.dart';
 import 'package:stegos_wallet/ui/app.dart';
 import 'package:stegos_wallet/ui/qr_generator/qr_generator.dart';
 import 'package:stegos_wallet/ui/themes.dart';
@@ -7,12 +9,23 @@ import 'package:stegos_wallet/utils/dialogs.dart';
 import 'package:stegos_wallet/utils/stegos_address.dart';
 import 'package:stegos_wallet/widgets/widget_app_bar.dart';
 import 'package:stegos_wallet/widgets/widget_scaffold_body_wrapper.dart';
-import 'contacts.dart';
+
+class EditContactScreenArguments {
+  EditContactScreenArguments({this.contact, this.address});
+
+  final ContactStore contact;
+  final String address;
+}
 
 class EditContactScreen extends StatefulWidget {
-  const EditContactScreen({Key key, this.contact, this.readOnly = false}) : super(key: key);
+  EditContactScreen(
+      {Key key, EditContactScreenArguments args, this.readOnly = false})
+      : contact = args?.contact,
+        address = args?.address,
+        super(key: key);
 
-  final Contact contact;
+  final ContactStore contact;
+  final String address;
   final bool readOnly;
 
   @override
@@ -22,14 +35,16 @@ class EditContactScreen extends StatefulWidget {
 class _EditContactScreenState extends State<EditContactScreen> {
   final TextEditingController contactNameController = TextEditingController();
   final TextEditingController contactAddressController = TextEditingController();
-  Contact contact = Contact();
+  ContactStore contact;
 
   @override
   void initState() {
     if (widget.contact != null) {
       contact = widget.contact;
-      contactAddressController.text = contact.address;
+      contactAddressController.text = contact.pkey;
       contactNameController.text = contact.name;
+    } else if (widget.address != null) {
+      contactAddressController.text = widget.address;
     }
     super.initState();
   }
@@ -92,9 +107,6 @@ class _EditContactScreenState extends State<EditContactScreen> {
               padding: const EdgeInsets.only(left: 80),
               child: TextField(
                 readOnly: widget.readOnly,
-                onChanged: (String name) => setState(() {
-                  contact.name = name;
-                }),
                 controller: contactNameController,
                 style: const TextStyle(fontSize: 18),
                 decoration: const InputDecoration(
@@ -118,9 +130,6 @@ class _EditContactScreenState extends State<EditContactScreen> {
               TextField(
                 readOnly: widget.readOnly,
                 controller: contactAddressController,
-                onChanged: (String address) => setState(() {
-                  contact.address = address;
-                }),
                 decoration: const InputDecoration(
                   hintText: 'Address',
                   hintStyle: TextStyle(color: StegosColors.primaryColorDark),
@@ -152,7 +161,7 @@ class _EditContactScreenState extends State<EditContactScreen> {
     }
     setState(() {
       contactAddressController.text = address;
-      contact.address = address;
+      contact.pkey = address;
     });
   }
 
@@ -160,14 +169,14 @@ class _EditContactScreenState extends State<EditContactScreen> {
     return StegosApp.navigatorState.push(MaterialPageRoute(
       builder: (BuildContext context) => QrGenerator(
         title: 'QR code for ${contact.name}',
-        qrData: contact.address,
+        qrData: contact.pkey,
       ),
       fullscreenDialog: true,
     ));
   }
 
   bool get isValid {
-    return validateStegosAddress(contact.address) && contact.name.isNotEmpty;
+    return validateStegosAddress(contactAddressController.text) && contactNameController.text.isNotEmpty;
   }
 
   Widget buildSendButton() => widget.readOnly
@@ -175,9 +184,32 @@ class _EditContactScreenState extends State<EditContactScreen> {
       : RaisedButton(
           elevation: 8,
           disabledElevation: 8,
-          onPressed: isValid ? () => StegosApp.navigatorState.pop(null) : null,
+          onPressed: widget.contact != null ? _editContact : _addContact,
           child: Text(widget.contact != null ? 'SAVE' : 'CREATE'),
         );
+
+  void _addContact(){
+    final store = Provider.of<StegosStore>(context);
+    if(isValid){
+      store.addContact(contactNameController.text, contactAddressController.text)
+          .then((_) {
+        StegosApp.navigatorState.pop();
+      });
+    }
+  }
+
+  void _editContact(){
+    if(contact == null) {
+      return;
+    }
+    final store = Provider.of<StegosStore>(context);
+    if(isValid){
+      store.editContact(contact.id, contactNameController.text, contactAddressController.text)
+          .then((_) {
+        StegosApp.navigatorState.pop();
+      });
+    }
+  }
 
   @override
   void dispose() {

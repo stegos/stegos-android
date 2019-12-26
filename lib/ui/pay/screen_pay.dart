@@ -250,7 +250,10 @@ class _PayScreenState extends State<PayScreen> {
                 children: <Widget>[
                   FlatButton.icon(
                       padding: const EdgeInsets.only(right: 10),
-                      onPressed: () {},
+                      onPressed: () async {
+                        final pkey = await Navigator.pushNamed(context, Routes.contacts, arguments: true);
+                        _addressTextController.text = pkey as String;
+                      },
                       splashColor: StegosColors.primaryColorDark,
                       highlightColor: Colors.transparent,
                       icon: SvgPicture.asset(
