@@ -10,6 +10,8 @@ import 'package:stegos_wallet/utils/stegos_address.dart';
 import 'package:stegos_wallet/widgets/widget_app_bar.dart';
 import 'package:stegos_wallet/widgets/widget_scaffold_body_wrapper.dart';
 
+import '../../routes.dart';
+
 class EditContactScreenArguments {
   EditContactScreenArguments({this.contact, this.address});
 
@@ -161,7 +163,6 @@ class _EditContactScreenState extends State<EditContactScreen> {
     }
     setState(() {
       contactAddressController.text = address;
-      contact.pkey = address;
     });
   }
 
@@ -193,7 +194,7 @@ class _EditContactScreenState extends State<EditContactScreen> {
     if(isValid){
       store.addContact(contactNameController.text, contactAddressController.text)
           .then((_) {
-        StegosApp.navigatorState.pop();
+        StegosApp.navigatorState.pushReplacementNamed(Routes.wallet, arguments: 3);
       });
     }
   }
