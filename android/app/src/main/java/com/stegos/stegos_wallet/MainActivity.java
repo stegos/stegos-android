@@ -70,19 +70,7 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
     super.onStart();
     startStegosNode();
   }
-
-//  public void initChannels(Context context) {
-//    if (Build.VERSION.SDK_INT < 26) {
-//      return;
-//    }
-//    NotificationManager notificationManager =
-//      (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-//    NotificationChannel channel = new NotificationChannel("default",
-//                                                          "Stegos wallet",
-//                                                          NotificationManager.IMPORTANCE_DEFAULT);
-//    notificationManager.createNotificationChannel(channel);
-//  }
-
+  
   @Override
   public void onMethodCall(MethodCall call, MethodChannel.Result result) {
     // TODO:
