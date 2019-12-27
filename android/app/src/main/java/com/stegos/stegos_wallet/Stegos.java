@@ -3,11 +3,17 @@ package com.stegos.stegos_wallet;
 
 import java.io.File;
 
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Binder;
+import android.os.Build;
 import android.os.IBinder;
 import android.util.Log;
+import androidx.core.app.NotificationCompat;
 
 public class Stegos extends Service {
 
@@ -19,13 +25,34 @@ public class Stegos extends Service {
 
   private static native int init(String chain, String data_dir, String api_token, String api_endpoint);
 
-  private final IBinder binder = new StegosServiceBinder();
+  private static final int FOREGROUND_ID = 1;
+
+  private final IBinder binder = new Binder();
 
   private Thread worker;
 
   @Override
   public int onStartCommand(Intent intent, int flags, int startId) {
-    return START_STICKY;
+    super.onStartCommand(intent, flags, startId);
+    if (flags == 0) {
+      initChannels(getApplicationContext());
+    }
+    Intent notificationIntent = new Intent(this, MainActivity.class);
+    PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
+    NotificationCompat.Builder nb;
+    if (Build.VERSION.SDK_INT < 26) {
+      //noinspection deprecation
+      nb = new NotificationCompat.Builder(this);
+    } else {
+      nb = new NotificationCompat.Builder(this, "node");
+    }
+    nb.setContentTitle("Stegos")
+      .setContentText("Stegos node is active...")
+      .setContentIntent(pendingIntent);
+    startForeground(FOREGROUND_ID, nb.build());
+    startBackgroundWork();
+    // return START_STICKY; todo: enable it!
+    return START_NOT_STICKY;
   }
 
   @Override
@@ -40,18 +67,33 @@ public class Stegos extends Service {
 
   @Override
   public void onDestroy() {
+    Log.w(TAG, "Stegos node destroyed");
+    try {
+      stopForeground(true); // todo: needed?
+    } finally {
+      stopBackgroundWork();
+    }
     super.onDestroy();
   }
 
-  // Cache dir:
-  // /data/user/0/com.stegos.stegos_wallet/cache
+  private void initChannels(Context context) {
+    Log.i(TAG, "Init channels");
+    if (Build.VERSION.SDK_INT < 26) {
+      return;
+    }
+    NotificationManager notificationManager =
+      (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+    notificationManager.createNotificationChannel(
+      new NotificationChannel("node",
+                              "Stegos node",
+                              NotificationManager.IMPORTANCE_DEFAULT));
+  }
 
-  synchronized void start() {
+  private synchronized void startBackgroundWork() {
     if (worker != null && worker.isAlive()) {
       Log.w(TAG, "Stegos node is active, skpping start request");
       return;
     }
-    Log.i(TAG, "Starting node thread!");
     worker = new Thread(() -> {
       File dir = getCacheDir();
       Log.i(TAG, "Node data dir: " + dir);
@@ -67,7 +109,7 @@ public class Stegos extends Service {
     worker.start();
   }
 
-  synchronized void stop() {
+  private synchronized void stopBackgroundWork() {
     if (worker != null) {
       try {
         worker.stop(); // FIXME: !!! We do not have good shutdown methods for node
@@ -80,9 +122,4 @@ public class Stegos extends Service {
     }
   }
 
-  public class StegosServiceBinder extends Binder {
-    public Stegos getService() {
-      return Stegos.this;
-    }
-  }
 }

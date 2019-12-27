@@ -1,9 +1,12 @@
 package com.stegos.stegos_wallet;
 
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
@@ -16,64 +19,69 @@ public class MainActivity extends FlutterActivity implements MethodChannel.Metho
 
   private static final String TAG = "stegos";
 
-  Stegos stegos;
+  private IBinder service;
 
   private ServiceConnection connection = new ServiceConnection() {
 
     @Override
     public void onServiceConnected(ComponentName className, IBinder service) {
-      Stegos.StegosServiceBinder binder = (Stegos.StegosServiceBinder) service;
-      stegos = binder.getService();
       Log.i(TAG, "Stegos service connected");
-      stegos.start();
+      MainActivity.this.service = service;
     }
 
     @Override
-    public void onServiceDisconnected(ComponentName arg0) {
+    public void onServiceDisconnected(ComponentName cn) {
       Log.i(TAG, "Service disconnected");
+      MainActivity.this.service = null;
     }
   };
 
-  private void connectToService() {
-    if (stegos == null) {
+  @Override
+  protected void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    //initChannels(getApplicationContext());
+    GeneratedPluginRegistrant.registerWith(this);
+  }
+
+
+  private void startStegosNode() {
+    if (service == null) {
       Log.i(TAG, "Connecting to stegos service");
-      Intent service = new Intent(this, Stegos.class);
-      startService(service); // not needed?
-      bindService(service, connection, Context.BIND_AUTO_CREATE);
+      Intent intent = new Intent(this, Stegos.class);
+      startService(intent);
+      bindService(intent, connection, Context.BIND_AUTO_CREATE);
     } else {
       Log.i(TAG, "Service already connected!");
     }
   }
 
-  @Override
-  protected void onCreate(Bundle savedInstanceState) {
-    super.onCreate(savedInstanceState);
-    GeneratedPluginRegistrant.registerWith(this);
+  private void stopStegosNode() {
+    unbindService(connection);
+    if (service != null) {
+      Intent intent = new Intent(this, Stegos.class);
+      stopService(intent);
+      service = null;
+    }
   }
+
 
   @Override
   protected void onStart() {
     super.onStart();
-    connectToService();
+    startStegosNode();
   }
 
-  @Override
-  protected void onResume() {
-    super.onResume();
-    connectToService();
-  }
-
-  @Override
-  protected void onDestroy() {
-    try {
-      if (stegos != null) {
-        stegos.stop();
-      }
-    } finally {
-      stegos = null;
-      super.onDestroy();
-    }
-  }
+//  public void initChannels(Context context) {
+//    if (Build.VERSION.SDK_INT < 26) {
+//      return;
+//    }
+//    NotificationManager notificationManager =
+//      (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+//    NotificationChannel channel = new NotificationChannel("default",
+//                                                          "Stegos wallet",
+//                                                          NotificationManager.IMPORTANCE_DEFAULT);
+//    notificationManager.createNotificationChannel(channel);
+//  }
 
   @Override
   public void onMethodCall(MethodCall call, MethodChannel.Result result) {
