@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:ejdb2_flutter/ejdb2_flutter.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:logging/logging.dart';
 import 'package:mobx/mobx.dart';
@@ -45,6 +46,8 @@ class StegosEnv extends Env<Widget> {
     Log('NodeService').level = Level.FINE;
   }
 
+  static const MethodChannel activityControlChannel = MethodChannel('stegos/control');
+
   /// Environment name
   @override
   String get name => 'stegos';
@@ -86,10 +89,16 @@ class StegosEnv extends Env<Widget> {
   bool get configSkipAppSuspending => false;
 
   /// Stegos node websocket endpoint
-  String get configNodeWsEndpoint => 'ws://127.0.0.1:3145';
+  String get configNodeWsEndpoint => 'ws://10.0.2.2:3145';
 
   /// Stegos node API access token
   String get configNodeWsEndpointApiToken => 'xPM4oRn0/GintAaKOZA6Qw==';
+
+  /// Endpoint address of embedded node
+  String get configEmbeddedNodeWsEndpoint => 'ws://127.0.0.1:3145';
+
+  /// Stegos embedded node API access token
+  String get configEmbeddedNodeWsEndpointApiToken => 's5OOe/wbewromcxpdjI0zQ==';
 
   /// Shared security service
   SecurityService securityService;

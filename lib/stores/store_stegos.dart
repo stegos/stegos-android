@@ -12,17 +12,15 @@ class ContactStore extends _ContactStore {
   ContactStore._(int id, String name, String pkey, {int ordinal})
       : super(id, name, pkey, ordinal: ordinal);
 
-  factory ContactStore._fromJBDOC(JBDOC doc) => ContactStore._(
-      doc.id,
-      doc.object['name'] as String,
-      doc.object['pkey'] as String,
-      ordinal: doc.object['ordinal'] as int);
+  factory ContactStore._fromJBDOC(JBDOC doc) =>
+      ContactStore._(doc.id, doc.object['name'] as String, doc.object['pkey'] as String,
+          ordinal: doc.object['ordinal'] as int);
 
   dynamic toJson() => {
-    'name': name,
-    'pkey': pkey,
-    'ordinal': ordinal,
-  };
+        'name': name,
+        'pkey': pkey,
+        'ordinal': ordinal,
+      };
 
   String get shortAddress {
     return pkey.length > 10
@@ -71,12 +69,15 @@ abstract class _StegosStore extends MainStoreSupport with Store, Loggable<Stegos
 
   @computed
   List<ContactStore> get contactsList =>
-      contacts.values.toList(growable: false)
-        ..sort((a, b) => a.ordinal.compareTo(b.ordinal));
+      contacts.values.toList(growable: false)..sort((a, b) => a.ordinal.compareTo(b.ordinal));
 
   /// True if need to show welcome screen as first app screen
   @computed
   bool get needWelcome => settings['needWelcome'] as bool ?? true;
+
+  /// True if wallet is using embedded node
+  @computed
+  bool get embeddedNode => settings['nodeWsEndpoint'] == env.configEmbeddedNodeWsEndpoint;
 
   /// True if allow to unlock wallet with fingerprint
   @computed
@@ -186,7 +187,8 @@ abstract class _StegosStore extends MainStoreSupport with Store, Loggable<Stegos
       final contactsList = await db
           .createQuery('/*', _contactsCollectionName)
           .execute()
-          .map((doc) => ContactStore._fromJBDOC(doc)).toList();
+          .map((doc) => ContactStore._fromJBDOC(doc))
+          .toList();
       runInAction(() {
         for (final c in contactsList) {
           contacts[c.id] = c;
@@ -197,11 +199,7 @@ abstract class _StegosStore extends MainStoreSupport with Store, Loggable<Stegos
 
   @action
   Future<void> addContact(String name, String pkey) async {
-    final json = {
-      'name': name,
-      'pkey': pkey,
-      'ordinal': contacts.length
-    };
+    final json = {'name': name, 'pkey': pkey, 'ordinal': contacts.length};
     await env.useDb((db) async {
       final id = await db.put(_contactsCollectionName, json);
       final newContact = ContactStore._(id, name, pkey, ordinal: contacts.length);
@@ -212,11 +210,12 @@ abstract class _StegosStore extends MainStoreSupport with Store, Loggable<Stegos
   @action
   Future<void> editContact(int id, String name, String pkey) async {
     final contact = contacts[id];
-    if(contact == null){
-       return Future.value();
+    if (contact == null) {
+      return Future.value();
     }
-    return env.useDb((db) =>
-      db.patch(_contactsCollectionName, {'name': name, 'pkey': pkey}, id)).then((_) {
+    return env
+        .useDb((db) => db.patch(_contactsCollectionName, {'name': name, 'pkey': pkey}, id))
+        .then((_) {
       runInAction(() {
         contact.name = name;
         contact.pkey = pkey;

@@ -2,6 +2,7 @@
 package com.stegos.stegos_wallet;
 
 import java.io.File;
+import java.util.Objects;
 
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -17,7 +18,7 @@ import androidx.core.app.NotificationCompat;
 
 public class Stegos extends Service {
 
-  private static final String TAG = "stegos";
+  private static final String TAG = "stegos_node";
 
   static {
     System.loadLibrary("stegos");
@@ -41,18 +42,20 @@ public class Stegos extends Service {
     PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
     NotificationCompat.Builder nb;
     if (Build.VERSION.SDK_INT < 26) {
-      //noinspection deprecation
+      // noinspection deprecation
       nb = new NotificationCompat.Builder(this);
     } else {
       nb = new NotificationCompat.Builder(this, "node");
     }
-    nb.setContentTitle("Stegos")
-      .setContentText("Stegos node is active...")
-      .setContentIntent(pendingIntent);
+    // todo: review
+    nb.setContentTitle("Stegos").setContentText("Stegos node is active...").setContentIntent(pendingIntent);
     startForeground(FOREGROUND_ID, nb.build());
-    startBackgroundWork();
-    // return START_STICKY; todo: enable it!
-    return START_NOT_STICKY;
+
+    String network = Objects.requireNonNull(intent.getStringExtra("network"));
+    String apiToken = Objects.requireNonNull(intent.getStringExtra("apiToken"));
+    startBackgroundWork(network, apiToken);
+
+    return START_STICKY;
   }
 
   @Override
@@ -77,32 +80,28 @@ public class Stegos extends Service {
   }
 
   private void initChannels(Context context) {
-    Log.i(TAG, "Init channels");
     if (Build.VERSION.SDK_INT < 26) {
       return;
     }
-    NotificationManager notificationManager =
-      (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+    NotificationManager notificationManager = (NotificationManager) context
+      .getSystemService(Context.NOTIFICATION_SERVICE);
     notificationManager.createNotificationChannel(
-      new NotificationChannel("node",
-                              "Stegos node",
-                              NotificationManager.IMPORTANCE_DEFAULT));
+      new NotificationChannel("node", "Stegos node", NotificationManager.IMPORTANCE_DEFAULT));
   }
 
-  private synchronized void startBackgroundWork() {
+  private synchronized void startBackgroundWork(String network, String apiToken) {
     if (worker != null && worker.isAlive()) {
       Log.w(TAG, "Stegos node is active, skpping start request");
       return;
     }
     worker = new Thread(() -> {
-      File dir = getCacheDir();
+      File dir = new File(getCacheDir(), network);
       Log.i(TAG, "Node data dir: " + dir);
       int code = 0;
       try {
-        // todo: hardcoded
-        code = init("testnet", dir.toString(), "xPM4oRn0/GintAaKOZA6Qw==", "127.0.0.1:3145");
+        code = init(network, dir.toString(), apiToken, "127.0.0.1:3145");
       } catch (Throwable tr) {
-        Log.e(TAG, "Stegos node inialization faile", tr);
+        Log.e(TAG, "Stegos node inialization failed", tr);
       }
       Log.w(TAG, "Stegos node exited. Code: " + code);
     });
@@ -112,6 +111,7 @@ public class Stegos extends Service {
   private synchronized void stopBackgroundWork() {
     if (worker != null) {
       try {
+        // todo: review
         worker.stop(); // FIXME: !!! We do not have good shutdown methods for node
       } catch (Throwable tr) {
         Log.e(TAG, "Error stopping stegos node", tr);
@@ -121,5 +121,4 @@ public class Stegos extends Service {
       }
     }
   }
-
 }

@@ -669,6 +669,9 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
     // Track connection status changes
     _disposers.addAll([
       autorun((_) {
+        setEmbeddedNode(_env.store.embeddedNode);
+      }),
+      autorun((_) {
         if (client.connected) {
           untracked(() {
             _syncNodeStatus(client.connected);
@@ -682,6 +685,19 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
       })
     ]);
     _nodeClientSubscription = client.stream.listen(_onNodeMessage);
+  }
+
+  Future<void> setEmbeddedNode(bool active) {
+    log.warning('Activate embedded: ${active}');
+    final ch = StegosEnv.activityControlChannel;
+    if (active) {
+      return ch.invokeMethod('startNode', {
+        'network': 'testnet', // todo: hardcoded
+        'apiToken': _env.store.nodeWsEndpointApiToken
+      });
+    } else {
+      return ch.invokeMethod('stopNode');
+    }
   }
 
   @override

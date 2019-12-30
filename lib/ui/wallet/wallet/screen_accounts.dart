@@ -79,11 +79,11 @@ class AccountsScreenState extends State<AccountsScreen>
 
   Widget _buildFloatingActionButton(BuildContext context) => Observer(builder: (context) {
         final env = Provider.of<StegosEnv>(context);
-        if (!env.nodeService.operable) {
+        if (!env.nodeService.connected) {
           return const SizedBox.shrink();
         }
         return FloatingActionButton(
-          onPressed: env.nodeService.operable
+          onPressed: env.nodeService.connected
               ? () {
                   _settingModalBottomSheet(context);
                 }
