@@ -37,8 +37,8 @@ android {
     }
 
     packagingOptions{
-        doNotStrip "*/x86/*.so"
-        doNotStrip "*/x86_64/*.so"
+        // doNotStrip "*/x86/*.so"
+        // doNotStrip "*/x86_64/*.so"
     }
 
     defaultConfig {
