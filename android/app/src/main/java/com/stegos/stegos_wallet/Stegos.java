@@ -21,7 +21,7 @@ public class Stegos extends Service {
   private static final String TAG = "stegos_node";
 
   static {
-    System.loadLibrary("stegos");
+    //System.loadLibrary("stegos");
   }
 
   private static native int init(String chain, String data_dir, String api_token, String api_endpoint);
