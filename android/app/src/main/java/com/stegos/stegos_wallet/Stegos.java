@@ -20,8 +20,15 @@ public class Stegos extends Service {
 
   private static final String TAG = "stegos_node";
 
+  private static boolean libraryLoaded;
+
   static {
-    //System.loadLibrary("stegos");
+    try {
+      System.loadLibrary("stegos");
+      libraryLoaded = true;
+    } catch (Throwable e) {
+      Log.e(TAG, "Failed to load stegos library, stegos node will not be available", e);
+    }
   }
 
   private static native int init(String chain, String data_dir, String api_token, String api_endpoint);
@@ -31,7 +38,7 @@ public class Stegos extends Service {
   private final IBinder binder = new Binder();
 
   private Thread worker;
-
+  
   @Override
   public int onStartCommand(Intent intent, int flags, int startId) {
     super.onStartCommand(intent, flags, startId);
@@ -55,7 +62,7 @@ public class Stegos extends Service {
     String apiToken = Objects.requireNonNull(intent.getStringExtra("apiToken"));
     startBackgroundWork(network, apiToken);
 
-    return START_STICKY;
+    return START_REDELIVER_INTENT;
   }
 
   @Override
@@ -90,6 +97,10 @@ public class Stegos extends Service {
   }
 
   private synchronized void startBackgroundWork(String network, String apiToken) {
+    if (!libraryLoaded) {
+      Log.w(TAG, "Stegos node native library is not loaded");
+      return;
+    }
     if (worker != null && worker.isAlive()) {
       Log.w(TAG, "Stegos node is active, skpping start request");
       return;
@@ -109,16 +120,16 @@ public class Stegos extends Service {
   }
 
   private synchronized void stopBackgroundWork() {
-    if (worker != null) {
-      try {
-        // todo: review
-        worker.stop(); // FIXME: !!! We do not have good shutdown methods for node
-      } catch (Throwable tr) {
-        Log.e(TAG, "Error stopping stegos node", tr);
-      } finally {
-        Log.w(TAG, "Stegos node stopped");
-        worker = null;
-      }
-    }
+//    if (worker != null) {
+//      try {
+//        // todo: review
+//        worker.stop(); // FIXME: !!! We do not have good shutdown methods for node
+//      } catch (Throwable tr) {
+//        Log.e(TAG, "Error stopping stegos node", tr);
+//      } finally {
+//        Log.w(TAG, "Stegos node stopped");
+//        worker = null;
+//      }
+//    }
   }
 }
