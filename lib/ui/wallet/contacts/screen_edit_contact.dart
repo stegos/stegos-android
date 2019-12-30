@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:mobx/mobx.dart';
 import 'package:provider/provider.dart';
 import 'package:stegos_wallet/stores/store_stegos.dart';
 import 'package:stegos_wallet/ui/app.dart';
 import 'package:stegos_wallet/ui/qr_generator/qr_generator.dart';
 import 'package:stegos_wallet/ui/themes.dart';
+import 'package:stegos_wallet/ui/wallet/contacts/store_screen_edit_contact.dart';
 import 'package:stegos_wallet/ui/wallet/qr_reader/screen_qr_reader.dart';
 import 'package:stegos_wallet/utils/dialogs.dart';
-import 'package:stegos_wallet/utils/stegos_address.dart';
 import 'package:stegos_wallet/widgets/widget_app_bar.dart';
 import 'package:stegos_wallet/widgets/widget_scaffold_body_wrapper.dart';
 
@@ -35,60 +37,67 @@ class EditContactScreen extends StatefulWidget {
 }
 
 class _EditContactScreenState extends State<EditContactScreen> {
-  final TextEditingController contactNameController = TextEditingController();
-  final TextEditingController contactAddressController = TextEditingController();
-  ContactStore contact;
+  static final _store = EditContactScreenStore();
+
+  final TextEditingController _contactAddressController = TextEditingController();
 
   @override
   void initState() {
+    _store.reset();
     if (widget.contact != null) {
-      contact = widget.contact;
-      contactAddressController.text = contact.pkey;
-      contactNameController.text = contact.name;
+      _contactAddressController.text = widget.contact.pkey;
+      _store.address = widget.contact.pkey;
+      _store.name = widget.contact.name;
     } else if (widget.address != null) {
-      contactAddressController.text = widget.address;
+      _contactAddressController.text = widget.address;
+      _store.address = widget.address;
     }
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBarWidget(
-        backgroundColor: Colors.transparent,
-        centerTitle: false,
-        leading: IconButton(
-          icon: const SizedBox(
-            width: 24,
-            height: 24,
-            child: Image(image: AssetImage('assets/images/arrow_back.png')),
-          ),
-          onPressed: () => StegosApp.navigatorState.pop(null),
-        ),
-        title: Text(widget.readOnly
-            ? 'View contact'
-            : widget.contact != null ? 'Edit contact' : 'Create contact'),
-      ),
-      body: ScaffoldBodyWrapperWidget(
-        builder: (context) => Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: <Widget>[
-                    buildContactName(),
-                    buildContactAddress(),
-                  ],
-                ),
+    return Theme(
+        data: StegosThemes.contactsTheme,
+        child: Scaffold(
+          appBar: AppBarWidget(
+            backgroundColor: Colors.transparent,
+            centerTitle: false,
+            leading: IconButton(
+              icon: const SizedBox(
+                width: 24,
+                height: 24,
+                child: Image(image: AssetImage('assets/images/arrow_back.png')),
               ),
+              onPressed: () => StegosApp.navigatorState.pop(null),
             ),
-            SizedBox(width: double.infinity, height: 50, child: buildSendButton())
-          ],
-        ),
-      ),
-    );
+            title: Text(widget.readOnly
+                ? 'View contact'
+                : widget.contact != null ? 'Edit contact' : 'Create contact'),
+          ),
+          body: ScaffoldBodyWrapperWidget(
+            builder: (context) => Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: <Widget>[
+                        buildContactName(),
+                        buildContactAddress(),
+                      ],
+                    ),
+                  ),
+                ),
+                SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: buildSendButton())
+              ],
+            ),
+          ),
+        ));
   }
 
   Widget buildContactName() {
@@ -109,7 +118,11 @@ class _EditContactScreenState extends State<EditContactScreen> {
               padding: const EdgeInsets.only(left: 80),
               child: TextField(
                 readOnly: widget.readOnly,
-                controller: contactNameController,
+                onChanged: (String value) {
+                  runInAction(() {
+                    _store.name = value;
+                  });
+                },
                 style: const TextStyle(fontSize: 18),
                 decoration: const InputDecoration(
                     hintText: 'Name',
@@ -131,7 +144,12 @@ class _EditContactScreenState extends State<EditContactScreen> {
             children: <Widget>[
               TextField(
                 readOnly: widget.readOnly,
-                controller: contactAddressController,
+                controller: _contactAddressController,
+                onChanged: (String value) {
+                  runInAction(() {
+                    _store.address = value;
+                  });
+                },
                 decoration: const InputDecoration(
                   hintText: 'Address',
                   hintStyle: TextStyle(color: StegosColors.primaryColorDark),
@@ -161,61 +179,58 @@ class _EditContactScreenState extends State<EditContactScreen> {
     if (address == null) {
       return;
     }
-    setState(() {
-      contactAddressController.text = address;
+    runInAction(() {
+      _store.address = address;
+      setState(() {
+        _contactAddressController.text = address;
+      });
     });
   }
 
   Future<String> showQRCode() {
     return StegosApp.navigatorState.push(MaterialPageRoute(
       builder: (BuildContext context) => QrGenerator(
-        title: 'QR code for ${contact.name}',
-        qrData: contact.pkey,
+        title: 'QR code for ${widget.contact.name}',
+        qrData: widget.contact.pkey,
       ),
       fullscreenDialog: true,
     ));
   }
 
-  bool get isValid {
-    return validateStegosAddress(contactAddressController.text) && contactNameController.text.isNotEmpty;
-  }
-
   Widget buildSendButton() => widget.readOnly
       ? Container()
-      : RaisedButton(
-          elevation: 8,
-          disabledElevation: 8,
-          onPressed: widget.contact != null ? _editContact : _addContact,
-          child: Text(widget.contact != null ? 'SAVE' : 'CREATE'),
-        );
+      : Observer(builder: (context) {
+          return RaisedButton(
+            elevation: 8,
+            disabledElevation: 8,
+            onPressed: _store.isValidForm
+                ? (widget.contact != null ? _editContact : _addContact)
+                : null,
+            child: Text(widget.contact != null ? 'SAVE' : 'CREATE'),
+          );
+        });
 
-  void _addContact(){
+  void _addContact() {
     final store = Provider.of<StegosStore>(context);
-    if(isValid){
-      store.addContact(contactNameController.text, contactAddressController.text)
-          .then((_) {
-        StegosApp.navigatorState.pushReplacementNamed(Routes.wallet, arguments: 3);
-      });
-    }
+    store.addContact(_store.name, _store.address).then((_) {
+      StegosApp.navigatorState
+          .pushReplacementNamed(Routes.wallet, arguments: 3);
+    });
   }
 
-  void _editContact(){
-    if(contact == null) {
+  void _editContact() {
+    if (widget.contact == null) {
       return;
     }
     final store = Provider.of<StegosStore>(context);
-    if(isValid){
-      store.editContact(contact.id, contactNameController.text, contactAddressController.text)
-          .then((_) {
-        StegosApp.navigatorState.pop();
-      });
-    }
+    store.editContact(widget.contact.id, _store.name, _store.address).then((_) {
+      StegosApp.navigatorState.pop();
+    });
   }
 
   @override
   void dispose() {
-    contactNameController.dispose();
-    contactAddressController.dispose();
+    _contactAddressController.dispose();
     super.dispose();
   }
 }
