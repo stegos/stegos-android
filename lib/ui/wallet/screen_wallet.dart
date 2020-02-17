@@ -20,22 +20,29 @@ class WalletScreen extends StatefulWidget {
   State<StatefulWidget> createState() => _WalletScreenState();
 }
 
-class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderStateMixin {
+class _WalletScreenState extends State<WalletScreen>
+    with SingleTickerProviderStateMixin {
   final GlobalKey<ScaffoldState> drawerKey = GlobalKey();
 
   bool scanForAddress = false;
   int selectedItem = 0;
   TabController tabController;
 
-  final List<String> tabNames = ['Stegos Wallet', 'QR Reader', 'Chat', 'Contacts'];
+  final List<String> tabNames = [
+    'Stegos Wallet', 'QR Reader',
+    // 'Chat',
+    'Contacts'
+  ];
 
-  Widget buildTabIcon(String assetName, bool selected) => SvgPicture.asset(assetName,
-      color: selected ? StegosColors.primaryColor : StegosColors.primaryColorDark);
+  Widget buildTabIcon(String assetName, bool selected) => SvgPicture.asset(
+      assetName,
+      color:
+          selected ? StegosColors.primaryColor : StegosColors.primaryColorDark);
 
   @override
   void initState() {
     super.initState();
-    tabController = TabController(vsync: this, length: 4);
+    tabController = TabController(vsync: this, length: 3);
     tabController.index = widget.initialTab ?? 0;
     updateTabParams();
     tabController.addListener(updateTabParams);
@@ -53,7 +60,7 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
     return Theme(
       data: StegosThemes.walletTheme,
       child: DefaultTabController(
-        length: 4,
+        length: 3,
         child: Scaffold(
           key: drawerKey,
           appBar: AppBarWidget(
@@ -96,19 +103,22 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
               controller: tabController,
               tabs: [
                 Tab(
-                  icon: buildTabIcon('assets/images/wallet.svg', selectedItem == 0),
+                  icon: buildTabIcon(
+                      'assets/images/wallet.svg', selectedItem == 0),
                   text: 'Wallet',
                 ),
                 Tab(
-                  icon: buildTabIcon('assets/images/qr_reader.svg', selectedItem == 1),
+                  icon: buildTabIcon(
+                      'assets/images/qr_reader.svg', selectedItem == 1),
                   text: 'QR Reader',
                 ),
+                // Tab(
+                //   icon: buildTabIcon('assets/images/chat.svg', selectedItem == 2),
+                //   text: 'Chat',
+                // ),
                 Tab(
-                  icon: buildTabIcon('assets/images/chat.svg', selectedItem == 2),
-                  text: 'Chat',
-                ),
-                Tab(
-                  icon: buildTabIcon('assets/images/contacts.svg', selectedItem == 3),
+                  icon: buildTabIcon(
+                      'assets/images/contacts.svg', selectedItem == 2),
                   text: 'Contacts',
                 ),
               ],
@@ -126,7 +136,7 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
               QrReaderTab(
                 isScanning: scanForAddress,
               ),
-              ChatList(),
+              // ChatList(),
               Contacts(),
             ],
           ),
