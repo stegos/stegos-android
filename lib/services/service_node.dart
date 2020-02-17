@@ -450,6 +450,11 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
   @computed
   bool get operable => client.connected && synchronized;
 
+  /// Is stegos app locked:
+  ///  - Don't update any observable items
+  @computed
+  bool get locked => _env.securityService.needAppUnlock;
+
   /// Is Stegos network node synchronized
   @computed
   bool get synchronized => min_epoch == remote_epoch;
@@ -753,6 +758,12 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
     _nodeClientSubscription = client.stream.listen(_onNodeMessage);
   }
 
+  Future<void> suspend() {
+    log.info('Suspending remote node.');
+    final ch = StegosEnv.activityControlChannel;
+    return ch.invokeMethod('stopNode');
+  }
+
   Future<void> setEmbeddedNode(bool active) {
     log.warning('Activate embedded: ${active}');
     final ch = StegosEnv.activityControlChannel;
@@ -836,6 +847,21 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
       case 'received':
         unawaited(_onReceived(msg));
         break;
+      case 'status_changed':
+        unawaited(_onStatusChanged(msg));
+        break;
+    }
+  }
+
+  Future<void> _onStatusChanged(StegosNodeMessage msg) async {
+    final epoch = msg.json['epoch'] as int ?? min_epoch;
+    if (locked) {
+      return;
+    }
+
+    if (remote_epoch > 1 && epoch > min_epoch) {
+      log.info('Updating min_epoch: before:${min_epoch} after ${epoch}');
+      min_epoch = epoch;
     }
   }
 
@@ -893,7 +919,11 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
   }
 
   Future<void> _syncAccountsInfo(bool connected) async {
-    if (!connected) {
+    if (!connected || locked) {
+      log.warning('Client disconnected.');
+      if (log.isFine) log.fine('Schedule syncNodeStatus in next 10 secs');
+      Timer(
+          const Duration(seconds: 10), () => _syncAccountsInfo(this.connected));
       return;
     }
     return client.sendAndAwait({'type': 'accounts_info'}).then((msg) {
@@ -914,11 +944,9 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
           min_epoch = local_min_epoch;
         }
         log.info('Remote epoch = ${remote_epoch}, local_epoch = ${min_epoch}');
-        if (min_epoch < remote_epoch) {
-          if (log.isFine) log.fine('Schedule syncNodeStatus in next 10 secs');
-          Timer(const Duration(seconds: 10),
-              () => _syncAccountsInfo(this.connected));
-        }
+        if (log.isFine) log.fine('Schedule syncNodeStatus in next 10 secs');
+        Timer(const Duration(seconds: 10),
+            () => _syncAccountsInfo(this.connected));
       });
     });
   }

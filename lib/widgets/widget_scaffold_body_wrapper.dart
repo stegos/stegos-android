@@ -21,6 +21,7 @@ class ScaffoldBodyWrapperWidgetState extends State<ScaffoldBodyWrapperWidget> {
   ErrorState error;
   bool operable;
   bool connected;
+  bool locked;
   int remote_epoch;
   int min_epoch;
   bool get hasError => error?.message?.isNotEmpty ?? false;
@@ -32,6 +33,7 @@ class ScaffoldBodyWrapperWidgetState extends State<ScaffoldBodyWrapperWidget> {
     error = null;
     operable = false;
     connected = false;
+    locked = false;
     remote_epoch = 0;
     min_epoch = 0;
   }
@@ -46,6 +48,7 @@ class ScaffoldBodyWrapperWidgetState extends State<ScaffoldBodyWrapperWidget> {
       remote_epoch = store.nodeService.remote_epoch;
       min_epoch = store.nodeService.min_epoch;
       connected = store.nodeService.connected;
+      locked = store.nodeService.locked;
       _disposer = reaction(
           (_) => [
                 store.error.value,
@@ -53,6 +56,7 @@ class ScaffoldBodyWrapperWidgetState extends State<ScaffoldBodyWrapperWidget> {
                 store.nodeService.connected,
                 store.nodeService.min_epoch,
                 store.nodeService.remote_epoch,
+                store.nodeService.locked,
               ], (arr) {
         setState(() {
           error = arr[0] as ErrorState;
@@ -60,6 +64,7 @@ class ScaffoldBodyWrapperWidgetState extends State<ScaffoldBodyWrapperWidget> {
           connected = arr[2] as bool;
           min_epoch = arr[3] as int;
           remote_epoch = arr[4] as int;
+          locked = arr[5] as bool;
         });
       });
     }
@@ -89,7 +94,7 @@ class ScaffoldBodyWrapperWidgetState extends State<ScaffoldBodyWrapperWidget> {
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
           //
-          if (!operable)
+          if (!operable && !locked)
             Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 50),
