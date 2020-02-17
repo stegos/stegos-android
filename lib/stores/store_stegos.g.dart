@@ -39,6 +39,12 @@ mixin _$StegosStore on _StegosStore, Store {
   @override
   bool get needWelcome =>
       (_$needWelcomeComputed ??= Computed<bool>(() => super.needWelcome)).value;
+  Computed<bool> _$embeddedNodeComputed;
+
+  @override
+  bool get embeddedNode =>
+      (_$embeddedNodeComputed ??= Computed<bool>(() => super.embeddedNode))
+          .value;
   Computed<bool> _$allowBiometricsProtectionComputed;
 
   @override

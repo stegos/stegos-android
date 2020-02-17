@@ -33,12 +33,16 @@ public class Stegos extends Service {
 
   private static native int init(String chain, String data_dir, String api_token, String api_endpoint);
 
+  private static native int shutdown();
+
+  private static native int restart();
+
   private static final int FOREGROUND_ID = 1;
 
   private final IBinder binder = new Binder();
 
   private Thread worker;
-  
+
   @Override
   public int onStartCommand(Intent intent, int flags, int startId) {
     super.onStartCommand(intent, flags, startId);
@@ -91,9 +95,9 @@ public class Stegos extends Service {
       return;
     }
     NotificationManager notificationManager = (NotificationManager) context
-      .getSystemService(Context.NOTIFICATION_SERVICE);
+        .getSystemService(Context.NOTIFICATION_SERVICE);
     notificationManager.createNotificationChannel(
-      new NotificationChannel("node", "Stegos node", NotificationManager.IMPORTANCE_DEFAULT));
+        new NotificationChannel("node", "Stegos node", NotificationManager.IMPORTANCE_DEFAULT));
   }
 
   private synchronized void startBackgroundWork(String network, String apiToken) {
@@ -120,16 +124,21 @@ public class Stegos extends Service {
   }
 
   private synchronized void stopBackgroundWork() {
-//    if (worker != null) {
-//      try {
-//        // todo: review
-//        worker.stop(); // FIXME: !!! We do not have good shutdown methods for node
-//      } catch (Throwable tr) {
-//        Log.e(TAG, "Error stopping stegos node", tr);
-//      } finally {
-//        Log.w(TAG, "Stegos node stopped");
-//        worker = null;
-//      }
-//    }
+    if (!libraryLoaded) {
+      Log.w(TAG, "Stegos node native library is not loaded");
+      return;
+    }
+    int code = 0;
+    if (worker != null) {
+      try {
+        code = shutdown();
+        worker.join(); // FIXME: !!! We do not have good shutdown methods for node
+      } catch (Throwable tr) {
+        Log.e(TAG, "Error stopping stegos node", tr);
+      } finally {
+        Log.w(TAG, "Stegos node stopped. Code: " + code);
+        worker = null;
+      }
+    }
   }
 }

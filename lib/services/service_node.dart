@@ -39,13 +39,26 @@ enum PaymentMethod {
 }
 
 class TxStore extends _TxStore with _$TxStore {
-  TxStore(AccountStore account, int id, bool send, String recipient, int amount, int cts,
-      String comment, int fee, String status, String hash, dynamic certOutput)
-      : super(account, id, send, recipient, amount, cts, comment, fee, status, hash, certOutput);
+  TxStore(
+      AccountStore account,
+      int id,
+      bool send,
+      String recipient,
+      int amount,
+      int cts,
+      String comment,
+      int fee,
+      String status,
+      String hash,
+      dynamic certOutput)
+      : super(account, id, send, recipient, amount, cts, comment, fee, status,
+            hash, certOutput);
 
   factory TxStore.fromJson(AccountStore account, int id, dynamic json) {
     final type = json['type'] as String ?? '';
-    final send = type == 'outgoing' || type.startsWith('transaction_') || type.contains('payment');
+    final send = type == 'outgoing' ||
+        type.startsWith('transaction_') ||
+        type.contains('payment');
     final recipient = json['recipient'] as String;
     final amount = json['amount'] as int ?? 0;
     final hash = json['tx_hash'] as String ?? json['output_hash'] as String;
@@ -53,9 +66,12 @@ class TxStore extends _TxStore with _$TxStore {
 
     int cts;
     if (json['timestamp'] is String) {
-      cts = DateTime.parse(json['timestamp'] as String).toUtc().millisecondsSinceEpoch;
+      cts = DateTime.parse(json['timestamp'] as String)
+          .toUtc()
+          .millisecondsSinceEpoch;
     } else {
-      cts = json['_cts'] as int ?? DateTime.now().toUtc().millisecondsSinceEpoch;
+      cts =
+          json['_cts'] as int ?? DateTime.now().toUtc().millisecondsSinceEpoch;
     }
     final comment = json['comment'] as String ?? '';
 
@@ -68,16 +84,16 @@ class TxStore extends _TxStore with _$TxStore {
           (o) => o['output_type'] == 'payment' && o['rvalue'] != null,
           orElse: () => null);
     }
-    return TxStore(
-        account, id, send, recipient, amount, cts, comment, fee, status, hash, certOutput);
+    return TxStore(account, id, send, recipient, amount, cts, comment, fee,
+        status, hash, certOutput);
   }
 }
 
 abstract class _TxStore with Store {
-  _TxStore(this.account, this.id, this.send, this.recipient, this.amount, this.cts, this.comment,
-      this.fee, this.status, this.hash, this.certOutput)
-      : humanCreationTime =
-            _txDateFormatter.format(DateTime.fromMillisecondsSinceEpoch(cts, isUtc: false)),
+  _TxStore(this.account, this.id, this.send, this.recipient, this.amount,
+      this.cts, this.comment, this.fee, this.status, this.hash, this.certOutput)
+      : humanCreationTime = _txDateFormatter
+            .format(DateTime.fromMillisecondsSinceEpoch(cts, isUtc: false)),
         humanAmount = '${send ? '-' : ''}${(amount / 1e6).toStringAsFixed(3)}';
 
   final AccountStore account;
@@ -110,7 +126,8 @@ abstract class _TxStore with Store {
   bool get finished => !pending;
 
   /// Is transaction failed
-  bool get failed => const ['failed', 'rejected', 'conflicted'].contains(status);
+  bool get failed =>
+      const ['failed', 'rejected', 'conflicted'].contains(status);
 
   /// Transaction in pending state
   @computed
@@ -175,8 +192,8 @@ abstract class _TxStore with Store {
 class AccountStore extends _AccountStore with _$AccountStore {
   AccountStore.empty(int id) : super(id);
 
-  AccountStore._(
-      int id, String name, String password, String iv, int ordinal, String pkey, String networkPKey)
+  AccountStore._(int id, String name, String password, String iv, int ordinal,
+      String pkey, String networkPKey)
       : super(id, name, password, iv, ordinal, pkey, networkPKey);
 
   factory AccountStore._fromJBDOC(JBDOC doc) {
@@ -201,7 +218,12 @@ class AccountStore extends _AccountStore with _$AccountStore {
 
 abstract class _AccountStore with Store {
   _AccountStore(this.id,
-      [this.name, this._password, this._iv, this.ordinal, this.pkey, this.networkPKey]) {
+      [this.name,
+      this._password,
+      this._iv,
+      this.ordinal,
+      this.pkey,
+      this.networkPKey]) {
     ordinal ??= id > 0 ? id - 1 : 0;
   }
 
@@ -303,23 +325,40 @@ abstract class _AccountStore with Store {
 
   @action
   void _updateFromBalanceMessage(StegosNodeMessage msg) {
-    balanceIsFinal = msg.at('/is_final').transform((v) => v as bool).or(balanceIsFinal ?? false);
-    balanceCurrent = msg.at('/current').transform((v) => v as int).or(balanceCurrent ?? 0);
-    balanceAvailable = msg.at('/available').transform((v) => v as int).or(balanceAvailable ?? 0);
-    balancePaymentCurrent =
-        msg.at('/payment/current').transform((v) => v as int).or(balancePaymentCurrent ?? 0);
-    balancePaymentAvailable =
-        msg.at('/payment/available').transform((v) => v as int).or(balancePaymentAvailable ?? 0);
-    balancePublicCurrent =
-        msg.at('/public_payment/current').transform((v) => v as int).or(balancePublicCurrent ?? 0);
+    balanceIsFinal = msg
+        .at('/is_final')
+        .transform((v) => v as bool)
+        .or(balanceIsFinal ?? false);
+    balanceCurrent =
+        msg.at('/current').transform((v) => v as int).or(balanceCurrent ?? 0);
+    balanceAvailable = msg
+        .at('/available')
+        .transform((v) => v as int)
+        .or(balanceAvailable ?? 0);
+    balancePaymentCurrent = msg
+        .at('/payment/current')
+        .transform((v) => v as int)
+        .or(balancePaymentCurrent ?? 0);
+    balancePaymentAvailable = msg
+        .at('/payment/available')
+        .transform((v) => v as int)
+        .or(balancePaymentAvailable ?? 0);
+    balancePublicCurrent = msg
+        .at('/public_payment/current')
+        .transform((v) => v as int)
+        .or(balancePublicCurrent ?? 0);
     balancePublicAvailable = msg
         .at('/public_payment/available')
         .transform((v) => v as int)
         .or(balancePublicAvailable ?? 0);
-    balanceStakeCurrent =
-        msg.at('/stake/current').transform((v) => v as int).or(balanceStakeCurrent ?? 0);
-    balanceStakeAvailable =
-        msg.at('/stake/available').transform((v) => v as int).or(balanceStakeAvailable ?? 0);
+    balanceStakeCurrent = msg
+        .at('/stake/current')
+        .transform((v) => v as int)
+        .or(balanceStakeCurrent ?? 0);
+    balanceStakeAvailable = msg
+        .at('/stake/available')
+        .transform((v) => v as int)
+        .or(balanceStakeAvailable ?? 0);
   }
 
   void _setBalanceFromJBDOC(JBDOC doc) {
@@ -344,17 +383,20 @@ abstract class _AccountStore with Store {
 }
 
 class _UnsealAccountStatus {
-  const _UnsealAccountStatus({this.unsealed = false, this.invalidPassword = false});
+  const _UnsealAccountStatus(
+      {this.unsealed = false, this.invalidPassword = false});
 
   final bool unsealed;
   final bool invalidPassword;
 
   @override
-  String toString() => 'usealed=${unsealed}, invalidPassword=${invalidPassword}';
+  String toString() =>
+      'usealed=${unsealed}, invalidPassword=${invalidPassword}';
 }
 
 class TxValidationInfo {
-  TxValidationInfo(this.epoch, this.blockHash, this.isFinal, this.timestamp, this.amount);
+  TxValidationInfo(
+      this.epoch, this.blockHash, this.isFinal, this.timestamp, this.amount);
   factory TxValidationInfo.fromJson(dynamic json) => TxValidationInfo(
       json['epoch'] as int ?? 0,
       json['block_hash'] as String ?? '',
@@ -389,12 +431,12 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
   final accounts = ObservableMap<int, AccountStore>();
 
   @computed
-  List<AccountStore> get accountsList =>
-      accounts.values.toList(growable: false)..sort((a, b) => a.ordinal.compareTo(b.ordinal));
+  List<AccountStore> get accountsList => accounts.values.toList(growable: false)
+    ..sort((a, b) => a.ordinal.compareTo(b.ordinal));
 
   @computed
-  int get totalBalance =>
-      accounts.values.fold(0, (s, a) => s + a.balanceCurrent); // todo: balanceCurrent?
+  int get totalBalance => accounts.values
+      .fold(0, (s, a) => s + a.balanceCurrent); // todo: balanceCurrent?
 
   String get totalBalanceSTG => (totalBalance / 1e6).toStringAsFixed(3);
 
@@ -409,8 +451,16 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
   bool get operable => client.connected && synchronized;
 
   /// Is Stegos network node synchronized
+  @computed
+  bool get synchronized => min_epoch == remote_epoch;
+
+  /// Local min epoch.
   @observable
-  bool synchronized = false;
+  int min_epoch = 0;
+
+  /// Remote node epoch.
+  @observable
+  int remote_epoch = 1;
 
   /// Stegos network id:
   /// - stg: mainNet
@@ -446,7 +496,8 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
   String get _txsCollection => 'txs_$network';
 
   @computed
-  bool get _syncAllowed => client.connected && !_env.securityService.needAppUnlock;
+  bool get _syncAllowed =>
+      client.connected && !_env.securityService.needAppUnlock;
 
   final _disposers = <ReactionDisposer>[];
 
@@ -459,21 +510,23 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
     }
     await _checkConnected();
     return _unsealAccount(account.id, force: true)
-        .then((_) => client.sendAndAwait({'type': 'delete_account', 'account_id': '${account.id}'}))
+        .then((_) => client.sendAndAwait(
+            {'type': 'delete_account', 'account_id': '${account.id}'}))
         .catchError(defaultErrorHandler<void>(_env));
   }
 
   Future<void> createNewAccount([String name]) async {
     await _checkConnected();
     final pwp = await _env.securityService.acquirePasswordForApp();
-    final msg = await client.sendAndAwait({'type': 'create_account', 'password': pwp.first});
+    final msg = await client
+        .sendAndAwait({'type': 'create_account', 'password': pwp.first});
     unawaited(_syncAccounts().then((_) async {
       final accountId = msg.accountId;
       if (accountId > 0 && name != null && name.isNotEmpty) {
         final acc = accounts[accountId];
         if (acc != null) {
-          await _env.useDb((db) =>
-              db.patchOrPut(_accountsCollecton, {'id': accountId, 'name': name}, accountId));
+          await _env.useDb((db) => db.patchOrPut(
+              _accountsCollecton, {'id': accountId, 'name': name}, accountId));
           runInAction(() {
             acc.name = name;
           });
@@ -484,7 +537,8 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
   }
 
   Future<void> recoverAccount(List<String> recoveryPhrase) async {
-    recoveryPhrase = recoveryPhrase.map((r) => r.trim()).where((r) => r.isNotEmpty).toList();
+    recoveryPhrase =
+        recoveryPhrase.map((r) => r.trim()).where((r) => r.isNotEmpty).toList();
     if (recoveryPhrase.length != 24) {
       return Future.error('Invalid recovery phrase');
     }
@@ -522,7 +576,8 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
       return Future.value();
     }
     if (fromIndex >= alist.length || toIndex >= alist.length) {
-      log.warning('reorderAccounts: invalid arguments: ${fromIndex}, ${toIndex}');
+      log.warning(
+          'reorderAccounts: invalid arguments: ${fromIndex}, ${toIndex}');
       return Future.value();
     }
 
@@ -536,8 +591,8 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
 
     return _env.useDb((db) {
       final List<Future<void>> dbPatches = [];
-      alist.forEach(
-          (a) => dbPatches.add(db.patch(_accountsCollecton, {'ordinal': a.ordinal}, a.id)));
+      alist.forEach((a) => dbPatches
+          .add(db.patch(_accountsCollecton, {'ordinal': a.ordinal}, a.id)));
       return Future.wait(dbPatches);
     });
   }
@@ -547,7 +602,9 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
     if (account == null) {
       return Future.value();
     }
-    return _env.useDb((db) => db.patch(_accountsCollecton, {'backedUp': true}, id)).then((_) {
+    return _env
+        .useDb((db) => db.patch(_accountsCollecton, {'backedUp': true}, id))
+        .then((_) {
       runInAction(() {
         account.backedUp = true;
       });
@@ -557,13 +614,17 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
   Future<void> setAccountPassword(AccountStore account, String password) async {
     await _unsealAccount(account.id, force: true);
     final pwp = await _env.securityService.acquirePasswordForApp();
-    final pp = _env.securityService.setupPinProtectedPassword(password, pwp.second);
-    await client.sendAndAwait(
-        {'type': 'change_password', 'account_id': '${account.id}', 'new_password': password});
+    final pp =
+        _env.securityService.setupPinProtectedPassword(password, pwp.second);
+    await client.sendAndAwait({
+      'type': 'change_password',
+      'account_id': '${account.id}',
+      'new_password': password
+    });
     account._password = pp.first;
     account._iv = pp.second;
-    await _env.useDb((db) => db.patch(
-        _accountsCollecton, {'password': account._password, 'iv': account._iv}, account.id));
+    await _env.useDb((db) => db.patch(_accountsCollecton,
+        {'password': account._password, 'iv': account._iv}, account.id));
   }
 
   Future<void> renameAccount(int id, String name) {
@@ -571,7 +632,9 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
     if (account == null) {
       return Future.value();
     }
-    return _env.useDb((db) => db.patch(_accountsCollecton, {'name': name}, id)).then((_) {
+    return _env
+        .useDb((db) => db.patch(_accountsCollecton, {'name': name}, id))
+        .then((_) {
       runInAction(() {
         account.name = name;
       });
@@ -617,7 +680,10 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
       'locked_timestamp': lockedTimestamp?.toUtc()?.toIso8601StringV2(),
     };
 
-    final txdata = {...payload, '_cts': DateTime.now().toUtc().millisecondsSinceEpoch};
+    final txdata = {
+      ...payload,
+      '_cts': DateTime.now().toUtc().millisecondsSinceEpoch
+    };
     final id = await _env.useDb((db) => db.put(_txsCollection, txdata));
     if (log.isFine) {
       log.fine('Payment persisted: ${txdata}');
@@ -672,15 +738,15 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
         setEmbeddedNode(_env.store.embeddedNode);
       }),
       autorun((_) {
-        if (client.connected) {
-          untracked(() {
-            _syncNodeStatus(client.connected);
-          });
+        if (_syncAllowed) {
+          untracked(_syncAccounts);
         }
       }),
       autorun((_) {
-        if (_syncAllowed) {
-          untracked(_syncAccounts);
+        if (client.connected) {
+          untracked(() {
+            _syncAccountsInfo(client.connected);
+          });
         }
       })
     ]);
@@ -711,7 +777,8 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
     }
   }
 
-  Future<void> _onAccountDeleted(StegosNodeMessage msg) => _env.useDb((db) async {
+  Future<void> _onAccountDeleted(StegosNodeMessage msg) =>
+      _env.useDb((db) async {
         await _clearAccountTransactions(msg.accountId);
         await db.delIgnoreNotFound(_accountsCollecton, msg.accountId);
       }).whenComplete(() {
@@ -748,7 +815,8 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
 
   Future<void> _checkOperable() {
     if (!operable) {
-      return Future.error(StegosUserException('Stegos node is not connected/synchronized'))
+      return Future.error(
+              StegosUserException('Stegos node is not connected/synchronized'))
           .catchError(defaultErrorHandler(_env));
     }
     return Future.value();
@@ -787,12 +855,16 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
     }
     return _env.useDb((db) async {
       final res = await db
-          .createQuery('/[account_id = :?] and /[output_hash = :?]', _txsCollection)
+          .createQuery(
+              '/[account_id = :?] and /[output_hash = :?]', _txsCollection)
           .setInt(0, msg.accountId)
           .setString(1, json['output_hash'] as String)
           .first();
       if (res.isNotPresent) {
-        final doc = {...json, '_cts': DateTime.now().toUtc().millisecondsSinceEpoch};
+        final doc = {
+          ...json,
+          '_cts': DateTime.now().toUtc().millisecondsSinceEpoch
+        };
         final id = await db.put(_txsCollection, doc);
         account._updateTransaction(id, doc);
       }
@@ -814,38 +886,58 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
       return;
     }
     if (log.isFine) {
-      log.fine('onTransactionStatus updated: ${doc.value}\nStatus: ${msg.json['status']}');
+      log.fine(
+          'onTransactionStatus updated: ${doc.value}\nStatus: ${msg.json['status']}');
     }
     account._updateTransaction(doc.value.id, json);
   }
 
-  Future<void> _syncNodeStatus(bool connected) async {
+  Future<void> _syncAccountsInfo(bool connected) async {
     if (!connected) {
       return;
     }
-    return client.sendAndAwait({'type': 'status_info'}).then((msg) {
+    return client.sendAndAwait({'type': 'accounts_info'}).then((msg) {
       runInAction(() {
-        synchronized = msg.json['is_synchronized'] as bool ?? false;
-        if (synchronized == false) {
+        // synchronized = msg.json['is_synchronized'] as bool ?? false;
+        remote_epoch = msg.json['remote_epoch'] as int ?? remote_epoch;
+        if (remote_epoch <= 0) {
+          remote_epoch = 1;
+        } else {
+          int local_min_epoch = null;
+          // update min epoch only if we know remote_epoch.
+          for (final MapEntry e in msg.json['accounts'].entries) {
+            final int epoch = e.value['epoch'] as int ?? 0;
+            if (local_min_epoch == null || epoch < local_min_epoch) {
+              local_min_epoch = epoch;
+            }
+          }
+          min_epoch = local_min_epoch;
+        }
+        log.info('Remote epoch = ${remote_epoch}, local_epoch = ${min_epoch}');
+        if (min_epoch < remote_epoch) {
           if (log.isFine) log.fine('Schedule syncNodeStatus in next 10 secs');
-          Timer(const Duration(seconds: 10), () => _syncNodeStatus(this.connected));
+          Timer(const Duration(seconds: 10),
+              () => _syncAccountsInfo(this.connected));
         }
       });
     });
   }
 
-  Future<void> _syncAccountsByIds(Iterable<int> ids, {bool forceSealing = false}) =>
+  Future<void> _syncAccountsByIds(Iterable<int> ids,
+          {bool forceSealing = false}) =>
       Future.forEach(ids, (int id) {
         if (!accounts.containsKey(id)) {
           return Future.value();
         }
-        return _syncAccountInfo(id, forceSealing: forceSealing).catchError((err, StackTrace st) {
+        return _syncAccountInfo(id, forceSealing: forceSealing)
+            .catchError((err, StackTrace st) {
           log.warning('Error getting account info #${id}', err, st);
           accounts.remove(id);
         });
       });
 
-  Future<List<TxStore>> _fetchAccountTransactions(AccountStore account) => _env.useDb((db) async {
+  Future<List<TxStore>> _fetchAccountTransactions(AccountStore account) =>
+      _env.useDb((db) async {
         final list = await db
             .createQuery('/[account_id = :?] | noidx limit :?', _txsCollection)
             .setInt(0, account.id)
@@ -857,7 +949,8 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
         return list;
       });
 
-  Future<void> _syncAccountTransactions(AccountStore account) => _env.useDb((db) async {
+  Future<void> _syncAccountTransactions(AccountStore account) =>
+      _env.useDb((db) async {
         final list = await _fetchAccountTransactions(account);
         final hmap = <String, TxStore>{};
         list.forEach((tx) {
@@ -867,19 +960,22 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
         });
 
         final fromTs = list.lastOrNull?.cts ??
-            DateTime.now().toUtc().millisecondsSinceEpoch - 1000 * 60 * 60 * 24 * 365; // ~1Y
+            DateTime.now().toUtc().millisecondsSinceEpoch -
+                1000 * 60 * 60 * 24 * 365; // ~1Y
 
         final msg = await client.sendAndAwait({
           'type': 'history_info',
           'account_id': '${account.id}',
           'starting_from':
-              DateTime.fromMillisecondsSinceEpoch(fromTs, isUtc: true).toIso8601StringV2(),
+              DateTime.fromMillisecondsSinceEpoch(fromTs, isUtc: true)
+                  .toIso8601StringV2(),
           'limit': 10 * 1024 // 10K
         });
 
         final history = (msg.json['log'] as List ?? []).where((h) {
           return (h['is_change'] as bool ?? true) == false ||
-              const ['committed', 'rejected', 'conflicted'].contains(h['status'] as String);
+              const ['committed', 'rejected', 'conflicted']
+                  .contains(h['status'] as String);
         });
 
         for (final h in history) {
@@ -890,7 +986,9 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
               final toadd = {'account_id': '${account.id}', ...h as Map};
               if (toadd['amount'] == null) {
                 final output = (toadd['outputs'] as List ?? []).firstWhere(
-                    (o) => o['output_type'] == 'payment' && o['is_change'] == false,
+                    (o) =>
+                        o['output_type'] == 'payment' &&
+                        o['is_change'] == false,
                     orElse: () => null);
                 if (output != null) {
                   toadd['amount'] = output['amount'];
@@ -900,7 +998,9 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
                 final id = await db.put(_txsCollection, toadd);
                 list.add(TxStore.fromJson(account, id, toadd));
               }
-            } else if (tx.send && h['status'] != null && tx.status != h['status']) {
+            } else if (tx.send &&
+                h['status'] != null &&
+                tx.status != h['status']) {
               tx._updateFromJson(h);
               await db.patch(_txsCollection, {'status': tx.status}, tx.id);
             }
@@ -915,10 +1015,12 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
         });
       });
 
-  Future<AccountStore> _syncAccountInfo(int id, {bool forceSealing = false}) async {
+  Future<AccountStore> _syncAccountInfo(int id,
+      {bool forceSealing = false}) async {
     final account = await _unsealAccount(id, force: forceSealing);
     //try {
-    final msg = await client.sendAndAwait({'type': 'balance_info', 'account_id': '$id'});
+    final msg = await client
+        .sendAndAwait({'type': 'balance_info', 'account_id': '$id'});
     await _env.useDb((db) async {
       account._updateFromBalanceMessage(msg);
       await db.patchOrPut(_accountsCollecton, account, id);
@@ -943,7 +1045,8 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
     if (!force && account.sealed) {
       return Future.value(account);
     }
-    return client.sendAndAwait({'type': 'seal', 'account_id': '$id'}).catchError((err) {
+    return client
+        .sendAndAwait({'type': 'seal', 'account_id': '$id'}).catchError((err) {
       if (err is StegosNodeErrorMessage && err.accountIsSealed) {
         // Account is sealed already
         return Future<StegosNodeMessage>.value();
@@ -961,7 +1064,8 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
     });
   }
 
-  Future<AccountStore> unsealAccount(AccountStore account, {bool force = false}) =>
+  Future<AccountStore> unsealAccount(AccountStore account,
+          {bool force = false}) =>
       _unsealAccount(account.id, force: force);
 
   Future<AccountStore> _unsealAccount(int id, {bool force = false}) async {
@@ -973,8 +1077,8 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
     final pwp = await _env.securityService.acquirePasswordForApp();
     if (acc._password != null && acc._iv != null) {
       // We have own pin protected account password
-      final apwp =
-          _env.securityService.recoverPinProtectedPassword(pwp.second, acc._password, acc._iv);
+      final apwp = _env.securityService
+          .recoverPinProtectedPassword(pwp.second, acc._password, acc._iv);
       status = await _unsealAccountRaw(acc, apwp.first);
       if (status.unsealed) {
         return acc;
@@ -990,13 +1094,17 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
       if (status.unsealed) {
         // If so try to change empty password
         log.warning('Changing default password for account: $id');
-        await client.sendAndAwait(
-            {'type': 'change_password', 'account_id': '$id', 'new_password': pwp.first});
+        await client.sendAndAwait({
+          'type': 'change_password',
+          'account_id': '$id',
+          'new_password': pwp.first
+        });
       } else {
         final pw = await appShowDialog<String>(
             builder: (context) => PasswordScreen(
                   title: 'Unlock ${acc.humanName}',
-                  caption: 'It seems that this account is locked by unknown password.',
+                  caption:
+                      'It seems that this account is locked by unknown password.',
                   titleStatus: 'Please provide account password to unlock',
                   titleSubmitButton: 'UNLOCK',
                   unlocker: (password) async {
@@ -1004,12 +1112,14 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
                     if (status.invalidPassword) {
                       return Pair(null, 'Invalid password provided');
                     }
-                    final pwp = await _env.securityService.acquirePasswordForApp();
-                    final pp = _env.securityService.setupPinProtectedPassword(password, pwp.second);
+                    final pwp =
+                        await _env.securityService.acquirePasswordForApp();
+                    final pp = _env.securityService
+                        .setupPinProtectedPassword(password, pwp.second);
                     acc._password = pp.first;
                     acc._iv = pp.second;
-                    await _env.useDb((db) => db.patchOrPut(
-                        _accountsCollecton, {'password': acc._password, 'iv': acc._iv}, id));
+                    await _env.useDb((db) => db.patchOrPut(_accountsCollecton,
+                        {'password': acc._password, 'iv': acc._iv}, id));
                     return Pair(password, null);
                   },
                 ));
@@ -1022,19 +1132,25 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
     return acc;
   }
 
-  Future<_UnsealAccountStatus> _unsealAccountRaw(AccountStore acc, String password) {
+  Future<_UnsealAccountStatus> _unsealAccountRaw(
+      AccountStore acc, String password) {
     if (log.isFine) {
       log.fine('Unsealing account raw #${acc.id}');
     }
     return client
-        .sendAndAwait({'type': 'unseal', 'account_id': '${acc.id}', 'password': password ?? ''})
+        .sendAndAwait({
+          'type': 'unseal',
+          'account_id': '${acc.id}',
+          'password': password ?? ''
+        })
         .then((_) => const _UnsealAccountStatus(unsealed: true))
         .catchError((err) {
           if (err is StegosNodeErrorMessage) {
             if (err.accountAlreadyUnsealed) {
               return const _UnsealAccountStatus(unsealed: true);
             } else if (err.invalidPassword) {
-              return const _UnsealAccountStatus(unsealed: false, invalidPassword: true);
+              return const _UnsealAccountStatus(
+                  unsealed: false, invalidPassword: true);
             }
           }
           return Future.error(err);
@@ -1058,17 +1174,20 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
     return acc;
   }
 
-  Future<Map<String, dynamic>> _listRawAccounts() => client.sendAndAwait(
-      {'type': 'list_accounts'}).then((msg) => msg.json['accounts'] as Map<String, dynamic> ?? {});
+  Future<Map<String, dynamic>> _listRawAccounts() =>
+      client.sendAndAwait({'type': 'list_accounts'}).then(
+          (msg) => msg.json['accounts'] as Map<String, dynamic> ?? {});
 
   Future<Map<String, dynamic>> _detectNetworkAndSetupInitialAccounts() async {
     var nodeAccounts = await _listRawAccounts();
     if (nodeAccounts.isEmpty) {
       final pwp = await _env.securityService.acquirePasswordForApp();
-      await client.sendAndAwait({'type': 'create_account', 'password': pwp.first});
+      await client
+          .sendAndAwait({'type': 'create_account', 'password': pwp.first});
       nodeAccounts = await _listRawAccounts();
       if (nodeAccounts.isEmpty) {
-        throw StegosUserException('Unable to create an initial account and determine network type');
+        throw StegosUserException(
+            'Unable to create an initial account and determine network type');
       }
     }
     final pkey = nodeAccounts.values.first['account_pkey'] as String;
@@ -1088,7 +1207,9 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
           log.fine('syncAccountsOffline...');
         }
         for (final checknet in ['stg', 'stt', 'str', 'dev']) {
-          final cnt = await db.createQuery('/* | count', 'accounts_$checknet').executeScalarInt();
+          final cnt = await db
+              .createQuery('/* | count', 'accounts_$checknet')
+              .executeScalarInt();
           if (cnt == 0) {
             continue;
           }
@@ -1130,8 +1251,10 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
       return Future.value();
     }
     return _env.useDb((db) async {
-      await for (final doc
-          in db.createQuery('/[id in :?]', _accountsCollecton).setJson(0, ids).execute()) {
+      await for (final doc in db
+          .createQuery('/[id in :?]', _accountsCollecton)
+          .setJson(0, ids)
+          .execute()) {
         final id = doc.object['id'] as int;
         final acc = accounts[id];
         if (acc == null) {
@@ -1141,7 +1264,8 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
         }
       }
       await Future.wait(ids.map((id) {
-        final acc = runInAction(() => accounts.putIfAbsent(id, () => AccountStore.empty(id)));
+        final acc = runInAction(
+            () => accounts.putIfAbsent(id, () => AccountStore.empty(id)));
         final nacc = nodeAccounts['$id'];
         final pkey = nacc['account_pkey'] as String;
         final networkPKey = nacc['network_pkey'] as String;

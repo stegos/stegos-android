@@ -24,7 +24,8 @@ class _DevMenuScreenState extends State<DevMenuScreen> {
     final env = Provider.of<StegosEnv>(context);
     final store = env.store;
     _disposer ??= reaction(
-        (_) => [store.nodeWsEndpoint, store.nodeWsEndpointApiToken], (_) => setState(() {}));
+        (_) => [store.nodeWsEndpoint, store.nodeWsEndpointApiToken],
+        (_) => setState(() {}));
   }
 
   @override
@@ -68,10 +69,12 @@ class _DevMenuScreenState extends State<DevMenuScreen> {
                           ? null
                           : () async {
                               var addr = (await appShowSimpleAskTextDialog(
-                                      title: 'Node address', intialValue: store.nodeWsEndpoint))
+                                      title: 'Node address',
+                                      intialValue: store.nodeWsEndpoint))
                                   ?.trim();
                               if (addr != null) {
-                                if (!addr.startsWith('ws://')) addr = 'ws://${addr}';
+                                if (!addr.startsWith('ws://'))
+                                  addr = 'ws://${addr}';
                                 store.nodeWsEndpoint = addr;
                               }
                             }),
@@ -82,28 +85,31 @@ class _DevMenuScreenState extends State<DevMenuScreen> {
                           : () async {
                               final token = (await appShowSimpleAskTextDialog(
                                       title: 'API Token',
-                                      intialValue: store.nodeWsEndpointApiToken))
+                                      intialValue:
+                                          store.nodeWsEndpointApiToken))
                                   ?.trim();
                               if (token != null && token.length == 24) {
-                                unawaited(store.mergeSingle('wsApiToken', token));
+                                unawaited(
+                                    store.mergeSingle('wsApiToken', token));
                               }
                             }),
                   SwitchListTile(
                     onChanged: (bool value) {
-                      if (value == false) {
-                        setState(() {});
-                        return;
-                      }
+                      // if (value == false) {
+                      //   setState(() {});
+                      //   return;
+                      // }
                       final wsApiToken = store.nodeWsEndpointApiToken;
                       final wsEndpoint = store.nodeWsEndpoint;
-                      final oldWsEndpoint =
-                          store.settings['oldWsEndpoint'] ?? env.configNodeWsEndpoint;
-                      final oldWsApiToken =
-                          store.settings['oldWsApiToken'] ?? env.configNodeWsEndpointApiToken;
+                      final oldWsEndpoint = store.settings['oldWsEndpoint'] ??
+                          env.configNodeWsEndpoint;
+                      final oldWsApiToken = store.settings['oldWsApiToken'] ??
+                          env.configNodeWsEndpointApiToken;
                       if (value) {
                         store.mergeSettings({
                           'nodeWsEndpoint': env.configEmbeddedNodeWsEndpoint,
-                          'wsApiToken': env.configEmbeddedNodeWsEndpointApiToken,
+                          'wsApiToken':
+                              env.configEmbeddedNodeWsEndpointApiToken,
                           'oldWsEndpoint': wsEndpoint,
                           'oldWsApiToken': wsApiToken
                         });
