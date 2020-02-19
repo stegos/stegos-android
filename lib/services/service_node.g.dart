@@ -404,6 +404,12 @@ mixin _$NodeService on _NodeService, Store {
   @override
   bool get operable =>
       (_$operableComputed ??= Computed<bool>(() => super.operable)).value;
+  Computed<bool> _$synchronizedComputed;
+
+  @override
+  bool get synchronized =>
+      (_$synchronizedComputed ??= Computed<bool>(() => super.synchronized))
+          .value;
   Computed<String> _$networkNameComputed;
 
   @override
@@ -429,21 +435,38 @@ mixin _$NodeService on _NodeService, Store {
       (_$_syncAllowedComputed ??= Computed<bool>(() => super._syncAllowed))
           .value;
 
-  final _$synchronizedAtom = Atom(name: '_NodeService.synchronized');
+  final _$min_epochAtom = Atom(name: '_NodeService.min_epoch');
 
   @override
-  bool get synchronized {
-    _$synchronizedAtom.context.enforceReadPolicy(_$synchronizedAtom);
-    _$synchronizedAtom.reportObserved();
-    return super.synchronized;
+  int get min_epoch {
+    _$min_epochAtom.context.enforceReadPolicy(_$min_epochAtom);
+    _$min_epochAtom.reportObserved();
+    return super.min_epoch;
   }
 
   @override
-  set synchronized(bool value) {
-    _$synchronizedAtom.context.conditionallyRunInAction(() {
-      super.synchronized = value;
-      _$synchronizedAtom.reportChanged();
-    }, _$synchronizedAtom, name: '${_$synchronizedAtom.name}_set');
+  set min_epoch(int value) {
+    _$min_epochAtom.context.conditionallyRunInAction(() {
+      super.min_epoch = value;
+      _$min_epochAtom.reportChanged();
+    }, _$min_epochAtom, name: '${_$min_epochAtom.name}_set');
+  }
+
+  final _$remote_epochAtom = Atom(name: '_NodeService.remote_epoch');
+
+  @override
+  int get remote_epoch {
+    _$remote_epochAtom.context.enforceReadPolicy(_$remote_epochAtom);
+    _$remote_epochAtom.reportObserved();
+    return super.remote_epoch;
+  }
+
+  @override
+  set remote_epoch(int value) {
+    _$remote_epochAtom.context.conditionallyRunInAction(() {
+      super.remote_epoch = value;
+      _$remote_epochAtom.reportChanged();
+    }, _$remote_epochAtom, name: '${_$remote_epochAtom.name}_set');
   }
 
   final _$networkAtom = Atom(name: '_NodeService.network');

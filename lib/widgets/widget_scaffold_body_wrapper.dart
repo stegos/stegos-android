@@ -8,7 +8,8 @@ import 'package:stegos_wallet/stores/store_stegos.dart';
 import 'package:stegos_wallet/ui/themes.dart';
 
 class ScaffoldBodyWrapperWidget extends StatefulWidget {
-  const ScaffoldBodyWrapperWidget({Key key, this.builder, this.wrapInObserver = false})
+  const ScaffoldBodyWrapperWidget(
+      {Key key, this.builder, this.wrapInObserver = false})
       : super(key: key);
   final WidgetBuilder builder;
   final bool wrapInObserver;
@@ -20,6 +21,9 @@ class ScaffoldBodyWrapperWidgetState extends State<ScaffoldBodyWrapperWidget> {
   ErrorState error;
   bool operable;
   bool connected;
+  bool locked;
+  int remote_epoch;
+  int min_epoch;
   bool get hasError => error?.message?.isNotEmpty ?? false;
   ReactionDisposer _disposer;
 
@@ -29,6 +33,9 @@ class ScaffoldBodyWrapperWidgetState extends State<ScaffoldBodyWrapperWidget> {
     error = null;
     operable = false;
     connected = false;
+    locked = false;
+    remote_epoch = 0;
+    min_epoch = 0;
   }
 
   @override
@@ -38,17 +45,26 @@ class ScaffoldBodyWrapperWidgetState extends State<ScaffoldBodyWrapperWidget> {
       final store = Provider.of<StegosStore>(context);
       error = store.error.value;
       operable = store.nodeService.operable;
+      remote_epoch = store.nodeService.remote_epoch;
+      min_epoch = store.nodeService.min_epoch;
       connected = store.nodeService.connected;
+      locked = store.nodeService.locked;
       _disposer = reaction(
           (_) => [
                 store.error.value,
                 store.nodeService.operable,
                 store.nodeService.connected,
+                store.nodeService.min_epoch,
+                store.nodeService.remote_epoch,
+                store.nodeService.locked,
               ], (arr) {
         setState(() {
           error = arr[0] as ErrorState;
           operable = arr[1] as bool;
           connected = arr[2] as bool;
+          min_epoch = arr[3] as int;
+          remote_epoch = arr[4] as int;
+          locked = arr[5] as bool;
         });
       });
     }
@@ -78,13 +94,15 @@ class ScaffoldBodyWrapperWidgetState extends State<ScaffoldBodyWrapperWidget> {
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
           //
-          if (!operable)
+          if (!operable && !locked)
             Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 50),
               color: StegosColors.accentColor,
               child: Text(
-                !connected ? 'Stegos node is not connected' : 'Stegos node synchronizing...',
+                !connected
+                    ? 'Stegos node is not connected'
+                    : 'Stegos node synchronizing ${min_epoch}/${remote_epoch}...',
                 textAlign: TextAlign.center,
                 style: TextStyle(fontWeight: FontWeight.w500, fontSize: 9),
               ),
@@ -98,7 +116,8 @@ class ScaffoldBodyWrapperWidgetState extends State<ScaffoldBodyWrapperWidget> {
               },
               child: Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 50),
+                padding:
+                    const EdgeInsets.symmetric(vertical: 12, horizontal: 50),
                 color: StegosColors.errorColor,
                 child: Text(
                   error.message,
@@ -108,7 +127,10 @@ class ScaffoldBodyWrapperWidgetState extends State<ScaffoldBodyWrapperWidget> {
               ),
             ),
           //
-          Expanded(child: widget.wrapInObserver ? Observer(builder: builder) : builder(context))
+          Expanded(
+              child: widget.wrapInObserver
+                  ? Observer(builder: builder)
+                  : builder(context))
         ],
       ),
     );

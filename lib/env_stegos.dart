@@ -22,7 +22,8 @@ class StegosUserException implements Exception {
   final String message;
 }
 
-FutureOr<T> Function(Object, StackTrace) defaultErrorHandler<T>(StegosEnv env) =>
+FutureOr<T> Function(Object, StackTrace) defaultErrorHandler<T>(
+        StegosEnv env) =>
     (Object err, StackTrace st) {
       if (err is StegosUserException) {
         env.setError(err.message);
@@ -30,7 +31,8 @@ FutureOr<T> Function(Object, StackTrace) defaultErrorHandler<T>(StegosEnv env) =
       return Future<T>.error(err, st);
     };
 
-FutureOr<T> Function(Object, StackTrace) silentWarnLogErrorHandler<T>(StegosEnv env) =>
+FutureOr<T> Function(Object, StackTrace) silentWarnLogErrorHandler<T>(
+        StegosEnv env) =>
     (Object err, StackTrace st) {
       env.log.warning('Unhandled error', err, st);
       return Future<T>.value();
@@ -46,7 +48,8 @@ class StegosEnv extends Env<Widget> {
     Log('NodeService').level = Level.FINE;
   }
 
-  static const MethodChannel activityControlChannel = MethodChannel('stegos/control');
+  static const MethodChannel activityControlChannel =
+      MethodChannel('stegos/control');
 
   /// Environment name
   @override
@@ -112,7 +115,9 @@ class StegosEnv extends Env<Widget> {
 
   /// True if FP/FaceID checking available and allowed by user
   bool get biometricsCheckingAllowed =>
-      biometricsAvailable && biometricsPinStored && store.allowBiometricsProtection;
+      biometricsAvailable &&
+      biometricsPinStored &&
+      store.allowBiometricsProtection;
 
   /// Use database in given [fn] function.
   /// This method don't leave database in open state
@@ -137,7 +142,8 @@ class StegosEnv extends Env<Widget> {
   }
 
   /// Get database handle
-  Future<EJDB2> getDb() async => _db ??= await EJDB2Builder('stegos_wallet.db').open();
+  Future<EJDB2> getDb() async =>
+      _db ??= await EJDB2Builder('stegos_wallet.db').open();
 
   /// Get stegos node websocket client
   StegosNodeClient get nodeClient => _client ??= StegosNodeClient.open(this);
@@ -173,8 +179,11 @@ class StegosEnv extends Env<Widget> {
   /// Create initial application widget.
   @override
   Future<Widget> openWidget() async {
-    await PermissionHandler().requestPermissions(
-        [PermissionGroup.storage, PermissionGroup.camera, PermissionGroup.contacts]);
+    await PermissionHandler().requestPermissions([
+      PermissionGroup.storage,
+      PermissionGroup.camera,
+      PermissionGroup.contacts
+    ]);
 
     securityService ??= SecurityService(this);
     biometricsAvailable = await securityService.canCheckBiometrics();
@@ -241,7 +250,8 @@ class StegosEnv extends Env<Widget> {
 
   Future<void> _suspend(AppLifecycleState state) async {
     if (configSkipAppSuspending) {
-      log.info('App suspend skipped due to env configuration: \'configSkipAppSuspending\'');
+      log.info(
+          'App suspend skipped due to env configuration: \'configSkipAppSuspending\'');
       return;
     }
     log.info('Suspending environment');
@@ -250,6 +260,8 @@ class StegosEnv extends Env<Widget> {
         log.warning('', err);
       });
     }
+    await nodeService.suspend();
+
     return store.disposeAsync().whenComplete(_closeDb);
   }
 }
