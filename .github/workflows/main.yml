@@ -1,0 +1,31 @@
+on: push
+name: Test, Build and Release apk
+jobs:
+  build:
+    name: Build APK
+    runs-on: ubuntu-latest
+    env:
+      STEGOS_PROJECT_ID: 25
+      GITLAB_CI_API_V4_URL: https://gitlab.aws.stegos.com/api/v4
+      STEGOS_LIB_PATH: libstegos.so?job=release:android-aarch64
+    steps:
+    - name: Extract branch name
+      shell: bash
+      run: |
+        STEGOS_BRANCH=vm-add-replication-version
+        echo "::set-env name=STEGOS_NATIVE_BUNDLE_PACK::$(echo ${GITLAB_CI_API_V4_URL}/projects/${STEGOS_PROJECT_ID}/jobs/artifacts/${STEGOS_BRANCH}/raw/release/${STEGOS_LIB_PATH})"
+    - run: env
+    - uses: actions/checkout@v1
+    - uses: actions/setup-java@v1
+      with:
+        java-version: '12.x'
+    - uses: subosito/flutter-action@v1
+      with:
+        flutter-version: '1.12.13+hotfix.7'
+    - run: flutter pub get
+    - run: mkdir -p ./android/app/src/main/jniLibs/aarch64/
+    - name: curl
+      uses: wei/curl@v1
+      with:
+        args: ${{env.STEGOS_NATIVE_BUNDLE_PACK}} -o ./android/app/src/main/jniLibs/aarch64/libstegos.so
+    - run: flutter build apk --debug --split-per-abi
