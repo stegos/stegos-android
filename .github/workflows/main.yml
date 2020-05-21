@@ -1,0 +1,55 @@
+on: push
+name: Test, Build and Release apk
+jobs:
+  build:
+    name: Build APK
+    runs-on: ubuntu-latest
+    env:
+      STEGOS_PROJECT_ID: 25
+      GITLAB_CI_API_V4_URL: https://gitlab.aws.stegos.com/api/v4
+      STEGOS_LIB_PATH: libstegos.so
+      STEGOS_CLIB_PATH: libc++_shared.so
+      ANDROID_JNI_PATH: ./android/app/src/main/jniLibs
+    steps:
+    - name: Extract branch name
+      shell: bash
+      run: |
+        STEGOS_BRANCH=${GITHUB_REF##*/}
+        echo "::set-env name=STEGOS_LIB_ARM::$(echo ${GITLAB_CI_API_V4_URL}/projects/${STEGOS_PROJECT_ID}/jobs/artifacts/${STEGOS_BRANCH}/raw/release/${STEGOS_LIB_PATH})?job=release:android-aarch64"
+        echo "::set-env name=STEGOS_CLIB_ARM::$(echo ${GITLAB_CI_API_V4_URL}/projects/${STEGOS_PROJECT_ID}/jobs/artifacts/${STEGOS_BRANCH}/raw/release/${STEGOS_CLIB_PATH})?job=release:android-aarch64"
+        echo "::set-env name=STEGOS_LIB_X64::$(echo ${GITLAB_CI_API_V4_URL}/projects/${STEGOS_PROJECT_ID}/jobs/artifacts/${STEGOS_BRANCH}/raw/release/${STEGOS_LIB_PATH})?job=release:android-x64"
+        echo "::set-env name=STEGOS_CLIB_X64::$(echo ${GITLAB_CI_API_V4_URL}/projects/${STEGOS_PROJECT_ID}/jobs/artifacts/${STEGOS_BRANCH}/raw/release/${STEGOS_CLIB_PATH})?job=release:android-x64"
+    - run: env
+    - uses: actions/checkout@v1
+    - uses: actions/setup-java@v1
+      with:
+        java-version: '12.x'
+    - uses: subosito/flutter-action@v1
+      with:
+        flutter-version: '1.17.1'
+    - run: flutter pub get
+    - run: mkdir -p ${{env.ANDROID_JNI_PATH}}/arm64-v8a/
+    - run: mkdir -p ${{env.ANDROID_JNI_PATH}}/x86_64/
+    - name: Copy C lib arm
+      uses: wei/curl@v1
+      with:
+        args: ${{env.STEGOS_CLIB_ARM}} -o ${{env.ANDROID_JNI_PATH}}/arm64-v8a/libc++_shared.so
+    - name: Copy stegos lib arm
+      uses: wei/curl@v1
+      with:
+        args: ${{env.STEGOS_LIB_ARM}} -o ${{env.ANDROID_JNI_PATH}}/arm64-v8a/libstegos.so
+    - name: Copy C lib x64
+      uses: wei/curl@v1
+      with:
+        args: ${{env.STEGOS_CLIB_X64}} -o ${{env.ANDROID_JNI_PATH}}/x86_64/libc++_shared.so
+    - name: Copy stegos lib x64
+      uses: wei/curl@v1
+      with:
+        args: ${{env.STEGOS_LIB_X64}} -o ${{env.ANDROID_JNI_PATH}}/x86_64/libstegos.so
+    - run: flutter build apk --split-per-abi
+    - name: Create a Release APK
+      uses: ncipollo/release-action@v1
+      with:
+        tag: testing
+        artifacts: "build/app/outputs/apk/release/*.apk"
+        token: ${{ secrets.TOKEN }}
