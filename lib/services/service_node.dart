@@ -1230,6 +1230,11 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
     return nodeAccounts;
   }
 
+  Future<void> _subscribeNotifications() async {
+    await client
+          .sendAndAwait({'type': 'subscribe_wallet_updates'});
+  }
+
   Future<void> _syncAccountsOffline() async => _env.useDb((db) async {
         if (log.isFine) {
           log.fine('syncAccountsOffline...');
@@ -1272,6 +1277,7 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
 
   Future<void> _syncAccounts() async {
     final nodeAccounts = await _detectNetworkAndSetupInitialAccounts();
+    await _subscribeNotifications();
     final ids = nodeAccounts.keys.map(int.parse).toList();
     // Cleanup not matched accounts
     runInAction(() => accounts.removeWhere((k, v) => !ids.contains(k)));

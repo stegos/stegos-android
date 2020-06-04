@@ -6,6 +6,8 @@ import 'package:stegos_wallet/log/loggable.dart';
 import 'package:stegos_wallet/stores/store_common.dart';
 import 'package:stegos_wallet/services/service_node.dart';
 
+import 'package:quiver/core.dart';
+
 part 'store_stegos.g.dart';
 
 class ContactStore extends _ContactStore {
@@ -145,8 +147,17 @@ abstract class _StegosStore extends MainStoreSupport with Store, Loggable<Stegos
   @action
   Future<void> activate() async {
     final env = this.env;
+    if (log.isFine) {
+      log.fine('Activate stegos store.');
+    }
     final db = await env.getDb();
-    await db.getOptional('settings', DOC_SETTINGS_ID).then((ov) {
+    if (log.isFine) {
+      log.fine('Get settings.');
+    }
+    await db.getOptional('settings', DOC_SETTINGS_ID).catchError((err) {
+      // handle resource not found error
+        return Future.value(const Optional<JBDOC>.absent());
+    }).then((ov) {
       if (ov.isPresent) {
         untracked(() {
           final doc = ov.value.object as Map<dynamic, dynamic>;
@@ -160,6 +171,10 @@ abstract class _StegosStore extends MainStoreSupport with Store, Loggable<Stegos
         return _flushSettings();
       }
     });
+
+    if (log.isFine) {
+      log.fine('Geted settings.');
+    }
     if (settings.containsKey('lastRoute')) {
       final v = settings['lastRoute'];
       final routeSettings = RouteSettings(name: v['name'] as String, arguments: v['arguments']);

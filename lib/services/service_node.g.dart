@@ -404,6 +404,11 @@ mixin _$NodeService on _NodeService, Store {
   @override
   bool get operable =>
       (_$operableComputed ??= Computed<bool>(() => super.operable)).value;
+  Computed<bool> _$lockedComputed;
+
+  @override
+  bool get locked =>
+      (_$lockedComputed ??= Computed<bool>(() => super.locked)).value;
   Computed<bool> _$synchronizedComputed;
 
   @override
