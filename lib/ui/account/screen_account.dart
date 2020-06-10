@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:provider/provider.dart';
 import 'package:mobx/mobx.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:stegos_wallet/services/service_node.dart';
@@ -15,6 +16,7 @@ import 'package:stegos_wallet/ui/transactions/screen_transactions.dart';
 import 'package:stegos_wallet/ui/transactions/transactions_list.dart';
 import 'package:stegos_wallet/widgets/widget_app_bar.dart';
 import 'package:stegos_wallet/widgets/widget_scaffold_body_wrapper.dart';
+import 'package:stegos_wallet/env_stegos.dart';
 
 class AccountScreen extends StatefulWidget {
   AccountScreen({Key key, this.account}) : super(key: key);
@@ -26,21 +28,25 @@ class AccountScreen extends StatefulWidget {
 }
 
 class _AccountScreenState extends State<AccountScreen> {
-  ReactionDisposer _disposer;
+  final _disposers = <ReactionDisposer>[];
 
   @override
-  void initState() {
-    super.initState();
-    // Rebuild me if txList empty state changed
-    _disposer = reaction((_) => [widget.account.txList.isNotEmpty], (_) => setState(() {}));
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _disposers.forEach((d) => d());
+    _disposers.length = 0;
+    final env = Provider.of<StegosEnv>(context);
+    // Rebuild me if txList list changed
+    _disposers.addAll([reaction((_) => [widget.account.txList.last], (_) => setState(() {})),
+    reaction((_) => [widget.account.balanceAvailable], (_) => env.syncAccount(widget.account)),
+    ]);
   }
 
   @override
   void dispose() {
-    if (_disposer != null) {
-      _disposer();
-      _disposer = null;
-    }
+
+    _disposers.forEach((d) => d());
+    _disposers.length = 0;
     super.dispose();
   }
 

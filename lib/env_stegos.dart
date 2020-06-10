@@ -264,4 +264,10 @@ class StegosEnv extends Env<Widget> {
 
     return store.disposeAsync().whenComplete(_closeDb);
   }
+
+  void syncAccount(AccountStore account) {
+    log.info('Synchronize account tx list.');
+    unawaited(nodeService.syncAccountTransactions(account));
+  }
+
 }

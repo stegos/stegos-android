@@ -951,7 +951,7 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
     });
   }
 
-  Future<void> _syncAccountsByIds(Iterable<int> ids,
+  Future<void> syncAccountsByIds(Iterable<int> ids,
           {bool forceSealing = false}) =>
       Future.forEach(ids, (int id) {
         if (!accounts.containsKey(id)) {
@@ -977,7 +977,7 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
         return list;
       });
 
-  Future<void> _syncAccountTransactions(AccountStore account) =>
+  Future<void> syncAccountTransactions(AccountStore account) =>
       _env.useDb((db) async {
         final list = await _fetchAccountTransactions(account);
         final hmap = <String, TxStore>{};
@@ -1054,7 +1054,7 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
       await db.patchOrPut(_accountsCollecton, account, id);
 
       // fixme: Lazy loading of account transactions
-      return _syncAccountTransactions(account);
+      return syncAccountTransactions(account);
     });
     // } finally {
     //   unawaited(_sealAccount(id, force: forceSealing));
@@ -1310,7 +1310,7 @@ abstract class _NodeService with Store, StoreLifecycle, Loggable<NodeService> {
         return keysChanged ? _clearAccountTransactions(acc.id) : Future.value();
       }));
     }).then((_) {
-      return _syncAccountsByIds(ids, forceSealing: true);
+      return syncAccountsByIds(ids, forceSealing: true);
     });
   }
 }
