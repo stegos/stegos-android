@@ -1,24 +1,30 @@
-on: push
+on: 
+  release:
+    types: [published]
+  push:
+
 name: Test, Build and Release apk
 jobs:
   build:
     name: Build APK
     runs-on: ubuntu-latest
     env:
-      STEGOS_PROJECT_ID: 25
-      GITLAB_CI_API_V4_URL: https://gitlab.aws.stegos.com/api/v4
-      STEGOS_LIB_PATH: libstegos.so
-      STEGOS_CLIB_PATH: libc++_shared.so
       ANDROID_JNI_PATH: ./android/app/src/main/jniLibs
     steps:
-    - name: Extract branch name
-      shell: bash
+    
+    - name: Set tag path
+      env: 
+        NIGHTLY: ${{github.event.action != 'published'}}
       run: |
+        env
         STEGOS_BRANCH=${GITHUB_REF##*/}
-        echo "::set-env name=STEGOS_LIB_ARM::$(echo ${GITLAB_CI_API_V4_URL}/projects/${STEGOS_PROJECT_ID}/jobs/artifacts/${STEGOS_BRANCH}/raw/release/${STEGOS_LIB_PATH})?job=release:android-aarch64"
-        echo "::set-env name=STEGOS_CLIB_ARM::$(echo ${GITLAB_CI_API_V4_URL}/projects/${STEGOS_PROJECT_ID}/jobs/artifacts/${STEGOS_BRANCH}/raw/release/${STEGOS_CLIB_PATH})?job=release:android-aarch64"
-        echo "::set-env name=STEGOS_LIB_X64::$(echo ${GITLAB_CI_API_V4_URL}/projects/${STEGOS_PROJECT_ID}/jobs/artifacts/${STEGOS_BRANCH}/raw/release/${STEGOS_LIB_PATH})?job=release:android-x64"
-        echo "::set-env name=STEGOS_CLIB_X64::$(echo ${GITLAB_CI_API_V4_URL}/projects/${STEGOS_PROJECT_ID}/jobs/artifacts/${STEGOS_BRANCH}/raw/release/${STEGOS_CLIB_PATH})?job=release:android-x64"
+        STEGOS_TAG=$STEGOS_BRANCH
+        if [ "${NIGHTLY}" == "true" ]; then
+          STEGOS_TAG="nightly"
+        fi
+        echo "::set-env name=STEGOS_TAG::${STEGOS_TAG}"
+    - name: Set organisation variable
+      run: echo "::set-env name=STEGOS_ORGANISATION::${GITHUB_REPOSITORY%%/*}"
     - run: env
     - uses: actions/checkout@v1
     - uses: actions/setup-java@v1
@@ -30,24 +36,25 @@ jobs:
     - run: flutter pub get
     - run: mkdir -p ${{env.ANDROID_JNI_PATH}}/arm64-v8a/
     - run: mkdir -p ${{env.ANDROID_JNI_PATH}}/x86_64/
-    - name: Copy C lib arm
-      uses: wei/curl@v1
-      with:
-        args: ${{env.STEGOS_CLIB_ARM}} -o ${{env.ANDROID_JNI_PATH}}/arm64-v8a/libc++_shared.so
-    - name: Copy stegos lib arm
-      uses: wei/curl@v1
-      with:
-        args: ${{env.STEGOS_LIB_ARM}} -o ${{env.ANDROID_JNI_PATH}}/arm64-v8a/libstegos.so
-    - name: Copy C lib x64
-      uses: wei/curl@v1
-      with:
-        args: ${{env.STEGOS_CLIB_X64}} -o ${{env.ANDROID_JNI_PATH}}/x86_64/libc++_shared.so
-    - name: Copy stegos lib x64
-      uses: wei/curl@v1
-      with:
-        args: ${{env.STEGOS_LIB_X64}} -o ${{env.ANDROID_JNI_PATH}}/x86_64/libstegos.so
+
+    - name: Copy stegos lib arm_x64
+      run: wget -O aarch.tar.gz https://github.com/${{env.STEGOS_ORGANISATION}}/stegos/releases/download/${STEGOS_TAG}/android-aarch64-libstegos-dev.tar.gz
+    - run: tar -zxf aarch.tar.gz --directory ${{env.ANDROID_JNI_PATH}}/arm64-v8a/
+    
+    - name: Copy stegos lib x86_x64
+      run: wget -O x64.tar.gz https://github.com/${STEGOS_ORGANISATION}/stegos/releases/download/${STEGOS_TAG}/android-x64-libstegos-dev.tar.gz
+    - run: tar -zxf x64.tar.gz --directory ${{env.ANDROID_JNI_PATH}}/x86_64
+    
     - run: flutter build apk --split-per-abi
+
+    - uses: actions/upload-artifact@v2
+      if: github.event.action != 'published'
+      with:
+        name: Branch builds
+        path: "build/app/outputs/apk/release/*.apk"
+
     - name: Create a Release APK
+      if: github.event.action == 'published'
       uses: ncipollo/release-action@v1
       with:
         tag: testing
