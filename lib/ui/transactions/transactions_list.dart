@@ -65,7 +65,7 @@ class _TransactionsListState extends State<TransactionsList> with TickerProvider
     return InkWell(
       onTap: () => _openTxDetails(tx),
       child: Padding(
-        padding: const EdgeInsets.only(left: 20, right: 10, top: 25, bottom: 25),
+        padding: const EdgeInsets.only(left: 15, right: 10, top: 25, bottom: 25),
         child: Container(
             height: 39,
             child: Stack(
@@ -80,7 +80,7 @@ class _TransactionsListState extends State<TransactionsList> with TickerProvider
                         ),
                         Text(
                           tx.humanStatus,
-                          style: const TextStyle(fontSize: 16, color: StegosColors.white),
+                          style: const TextStyle(fontSize: 15, color: StegosColors.white),
                         )
                       ],
                     )),
@@ -92,11 +92,11 @@ class _TransactionsListState extends State<TransactionsList> with TickerProvider
                     )),
                 Container(
                   alignment: Alignment.topRight,
-                  margin: const EdgeInsets.only(right: 54),
+                  margin: const EdgeInsets.only(right: 32),
                   child: Text(
                     '${tx.humanAmount} STG',
                     style: TextStyle(
-                        fontSize: 16, color: !tx.send ? const Color(0xff32ff6b) : Colors.white),
+                        fontSize: 15, color: tx.send ? const Color(0xfff55645) : const Color(0xff32ff6b) ),
                   ),
                 ),
                 Container(
